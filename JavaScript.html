@@ -53,6 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load Data
   loadImages();
   loadNews();
+  loadCategoryLinks();
   
   // Drag & Drop
   setupDragAndDrop();
@@ -954,4 +955,71 @@ function showToast(message, type = 'success') {
     }, 300);
   }, 3000);
 }
+
+// ============================================================
+// Categories Link Management
+// ============================================================
+
+let currentCategoryLinks = [];
+
+function loadCategoryLinks() {
+  google.script.run
+    .withSuccessHandler(updateCategoryLinks)
+    .withFailureHandler(err => console.error('Failed to load category links', err))
+    .getCategoryLinks();
+}
+
+function updateCategoryLinks(links) {
+  if (!links || links.length !== 7) return;
+  currentCategoryLinks = links;
+  for (let i = 1; i <= 7; i++) {
+    const linkEl = document.getElementById('catLink' + i);
+    if (linkEl) {
+      linkEl.href = links[i - 1];
+    }
+  }
+}
+
+function openEditCategoriesModal() {
+  // Populate the form with current links
+  for (let i = 1; i <= 7; i++) {
+    const inputEl = document.getElementById('editCatLink' + i);
+    if (inputEl) {
+      inputEl.value = currentCategoryLinks[i - 1] || '';
+    }
+  }
+  openModal('editCategoriesModal');
+}
+
+function saveEditCategories() {
+  const btn = document.getElementById('btnSaveCategories');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons">hourglass_empty</span> กำลังบันทึก...';
+  
+  const links = [];
+  for (let i = 1; i <= 7; i++) {
+    const val = document.getElementById('editCatLink' + i).value.trim();
+    links.push(val);
+  }
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">save</span> บันทึกข้อมูล';
+      if (res.success) {
+        showToast('บันทึกลิงก์หมวดหมู่สำเร็จ', 'success');
+        closeModal('editCategoriesModal');
+        updateCategoryLinks(links); // Update UI immediately
+      } else {
+        showToast(res.message, 'error');
+      }
+    })
+    .withFailureHandler((err) => {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">save</span> บันทึกข้อมูล';
+      showToast('เชื่อมต่อล้มเหลว', 'error');
+    })
+    .saveCategoryLinks(links);
+}
 </script>
+

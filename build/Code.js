@@ -360,6 +360,43 @@ function editNews(row, title, content, imagesData) {
   }
 }
 
+// ------------------------------------------------------------
+// Category Links Management
+// ------------------------------------------------------------
+function getCategoryLinks() {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const linksJson = props.getProperty('categoryLinks');
+    if (linksJson) {
+      return JSON.parse(linksJson);
+    }
+    // Default links
+    return [
+      "https://drive.google.com/drive/folders/1_jUoKKCrpZcXOqCOI1YmS3YYzggkHAVs?usp=drive_link",
+      "https://drive.google.com/drive/folders/168nIWvst4X7ESJSQy5Gn6iKU6mtV0jW2?usp=drive_link",
+      "https://drive.google.com/drive/folders/1rCLpI-P5bCoym2Gcs_Mlao8YNdFDLhTg?usp=drive_link",
+      "https://drive.google.com/drive/folders/1qjrL4t1Hxj5UAdjTWWpsuczFygbaHQNZ?usp=drive_link",
+      "https://drive.google.com/drive/folders/1gIy74CJRHxvQTcE8p30gJ1DLOAVd53GH?usp=drive_link",
+      "https://drive.google.com/drive/folders/1Xtw2h0fGS7exmfFxC9GBjJ7nYWhormMg?usp=drive_link",
+      "https://drive.google.com/drive/folders/138ATKzL-z0U34rq-2rx5gv-o54j9mTDI?usp=drive_link"
+    ];
+  } catch (e) {
+    Logger.log('getCategoryLinks error: ' + e.message);
+    return [];
+  }
+}
+
+function saveCategoryLinks(links) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    props.setProperty('categoryLinks', JSON.stringify(links));
+    return { success: true };
+  } catch (e) {
+    Logger.log('saveCategoryLinks error: ' + e.message);
+    return { success: false, message: 'บันทึกข้อมูลไม่สำเร็จ: ' + e.message };
+  }
+}
+
 // Force OAuth authorization for DriveApp
 function authorizeDrive() {
   DriveApp.getFiles();
