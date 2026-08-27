@@ -493,3 +493,22 @@ function addCalendarEvent(eventData) {
     return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
   }
 }
+
+
+function deleteCalendarEvent(id) {
+  try {
+    const sheet = ensureCalendarSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === id) {
+        sheet.deleteRow(i + 1);
+        return { success: true, message: 'ลบกิจกรรมเรียบร้อยแล้ว' };
+      }
+    }
+    return { success: false, message: 'ไม่พบกิจกรรมที่ต้องการลบ' };
+  } catch (e) {
+    Logger.log('Error deleteCalendarEvent: ' + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}

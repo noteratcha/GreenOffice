@@ -999,11 +999,37 @@ function initCalendar() {
       }).getCalendarEvents();
     },
     eventClick: function(info) {
-      let msg = info.event.title;
+      document.getElementById('eventDetailTitle').textContent = info.event.title;
+      
+      let timeText = 'ตลอดวัน';
       if (!info.event.allDay && info.event.start) {
-        msg += '\nเวลา: ' + info.event.start.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+        const dateOpts = { year: 'numeric', month: 'long', day: 'numeric' };
+        const timeOpts = { hour: '2-digit', minute: '2-digit' };
+        timeText = info.event.start.toLocaleDateString('th-TH', dateOpts) + ' เวลา ' + info.event.start.toLocaleTimeString('th-TH', timeOpts) + ' น.';
+      } else if (info.event.start) {
+        const dateOpts = { year: 'numeric', month: 'long', day: 'numeric' };
+        timeText = info.event.start.toLocaleDateString('th-TH', dateOpts) + ' (ตลอดวัน)';
       }
-      alert(msg);
+      document.getElementById('eventDetailTimeText').textContent = timeText;
+      
+      const iconWrap = document.getElementById('eventDetailIcon');
+      if (info.event.backgroundColor) {
+        iconWrap.style.backgroundColor = info.event.backgroundColor + '20';
+        iconWrap.style.color = info.event.backgroundColor;
+      } else {
+        iconWrap.style.backgroundColor = 'var(--color-light)';
+        iconWrap.style.color = 'var(--color-primary)';
+      }
+      
+      document.getElementById('btnDeleteEvent').dataset.eventId = info.event.id;
+      
+      if (currentRole === 'admin') {
+        document.getElementById('btnDeleteEvent').classList.remove('hidden');
+      } else {
+        document.getElementById('btnDeleteEvent').classList.add('hidden');
+      }
+      
+      openModal('eventDetailModal');
     }
   });
   
@@ -1102,6 +1128,34 @@ function handleAddEvent(e) {
     btn.disabled = false;
     showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
   }).addCalendarEvent(eventData);
+}
+
+
+function deleteEventAction() {
+  const btn = document.getElementById('btnDeleteEvent');
+  const eventId = btn.dataset.eventId;
+  if (!eventId) return;
+  
+  if (confirm('คุณต้องการลบกิจกรรมนี้ใช่หรือไม่?')) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-icons rotating">autorenew</span> กำลังลบ...';
+    
+    google.script.run.withSuccessHandler(function(res) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">delete</span> ลบกิจกรรม';
+      if (res.success) {
+        closeModal('eventDetailModal');
+        if(calendar) calendar.refetchEvents();
+        showToast('ลบกิจกรรมเรียบร้อยแล้ว', 'success');
+      } else {
+        showToast(res.message, 'error');
+      }
+    }).withFailureHandler(function(err) {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">delete</span> ลบกิจกรรม';
+      showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
+    }).deleteCalendarEvent(eventId);
+  }
 }
 
 </script>

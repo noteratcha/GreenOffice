@@ -315,6 +315,37 @@
     </div>
   </div>
 
+  
+  <!-- Event Detail Modal -->
+  <div id="eventDetailModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><span class="material-icons">event</span> รายละเอียดกิจกรรม</h3>
+        <button class="modal-close" onclick="closeModal('eventDetailModal')">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div style="text-align: center; margin-bottom: 1.5rem;">
+          <div id="eventDetailIcon" style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: var(--color-light); color: var(--color-primary); margin-bottom: 1rem;">
+            <span class="material-icons" style="font-size: 32px;">event</span>
+          </div>
+          <h2 id="eventDetailTitle" style="color: var(--color-text); margin-bottom: 0.5rem; font-size: 1.25rem;"></h2>
+          <p id="eventDetailTime" style="color: var(--color-text-light); display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+            <span class="material-icons" style="font-size: 16px;">schedule</span> <span id="eventDetailTimeText"></span>
+          </p>
+        </div>
+        
+        <div class="modal-footer" style="padding: 1.5rem 0 0; justify-content: center; gap: 1rem;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('eventDetailModal')">ปิดหน้าต่าง</button>
+          <button type="button" class="btn btn-danger hidden" id="btnDeleteEvent" onclick="deleteEventAction()">
+            <span class="material-icons">delete</span> ลบกิจกรรม
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Login Modal -->
   <div id="loginModal" class="modal-backdrop">
     <div class="modal">
