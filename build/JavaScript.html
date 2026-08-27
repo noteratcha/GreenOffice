@@ -1,0 +1,705 @@
+<script>
+// ============================================================
+// Green Office - Client Side Logic
+// ============================================================
+
+// State
+let currentUser = null;
+let currentRole = null;
+let uploadFiles = [];
+let carouselImages = [];
+let currentSlide = 0;
+let carouselInterval = null;
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('currentYear').textContent = new Date().getFullYear();
+  
+  // Mobile Nav Toggle
+  const hamburger = document.getElementById('navHamburger');
+  const navCenter = document.getElementById('navCenter');
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('active');
+    navCenter.classList.toggle('open');
+  });
+
+  // Fix native anchor links inside iframe
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', function(e) {
+      const targetId = this.getAttribute('href');
+      if (targetId && targetId.startsWith('#')) {
+        e.preventDefault();
+        const targetElement = document.querySelector(targetId);
+        if (targetElement) {
+          targetElement.scrollIntoView({ behavior: 'smooth' });
+          document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
+          this.classList.add('active');
+          
+          // Close mobile menu if open
+          hamburger.classList.remove('active');
+          navCenter.classList.remove('open');
+        }
+      }
+    });
+  });
+
+  // Check saved session
+  const savedUser = localStorage.getItem('go_user');
+  const savedRole = localStorage.getItem('go_role');
+  if (savedUser) {
+    setUserSession(savedUser, savedRole);
+  }
+
+  // Load Data
+  loadImages();
+  loadNews();
+  
+  // Drag & Drop
+  setupDragAndDrop();
+});
+
+// ============================================================
+// Authentication
+// ============================================================
+
+function handleLogin(e) {
+  e.preventDefault();
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+  const btn = document.getElementById('btnLoginSubmit');
+  const errorMsg = document.getElementById('loginError');
+  
+  if(!user || !pass) return;
+  
+  btn.disabled = true;
+  btn.innerHTML = 'กำลังเข้าสู่ระบบ...';
+  errorMsg.classList.add('hidden');
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      btn.disabled = false;
+      btn.innerHTML = 'เข้าสู่ระบบ';
+      if (res.success) {
+        setUserSession(res.user, res.role);
+        closeModal('loginModal');
+        showToast('เข้าสู่ระบบสำเร็จ', 'success');
+        document.getElementById('loginForm').reset();
+      } else {
+        errorMsg.classList.remove('hidden');
+        document.getElementById('loginErrorMsg').textContent = res.message;
+      }
+    })
+    .withFailureHandler((err) => {
+      btn.disabled = false;
+      btn.innerHTML = 'เข้าสู่ระบบ';
+      errorMsg.classList.remove('hidden');
+      document.getElementById('loginErrorMsg').textContent = 'เชื่อมต่อล้มเหลว';
+    })
+    .checkLogin(user, pass);
+}
+
+function setUserSession(username, role) {
+  currentUser = username;
+  currentRole = role;
+  localStorage.setItem('go_user', username);
+  if(role) localStorage.setItem('go_role', role);
+  
+  document.getElementById('btnNavLogin').classList.add('hidden');
+  document.getElementById('navUserInfo').classList.remove('hidden');
+  document.getElementById('userNameDisplay').textContent = username;
+  document.getElementById('userAvatarIcon').textContent = username.charAt(0).toUpperCase();
+  
+  document.getElementById('fabContainer').classList.remove('hidden');
+  
+  if (role === 'admin' || username.toLowerCase() === 'admin') {
+    document.getElementById('fabUpload').classList.remove('hidden');
+    document.getElementById('fabAddNews').classList.remove('hidden');
+    document.getElementById('fabManagePhotos').classList.remove('hidden');
+  } else {
+    document.getElementById('fabUpload').classList.add('hidden');
+    document.getElementById('fabAddNews').classList.add('hidden');
+    document.getElementById('fabManagePhotos').classList.add('hidden');
+  }
+}
+
+function logout() {
+  currentUser = null;
+  currentRole = null;
+  localStorage.removeItem('go_user');
+  localStorage.removeItem('go_role');
+  
+  document.getElementById('btnNavLogin').classList.remove('hidden');
+  document.getElementById('navUserInfo').classList.add('hidden');
+  document.getElementById('fabContainer').classList.add('hidden');
+  
+  showToast('ออกจากระบบแล้ว', 'success');
+}
+
+// ============================================================
+// Carousel & Images
+// ============================================================
+
+function loadImages() {
+  google.script.run
+    .withSuccessHandler((images) => {
+      carouselImages = images;
+      renderCarousel();
+      
+      // Hide loading screen after initial load
+      setTimeout(() => {
+        document.getElementById('loadingScreen').classList.add('hidden');
+      }, 500);
+    })
+    .withFailureHandler((err) => {
+      console.error(err);
+      document.getElementById('carouselContainer').innerHTML = '<div class="carousel-empty">โหลดรูปภาพล้มเหลว</div>';
+      document.getElementById('loadingScreen').classList.add('hidden');
+    })
+    .getImages();
+}
+
+function renderCarousel() {
+  const container = document.getElementById('carouselContainer');
+  const dotsContainer = document.getElementById('carouselDots');
+  
+  if (!carouselImages || carouselImages.length === 0) {
+    container.innerHTML = '<div class="carousel-empty"><span class="material-icons">photo_library</span><p>ยังไม่มีรูปภาพกิจกรรม</p></div>';
+    dotsContainer.innerHTML = '';
+    return;
+  }
+  
+  let html = '';
+  let dotsHtml = '';
+  
+  carouselImages.forEach((img, index) => {
+    const dateStr = new Date(img.date).toLocaleDateString('th-TH', { 
+      year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    
+    html += `
+      <div class="carousel-slide" id="slide-${index}">
+        <img src="${img.url}" alt="${img.name}" loading="lazy">
+      </div>
+    `;
+    dotsHtml += `<button class="carousel-dot" onclick="goToSlide(${index})"></button>`;
+  });
+  
+  container.innerHTML = html;
+  
+  // Show up to 10 dots max to prevent overflow
+  if (carouselImages.length <= 15) {
+    dotsContainer.innerHTML = dotsHtml;
+  } else {
+    dotsContainer.innerHTML = '';
+  }
+  
+  goToSlide(0);
+}
+
+function goToSlide(index) {
+  if (index < 0 || index >= carouselImages.length) return;
+  currentSlide = index;
+  
+  const prevIdx = currentSlide === 0 ? carouselImages.length - 1 : currentSlide - 1;
+  const nextIdx = currentSlide === carouselImages.length - 1 ? 0 : currentSlide + 1;
+  
+  document.querySelectorAll('.carousel-slide').forEach((slide, idx) => {
+    slide.className = 'carousel-slide'; // reset
+    slide.onclick = null;
+    
+    if (idx === currentSlide) {
+      slide.classList.add('active');
+    } else if (idx === prevIdx && carouselImages.length > 1) {
+      slide.classList.add('prev');
+      slide.onclick = () => goToSlide(prevIdx);
+    } else if (idx === nextIdx && carouselImages.length > 2) {
+      slide.classList.add('next');
+      slide.onclick = () => goToSlide(nextIdx);
+    } else if (idx === nextIdx && carouselImages.length === 2) {
+      // If only 2 images, next and prev are the same
+      slide.classList.add('next');
+      slide.onclick = () => goToSlide(nextIdx);
+    }
+  });
+
+  document.querySelectorAll('.carousel-dot').forEach((dot, idx) => {
+    if (idx === currentSlide) dot.classList.add('active');
+    else dot.classList.remove('active');
+  });
+  
+  // Reset timer
+  startCarousel();
+}
+
+function nextSlide() {
+  let next = currentSlide + 1;
+  if (next >= carouselImages.length) next = 0;
+  goToSlide(next);
+}
+
+function prevSlide() {
+  let prev = currentSlide - 1;
+  if (prev < 0) prev = carouselImages.length - 1;
+  goToSlide(prev);
+}
+
+function updateCounter() {
+  // Not used anymore
+}
+
+function startCarousel() {
+  clearInterval(carouselInterval);
+  if (carouselImages.length > 1) {
+    carouselInterval = setInterval(nextSlide, 5000);
+  }
+}
+
+function deletePhoto(fileId, event) {
+  event.stopPropagation();
+  
+  const btn = event.currentTarget;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons" style="font-size: 20px; animation: spin 1s linear infinite;">autorenew</span>';
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (res.success) {
+        showToast('ลบรูปภาพสำเร็จ', 'success');
+        // Remove from local array to update UI immediately
+        carouselImages = carouselImages.filter(img => img.id !== fileId);
+        renderManagePhotos(); // Update modal
+        renderCarousel();     // Update carousel
+      } else {
+        showToast(res.message, 'error');
+        btn.disabled = false;
+        btn.innerHTML = '<span class="material-icons" style="font-size: 20px;">delete</span>';
+      }
+    })
+    .withFailureHandler((err) => {
+      showToast('การเชื่อมต่อล้มเหลว', 'error');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons" style="font-size: 20px;">delete</span>';
+    })
+    .deleteImage(fileId);
+}
+
+function openPhotoPreview(url, index, fileId) {
+  document.getElementById('photoPreviewImg').src = url.replace('&sz=w600', ''); // Get full size
+  document.getElementById('photoPreviewNumber').innerText = index + 1;
+  document.getElementById('photoPreviewDeleteBtn').onclick = (e) => {
+    deletePhoto(fileId, e);
+    closeModal('photoPreviewModal');
+  };
+  openModal('photoPreviewModal');
+}
+
+function openManagePhotos() {
+  renderManagePhotos();
+  openModal('managePhotosModal');
+}
+
+function renderManagePhotos() {
+  const container = document.getElementById('managePhotosGrid');
+  if (!carouselImages || carouselImages.length === 0) {
+    container.innerHTML = '<div class="news-empty">ไม่มีรูปภาพให้จัดการ</div>';
+    return;
+  }
+  
+  let html = '';
+  carouselImages.forEach((img, index) => {
+    const dateStr = new Date(img.date).toLocaleDateString('th-TH', { 
+      year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    
+    html += `
+      <div class="manage-photo-item">
+        <div class="manage-photo-number">${index + 1}</div>
+        <img src="${img.url}" class="manage-photo-img" loading="lazy" onclick="openPhotoPreview('${img.url}', ${index}, '${img.id}')">
+        <button class="manage-photo-btn" onclick="deletePhoto('${img.id}', event)" title="ลบรูปนี้">
+          <span class="material-icons" style="font-size: 16px;">delete</span>
+        </button>
+        <div class="manage-photo-info">
+          <div class="info-details">
+            <div class="info-filename" title="${img.name}">${img.name}</div>
+            <div class="info-date">${dateStr}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+// ============================================================
+// Upload Images
+// ============================================================
+
+function setupDragAndDrop() {
+  const zone = document.getElementById('uploadZone');
+  
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+  
+  zone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+  });
+  
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFiles(e.dataTransfer.files);
+    }
+  });
+}
+
+function handleFileSelect(e) {
+  if (e.target.files && e.target.files.length > 0) {
+    processFiles(e.target.files);
+  }
+}
+
+function processFiles(files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (!file.type.match('image.*')) {
+      showToast('กรุณาเลือกไฟล์รูปภาพเท่านั้น', 'error');
+      continue;
+    }
+    
+    // File size limit (approx 5MB per file for base64 safety)
+    if (file.size > 5 * 1024 * 1024) {
+      showToast(`ไฟล์ ${file.name} มีขนาดใหญ่เกินไป (สูงสุด 5MB)`, 'error');
+      continue;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      uploadFiles.push({
+        file: file,
+        dataUrl: e.target.result
+      });
+      renderUploadPreview();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function renderUploadPreview() {
+  const container = document.getElementById('uploadPreview');
+  const btn = document.getElementById('btnUploadSubmit');
+  const count = document.getElementById('uploadCount');
+  
+  if (uploadFiles.length === 0) {
+    container.innerHTML = '';
+    btn.disabled = true;
+    count.textContent = '(0)';
+    return;
+  }
+  
+  let html = '';
+  uploadFiles.forEach((item, index) => {
+    html += `
+      <div class="upload-preview-item">
+        <img src="${item.dataUrl}">
+        <button class="upload-preview-remove" onclick="removeUploadFile(${index})">
+          <span class="material-icons" style="font-size: 14px;">close</span>
+        </button>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+  btn.disabled = false;
+  count.textContent = `(${uploadFiles.length})`;
+}
+
+function removeUploadFile(index) {
+  uploadFiles.splice(index, 1);
+  renderUploadPreview();
+}
+
+function submitUpload() {
+  if (uploadFiles.length === 0 || !currentUser) return;
+  
+  const btn = document.getElementById('btnUploadSubmit');
+  const progress = document.getElementById('uploadProgress');
+  const closeBtn = document.querySelector('#uploadModal .modal-close');
+  
+  btn.disabled = true;
+  closeBtn.disabled = true;
+  progress.classList.add('show');
+  btn.innerHTML = 'กำลังอัปโหลด...';
+  
+  // Extract base64 data (remove data:image/jpeg;base64,)
+  const payload = uploadFiles.map(item => {
+    const parts = item.dataUrl.split(',');
+    return {
+      data: parts[1],
+      mimeType: item.file.type
+    };
+  });
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      btn.disabled = false;
+      closeBtn.disabled = false;
+      progress.classList.remove('show');
+      
+      if (res.success) {
+        showToast(`อัปโหลดสำเร็จ ${res.count} รูป`, 'success');
+        uploadFiles = [];
+        document.getElementById('fileInput').value = '';
+        renderUploadPreview();
+        closeModal('uploadModal');
+        // Reload carousel
+        loadImages();
+      } else {
+        showToast(res.message, 'error');
+        btn.innerHTML = `อัปโหลด (${uploadFiles.length})`;
+      }
+    })
+    .withFailureHandler((err) => {
+      btn.disabled = false;
+      closeBtn.disabled = false;
+      progress.classList.remove('show');
+      btn.innerHTML = `อัปโหลด (${uploadFiles.length})`;
+      showToast('การเชื่อมต่อล้มเหลว', 'error');
+    })
+    .uploadImages(payload, currentUser);
+}
+
+// ============================================================
+// News Section
+// ============================================================
+
+let globalNewsData = [];
+let currentNewsPage = 1;
+const newsPerPage = 3;
+let news3DSliderInterval = null;
+
+function loadNews() {
+  google.script.run
+    .withSuccessHandler((news) => {
+      globalNewsData = news;
+      currentNewsPage = 1;
+      renderNews();
+    })
+    .withFailureHandler((err) => {
+      document.getElementById('newsGrid').innerHTML = '<div class="news-empty">โหลดข่าวสารล้มเหลว</div>';
+    })
+    .getNews();
+}
+
+function renderNews() {
+  const container = document.getElementById('newsGrid');
+  
+  if (!globalNewsData || globalNewsData.length === 0) {
+    container.innerHTML = `
+      <div class="news-empty">
+        <span class="material-icons">campaign</span>
+        <p>ยังไม่มีข่าวสารกิจกรรมในขณะนี้</p>
+      </div>`;
+    const pag = document.getElementById('newsPagination');
+    if(pag) pag.innerHTML = '';
+    return;
+  }
+
+  const totalPages = Math.ceil(globalNewsData.length / newsPerPage);
+  if (currentNewsPage > totalPages) currentNewsPage = totalPages;
+  if (currentNewsPage < 1) currentNewsPage = 1;
+
+  const startIndex = (currentNewsPage - 1) * newsPerPage;
+  const endIndex = startIndex + newsPerPage;
+  const pagedNews = globalNewsData.slice(startIndex, endIndex);
+  
+  let html = '';
+  pagedNews.forEach((news, idx) => {
+    let imgHtml = '';
+    if (news.imageUrls && news.imageUrls.length > 0) {
+      if (news.imageUrls.length === 1) {
+        imgHtml = `<img src="${news.imageUrls[0]}" class="news-card-image" loading="lazy">`;
+      } else {
+        imgHtml = `<div class="news-card-3d-slider">`;
+        news.imageUrls.forEach((url, i) => {
+          imgHtml += `<img src="${url}" class="news-slide ${i === 0 ? 'active' : ''}" loading="lazy">`;
+        });
+        imgHtml += `</div>`;
+      }
+    } else {
+      imgHtml = `<div class="news-card-image" style="display:flex;align-items:center;justify-content:center;background:var(--color-sage);"><span class="material-icons" style="font-size:3rem;color:white;">photo</span></div>`;
+    }
+      
+    html += `
+      <div class="news-card" style="animation-delay: ${idx * 0.1}s">
+        ${imgHtml}
+        <div class="news-card-body">
+          <div class="news-card-date"><span class="material-icons" style="font-size:14px;">calendar_today</span> ${news.date}</div>
+          <h3 class="news-card-title">${news.title}</h3>
+          <p class="news-card-content">${news.content}</p>
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+  renderNewsPagination(totalPages);
+  
+  // Initialize 3D Slider animation
+  if (news3DSliderInterval) clearInterval(news3DSliderInterval);
+  news3DSliderInterval = setInterval(() => {
+    document.querySelectorAll('.news-card-3d-slider').forEach(slider => {
+      const slides = slider.querySelectorAll('.news-slide');
+      if (slides.length <= 1) return;
+      
+      let activeIdx = -1;
+      slides.forEach((s, i) => { if (s.classList.contains('active')) activeIdx = i; });
+      
+      if (activeIdx !== -1) {
+        slides[activeIdx].classList.remove('active');
+        slides[activeIdx].classList.add('prev');
+        
+        slides.forEach((s, i) => {
+          if (i !== activeIdx && s.classList.contains('prev')) {
+            s.classList.remove('prev');
+          }
+        });
+        
+        let nextIdx = (activeIdx + 1) % slides.length;
+        slides[nextIdx].classList.add('active');
+      }
+    });
+  }, 3500);
+}
+
+function renderNewsPagination(totalPages) {
+  let paginationContainer = document.getElementById('newsPagination');
+  if (!paginationContainer) {
+    paginationContainer = document.createElement('div');
+    paginationContainer.id = 'newsPagination';
+    paginationContainer.className = 'pagination-container';
+    const newsSection = document.getElementById('newsGrid').parentElement;
+    newsSection.appendChild(paginationContainer);
+  }
+
+  if (totalPages <= 1) {
+    paginationContainer.innerHTML = '';
+    return;
+  }
+
+  let html = `<button class="btn-pagination" onclick="changeNewsPage(${currentNewsPage - 1})" ${currentNewsPage === 1 ? 'disabled' : ''}><span class="material-icons">chevron_left</span> ก่อนหน้า</button>`;
+  html += `<span class="pagination-info">หน้า ${currentNewsPage} จาก ${totalPages}</span>`;
+  html += `<button class="btn-pagination" onclick="changeNewsPage(${currentNewsPage + 1})" ${currentNewsPage === totalPages ? 'disabled' : ''}>ถัดไป <span class="material-icons">chevron_right</span></button>`;
+
+  paginationContainer.innerHTML = html;
+}
+
+function changeNewsPage(newPage) {
+  currentNewsPage = newPage;
+  renderNews();
+  document.getElementById('news').scrollIntoView({ behavior: 'smooth' });
+}
+
+let newsImagesBase64 = [];
+document.getElementById('newsImage').addEventListener('change', function(e) {
+  newsImagesBase64 = [];
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+  
+  for(let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      newsImagesBase64.push({
+        data: ev.target.result.split(',')[1],
+        mimeType: file.type
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+function submitNews(e) {
+  e.preventDefault();
+  
+  const title = document.getElementById('newsTitle').value;
+  const content = document.getElementById('newsContent').value;
+  const btn = document.getElementById('btnNewsSubmit');
+  const progress = document.getElementById('newsProgress');
+  
+  if (!title || !content) return;
+  
+  btn.disabled = true;
+  progress.classList.add('show');
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      btn.disabled = false;
+      progress.classList.remove('show');
+      
+      if (res.success) {
+        showToast('เพิ่มข่าวสารสำเร็จ', 'success');
+        document.getElementById('newsForm').reset();
+        newsImagesBase64 = [];
+        closeModal('newsModal');
+        loadNews();
+      } else {
+        showToast(res.message, 'error');
+      }
+    })
+    .withFailureHandler((err) => {
+      btn.disabled = false;
+      progress.classList.remove('show');
+      showToast('การเชื่อมต่อล้มเหลว', 'error');
+    })
+    .addNews(title, content, newsImagesBase64);
+}
+
+// ============================================================
+// UI Utils
+// ============================================================
+
+function openModal(id) {
+  document.getElementById(id).classList.add('show');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('show');
+  document.body.style.overflow = '';
+}
+
+// Close modal on click outside
+window.addEventListener('click', (e) => {
+  if (e.target.classList.contains('modal-backdrop')) {
+    closeModal(e.target.id);
+  }
+});
+
+function showToast(message, type = 'success') {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  const icon = type === 'success' ? 'check_circle' : 'error';
+  const color = type === 'success' ? 'var(--color-success)' : 'var(--color-error)';
+  
+  toast.innerHTML = `
+    <span class="material-icons" style="color: ${color}">${icon}</span>
+    <span>${message}</span>
+  `;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('hide');
+    setTimeout(() => {
+      container.removeChild(toast);
+    }, 300);
+  }, 3000);
+}
+</script>

@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <base target="_top">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Green Office Reg.10 - กิจกรรมสีเขียว</title>
+  
+  <!-- Google Fonts: Kanit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  
+  <!-- CSS Stylesheet -->
+  <?!= include('Stylesheet'); ?>
+</head>
+<body>
+
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="loading-screen">
+    <div class="loading-logo">🌿 Green Office Reg.10</div>
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="#" class="nav-brand">
+      <span class="nav-brand-icon">🌿</span>
+      Green Office Reg.10
+    </a>
+    
+    <div class="nav-hamburger" id="navHamburger">
+      <span></span>
+      <span></span>
+      <span></span>
+    </div>
+
+    <div class="nav-center" id="navCenter">
+      <ul class="nav-menu">
+        <li><a class="nav-link active" href="#home">หน้าแรก</a></li>
+        <li><a class="nav-link" href="#news">ข่าวสารกิจกรรม</a></li>
+      </ul>
+    </div>
+
+    <div class="nav-actions">
+      <!-- Logged Out State -->
+      <button id="btnNavLogin" class="btn btn-outline btn-sm" onclick="openModal('loginModal')">
+        เข้าสู่ระบบ
+      </button>
+      
+      <!-- Logged In State (Hidden by default) -->
+      <div id="navUserInfo" class="nav-user-info hidden">
+        <div class="nav-user-avatar" id="userAvatarIcon">U</div>
+        <span id="userNameDisplay">Username</span>
+        <button class="btn btn-secondary btn-sm" onclick="logout()">ออกจากระบบ</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    
+    <!-- Hero / Carousel Section -->
+    <section id="home" class="carousel-section">
+      <div id="carouselContainer" class="carousel-container">
+        <!-- Initial Loading State -->
+        <div class="carousel-empty">
+          <div class="loading-spinner" style="border-top-color: white;"></div>
+          <p>กำลังโหลดรูปภาพกิจกรรม...</p>
+        </div>
+      </div>
+      
+      <button class="carousel-btn carousel-btn-prev" onclick="prevSlide()">
+        <span class="material-icons">chevron_left</span>
+      </button>
+      <button class="carousel-btn carousel-btn-next" onclick="nextSlide()">
+        <span class="material-icons">chevron_right</span>
+      </button>
+      
+      <div id="carouselDots" class="carousel-dots"></div>
+    </section>
+
+    <!-- News Section -->
+    <section id="news" class="section">
+      <div class="section-header">
+        <h2><span class="material-icons">campaign</span> ข่าวสารกิจกรรม</h2>
+        <p>ติดตามความเคลื่อนไหวและกิจกรรมต่างๆ ของ Green Office Reg.10</p>
+        <div class="section-divider"></div>
+      </div>
+      
+      <div id="newsGrid" class="news-grid">
+        <!-- News Cards will be injected here -->
+        <div class="news-empty">
+          <div class="loading-spinner" style="margin: 0 auto 1rem; border-top-color: var(--color-primary);"></div>
+          <p>กำลังโหลดข่าวสาร...</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Floating Action Button (Upload) - Hidden for guests -->
+  <div class="fab-container hidden" id="fabContainer">
+    <button class="fab fab-secondary hidden" id="fabUpload" onclick="openModal('uploadModal')" title="อัปโหลดรูปภาพหลัก">
+      <span class="material-icons">add_a_photo</span>
+    </button>
+    <button class="fab fab-secondary hidden" id="fabManagePhotos" onclick="openManagePhotos()" title="จัดการรูปภาพหลัก">
+      <span class="material-icons">edit</span>
+    </button>
+    <button class="fab fab-primary hidden" id="fabAddNews" onclick="openModal('newsModal')" title="เพิ่มข่าวสารกิจกรรม">
+      <span class="material-icons">campaign</span>
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | <strong>v2026.0827.1947</strong></p>
+  </footer>
+
+  <!-- ==================== MODALS ==================== -->
+
+  <!-- Login Modal -->
+  <div id="loginModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><span class="material-icons">login</span> เข้าสู่ระบบ</h3>
+        <button class="modal-close" onclick="closeModal('loginModal')">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="loginForm" onsubmit="handleLogin(event)">
+          <div class="form-group">
+            <label class="form-label">ชื่อผู้ใช้ (Username)</label>
+            <input type="text" id="loginUser" class="form-input" required placeholder="กรอกชื่อผู้ใช้">
+          </div>
+          <div class="form-group">
+            <label class="form-label">รหัสผ่าน (Password)</label>
+            <input type="password" id="loginPass" class="form-input" required placeholder="กรอกรหัสผ่าน">
+          </div>
+          <div id="loginError" class="form-error hidden">
+            <span class="material-icons">error_outline</span> <span id="loginErrorMsg"></span>
+          </div>
+          <div class="modal-footer" style="padding: 1.5rem 0 0;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('loginModal')">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" id="btnLoginSubmit">เข้าสู่ระบบ</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Upload Modal -->
+  <div id="uploadModal" class="modal-backdrop">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3><span class="material-icons">cloud_upload</span> อัปโหลดรูปภาพกิจกรรม</h3>
+        <button class="modal-close" onclick="closeModal('uploadModal')">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="uploadZone" class="upload-zone" onclick="document.getElementById('fileInput').click()">
+          <span class="material-icons">add_photo_alternate</span>
+          <p><strong>คลิกเพื่อเลือกรูปภาพ</strong> หรือลากไฟล์มาวางที่นี่<br>(รองรับหลายไฟล์ .jpg, .png)</p>
+          <input type="file" id="fileInput" multiple accept="image/*" class="hidden" onchange="handleFileSelect(event)">
+        </div>
+        
+        <div id="uploadPreview" class="upload-preview-grid"></div>
+        
+        <div class="progress-bar" id="uploadProgress">
+          <div class="progress-bar-fill indeterminate"></div>
+        </div>
+        
+        <div class="modal-footer" style="padding: 1.5rem 0 0;">
+          <button type="button" class="btn btn-outline" onclick="closeModal('uploadModal')">ยกเลิก</button>
+          <button type="button" class="btn btn-primary" id="btnUploadSubmit" onclick="submitUpload()" disabled>
+            อัปโหลด <span id="uploadCount">(0)</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Add News Modal (Admin Only) -->
+  <div id="newsModal" class="modal-backdrop">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3><span class="material-icons">campaign</span> เพิ่มข่าวสารกิจกรรม</h3>
+        <button class="modal-close" onclick="closeModal('newsModal')">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="newsForm" onsubmit="submitNews(event)">
+          <div class="form-group">
+            <label class="form-label">หัวข้อข่าว</label>
+            <input type="text" id="newsTitle" class="form-input" required placeholder="ระบุหัวข้อข่าวสาร">
+          </div>
+          <div class="form-group">
+            <label class="form-label">เนื้อหา</label>
+            <textarea id="newsContent" class="form-textarea" required placeholder="ระบุรายละเอียด..."></textarea>
+          </div>
+          <div class="form-group">
+          <label>รูปภาพประกอบ (ถ้ามี)</label>
+          <input type="file" id="newsImage" class="form-control" accept="image/jpeg, image/png, image/webp" multiple>
+        </div>
+          
+          <div class="progress-bar" id="newsProgress">
+            <div class="progress-bar-fill indeterminate"></div>
+          </div>
+          
+          <div class="modal-footer" style="padding: 1.5rem 0 0;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('newsModal')">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" id="btnNewsSubmit">บันทึกข่าวสาร</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- Manage Photos Modal -->
+  <div id="managePhotosModal" class="modal-backdrop">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3><span class="material-icons">edit</span> จัดการรูปภาพกิจกรรม</h3>
+        <button class="modal-close" onclick="closeModal('managePhotosModal')">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="managePhotosGrid" class="manage-photos-grid">
+          <!-- Photos will be injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Photo Preview Modal (Lightbox) -->
+  <div id="photoPreviewModal" class="modal-backdrop" onclick="closeModal('photoPreviewModal')">
+    <div class="modal" style="background: transparent; box-shadow: none; max-width: 90vw; text-align: center; display: flex; justify-content: center; align-items: center;" onclick="event.stopPropagation()">
+      <div style="position: relative; display: inline-block;">
+        <button class="modal-close" style="background: rgba(0,0,0,0.5); color: white; position: absolute; right: -40px; top: 0;" onclick="closeModal('photoPreviewModal')">
+          <span class="material-icons">close</span>
+        </button>
+
+        <div id="photoPreviewNumber" style="position: absolute; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.7); color: white; padding: 4px 12px; border-radius: 4px; font-size: 1.2rem; font-weight: bold; z-index: 10;">
+          1
+        </div>
+
+        <button id="photoPreviewDeleteBtn" style="position: absolute; top: 10px; right: 10px; background: var(--color-error); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-md); z-index: 10; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="ลบรูปนี้">
+          <span class="material-icons">delete</span>
+        </button>
+
+        <img id="photoPreviewImg" src="" style="max-width: 100%; max-height: 85vh; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); display: block;">
+      </div>
+    </div>
+  </div>
+
+  <!-- JavaScript Script -->
+  <?!= include('JavaScript'); ?>
+</body>
+</html>
