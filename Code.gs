@@ -12,7 +12,7 @@ const DRIVE_FOLDER_ID = '1jmdhZ0VkyC7M0jCg1JVjrCjOgCKq1xzT';
 function doGet() {
   return HtmlService.createTemplateFromFile('Index')
     .evaluate()
-    .setTitle('Green Office - กิจกรรมสีเขียว')
+    .setTitle('Green Office - สำนักงานสีเขียว')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1.0')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
