@@ -1093,14 +1093,14 @@ function handleAddEvent(e) {
       closeModal('eventModal');
       document.getElementById('eventForm').reset();
       if(calendar) calendar.refetchEvents();
-      alert('บันทึกกิจกรรมเรียบร้อยแล้ว');
+      showToast('บันทึกกิจกรรมเรียบร้อยแล้ว', 'success');
     } else {
-      alert(res.message);
+      showToast(res.message, 'error');
     }
   }).withFailureHandler(function(err) {
     btn.innerHTML = originalText;
     btn.disabled = false;
-    alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+    showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
   }).addCalendarEvent(eventData);
 }
 
