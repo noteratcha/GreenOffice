@@ -112,17 +112,16 @@ function setUserSession(username, role) {
   document.getElementById('userAvatarIcon').textContent = username.charAt(0).toUpperCase();
   
   document.getElementById('fabContainer').classList.remove('hidden');
+  document.getElementById('fabAddNews').classList.remove('hidden');
   
   if (role === 'admin' || username.toLowerCase() === 'admin') {
     document.getElementById('fabAddEvent').classList.remove('hidden');
     document.getElementById('fabUpload').classList.remove('hidden');
-    document.getElementById('fabAddNews').classList.remove('hidden');
     document.getElementById('fabManagePhotos').classList.remove('hidden');
     document.getElementById('fabEditCategories').classList.remove('hidden');
   } else {
     document.getElementById('fabAddEvent').classList.add('hidden');
     document.getElementById('fabUpload').classList.add('hidden');
-    document.getElementById('fabAddNews').classList.add('hidden');
     document.getElementById('fabManagePhotos').classList.add('hidden');
     document.getElementById('fabEditCategories').classList.add('hidden');
   }
