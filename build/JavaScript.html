@@ -1025,8 +1025,8 @@ function initCalendar() {
       
       document.getElementById('btnDeleteEvent').dataset.eventId = info.event.id;
       
-      const createdBy = info.event.extendedProps.createdBy;
-      if (currentRole === 'admin' || (currentUser && currentUser === createdBy)) {
+      const user = info.event.extendedProps.user;
+      if (currentRole === 'admin' || (currentUser && currentUser === user)) {
         document.getElementById('btnDeleteEvent').classList.remove('hidden');
         document.getElementById('btnEditEventAction').classList.remove('hidden');
         
@@ -1143,7 +1143,7 @@ function handleAddEvent(e) {
     date: document.getElementById('eventDate').value,
     time: document.getElementById('eventTime').value,
     color: document.getElementById('eventColor').value,
-    createdBy: currentUser || ''
+    user: currentUser || ''
   };
 
   google.script.run.withSuccessHandler(function(res) {

@@ -410,7 +410,7 @@ function ensureCalendarSheet() {
   let sheet = ss.getSheetByName('calendar');
   if (!sheet) {
     sheet = ss.insertSheet('calendar');
-    sheet.appendRow(['id', 'title', 'start', 'end', 'color', 'allDay', 'createdBy']);
+    sheet.appendRow(['id', 'title', 'start', 'end', 'color', 'allDay', 'user']);
     sheet.getRange('A1:G1').setFontWeight('bold').setBackground('#f3f3f3');
     sheet.setFrozenRows(1);
   }
@@ -454,7 +454,7 @@ function getCalendarEvents() {
         end: endVal || null,
         color: row[4] || '#27ae60',
         allDay: allDay,
-        createdBy: row[6] || ''
+        user: row[6] || ''
       });
     }
     return events;
@@ -486,7 +486,7 @@ function addCalendarEvent(eventData) {
       end, // end time is null for now, can be added later
       eventData.color || '#27ae60',
       allDay,
-      eventData.createdBy || ''
+      eventData.user || ''
     ]);
     
     return { success: true, message: 'บันทึกกิจกรรมเรียบร้อย' };
@@ -539,7 +539,7 @@ function editCalendarEvent(eventData) {
         sheet.getRange(rowNum, 4).setValue(end);
         sheet.getRange(rowNum, 5).setValue(eventData.color || '#27ae60');
         sheet.getRange(rowNum, 6).setValue(allDay);
-        // Do not update createdBy, keep the original creator
+        // Do not update user, keep the original creator
         return { success: true, message: 'แก้ไขกิจกรรมเรียบร้อยแล้ว' };
       }
     }
