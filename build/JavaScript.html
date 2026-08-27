@@ -50,10 +50,12 @@ document.addEventListener('DOMContentLoaded', () => {
     setUserSession(savedUser, savedRole);
   }
 
-  // Load Data
+  // Fetch initial data
+  loadCategoryLinks();
   loadImages();
   loadNews();
-  loadCategoryLinks();
+  loadResourcesData();
+  
   initCalendar();
   
   // Drag & Drop
@@ -1236,4 +1238,225 @@ function submitEditEvent(e) {
     showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
   }).editCalendarEvent(eventData);
 }
+
+// ==========================================
+// Resource Management Logic
+// ==========================================
+let resourceDataList = [];
+let resourcesChartInstance = null;
+
+function loadResourcesData() {
+  google.script.run.withSuccessHandler(function(data) {
+    resourceDataList = data;
+    renderResourcesChart();
+  }).withFailureHandler(function(error) {
+    console.error('Failed to load resource data', error);
+  }).getResourcesData();
+}
+
+function renderResourcesChart() {
+  const container = document.getElementById('resourcesChartContainer');
+  const emptyState = document.getElementById('resourcesEmpty');
+  
+  if (resourceDataList.length === 0) {
+    container.style.display = 'none';
+    emptyState.classList.remove('hidden');
+    return;
+  }
+  
+  container.style.display = 'block';
+  emptyState.classList.add('hidden');
+  
+  // Get latest 2 years if available, otherwise just 1
+  const sorted = [...resourceDataList].sort((a, b) => b.year - a.year);
+  const dataToShow = sorted.slice(0, 2).reverse(); // Oldest first for chart left-to-right
+  
+  if (dataToShow.length === 0) return;
+  
+  const labels = [
+    'การใช้ไฟฟ้า (kWh)', 
+    'การใช้น้ำ (m³)', 
+    'น้ำมันเชื้อเพลิง (L)', 
+    'การใช้กระดาษ (Ream)', 
+    'ก๊าซเรือนกระจก (kgCO2e)', 
+    'นำของเสียกลับมาใช้ (kg)'
+  ];
+  
+  const datasets = [];
+  
+  const colors = [
+    { bg: 'rgba(54, 162, 235, 0.7)', border: 'rgba(54, 162, 235, 1)' }, // Year 1 (Older)
+    { bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(39, 174, 96, 1)' }   // Year 2 (Newer)
+  ];
+  
+  dataToShow.forEach((item, index) => {
+    const color = colors[index % colors.length];
+    datasets.push({
+      label: 'ปี ' + item.year,
+      data: [
+        item.electricity,
+        item.water,
+        item.fuel,
+        item.paper,
+        item.ghg,
+        item.recycledWaste
+      ],
+      backgroundColor: color.bg,
+      borderColor: color.border,
+      borderWidth: 1
+    });
+  });
+
+  const ctx = document.getElementById('resourcesChart').getContext('2d');
+  
+  if (resourcesChartInstance) {
+    resourcesChartInstance.destroy();
+  }
+  
+  resourcesChartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: datasets
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'top',
+        },
+        title: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true
+        }
+      }
+    }
+  });
+}
+
+function openManageResourcesModal() {
+  renderResourceList();
+  openModal('manageResourcesModal');
+}
+
+function renderResourceList() {
+  const tbody = document.getElementById('resourceListBody');
+  tbody.innerHTML = '';
+  
+  if (resourceDataList.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 1rem;">ไม่มีข้อมูล</td></tr>';
+    return;
+  }
+  
+  resourceDataList.sort((a, b) => b.year - a.year).forEach(item => {
+    const tr = document.createElement('tr');
+    
+    // Check permission
+    let actionHtml = '-';
+    if (currentRole === 'admin' || (currentUser && currentUser === item.user)) {
+      actionHtml = `
+        <button class="btn btn-sm btn-outline" style="padding: 0.25rem 0.5rem; margin-right: 0.5rem;" onclick="editResourceAction('${item.id}')">
+          <span class="material-icons" style="font-size: 16px;">edit</span>
+        </button>
+        <button class="btn btn-sm btn-danger" style="padding: 0.25rem 0.5rem;" onclick="deleteResourceAction('${item.id}')">
+          <span class="material-icons" style="font-size: 16px;">delete</span>
+        </button>
+      `;
+    }
+    
+    tr.innerHTML = `
+      <td style="padding: 0.75rem;">${item.year}</td>
+      <td style="padding: 0.75rem; text-align: center;">${actionHtml}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function openResourceFormModal(id = null) {
+  document.getElementById('resourceForm').reset();
+  document.getElementById('resourceId').value = '';
+  document.getElementById('resourceFormTitle').innerHTML = '<span class="material-icons">add</span> เพิ่มข้อมูลทรัพยากร';
+  
+  if (id) {
+    const item = resourceDataList.find(x => x.id === id);
+    if (item) {
+      document.getElementById('resourceId').value = item.id;
+      document.getElementById('resourceYear').value = item.year;
+      document.getElementById('resourceElectricity').value = item.electricity;
+      document.getElementById('resourceWater').value = item.water;
+      document.getElementById('resourceFuel').value = item.fuel;
+      document.getElementById('resourcePaper').value = item.paper;
+      document.getElementById('resourceGhg').value = item.ghg;
+      document.getElementById('resourceRecycled').value = item.recycledWaste;
+      document.getElementById('resourceFormTitle').innerHTML = '<span class="material-icons">edit</span> แก้ไขข้อมูลทรัพยากร';
+    }
+  }
+  
+  closeModal('manageResourcesModal');
+  openModal('resourceFormModal');
+}
+
+function editResourceAction(id) {
+  openResourceFormModal(id);
+}
+
+function deleteResourceAction(id) {
+  if (confirm('คุณต้องการลบข้อมูลทรัพยากรปีนี้ใช่หรือไม่?')) {
+    google.script.run.withSuccessHandler(function(res) {
+      if (res.success) {
+        showToast(res.message, 'success');
+        loadResourcesData();
+        // keep modal open, just re-render
+        setTimeout(() => renderResourceList(), 500);
+      } else {
+        showToast(res.message, 'error');
+      }
+    }).withFailureHandler(function(err) {
+      showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
+    }).deleteResourceData(id);
+  }
+}
+
+function submitResourceForm(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnResourceSubmit');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<span class="material-icons rotating">sync</span> กำลังบันทึก...';
+  btn.disabled = true;
+
+  const data = {
+    id: document.getElementById('resourceId').value,
+    year: document.getElementById('resourceYear').value,
+    electricity: document.getElementById('resourceElectricity').value,
+    water: document.getElementById('resourceWater').value,
+    fuel: document.getElementById('resourceFuel').value,
+    paper: document.getElementById('resourcePaper').value,
+    ghg: document.getElementById('resourceGhg').value,
+    recycledWaste: document.getElementById('resourceRecycled').value,
+    user: currentUser || ''
+  };
+
+  google.script.run.withSuccessHandler(function(res) {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+    if (res.success) {
+      closeModal('resourceFormModal');
+      showToast(res.message, 'success');
+      loadResourcesData();
+      setTimeout(() => { openManageResourcesModal(); }, 500);
+    } else {
+      showToast(res.message, 'error');
+    }
+  }).withFailureHandler(function(err) {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+    showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
+  }).saveResourceData(data);
+}
+
 </script>

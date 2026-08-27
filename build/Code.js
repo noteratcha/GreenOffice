@@ -549,3 +549,115 @@ function editCalendarEvent(eventData) {
     return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
   }
 }
+
+// ------------------------------------------------------------
+// Resource Management
+// ------------------------------------------------------------
+function ensureResourcesSheet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName('resources');
+  if (!sheet) {
+    sheet = ss.insertSheet('resources');
+    sheet.appendRow(['id', 'year', 'electricity', 'water', 'fuel', 'paper', 'ghg', 'recycledWaste', 'user']);
+    sheet.getRange('A1:I1').setFontWeight('bold').setBackground('#f3f3f3');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function getResourcesData() {
+  try {
+    const sheet = ensureResourcesSheet();
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return [];
+    
+    const resources = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (!row[0]) continue;
+      
+      resources.push({
+        id: row[0],
+        year: row[1],
+        electricity: row[2],
+        water: row[3],
+        fuel: row[4],
+        paper: row[5],
+        ghg: row[6],
+        recycledWaste: row[7],
+        user: row[8] || ''
+      });
+    }
+    
+    // Sort by year descending
+    resources.sort((a, b) => b.year - a.year);
+    
+    return resources;
+  } catch (error) {
+    console.error('Error getting resources data:', error);
+    return [];
+  }
+}
+
+function saveResourceData(data) {
+  try {
+    const sheet = ensureResourcesSheet();
+    const id = data.id || Utilities.getUuid();
+    
+    if (data.id) {
+      // Edit existing
+      const values = sheet.getDataRange().getValues();
+      for (let i = 1; i < values.length; i++) {
+        if (values[i][0] === data.id) {
+          const rowData = [
+            data.id,
+            data.year,
+            data.electricity,
+            data.water,
+            data.fuel,
+            data.paper,
+            data.ghg,
+            data.recycledWaste,
+            data.user || values[i][8]
+          ];
+          sheet.getRange(i + 1, 1, 1, 9).setValues([rowData]);
+          return { success: true, message: 'บันทึกข้อมูลเรียบร้อยแล้ว' };
+        }
+      }
+      return { success: false, message: 'ไม่พบข้อมูลที่ต้องการแก้ไข' };
+    } else {
+      // Add new
+      sheet.appendRow([
+        id,
+        data.year,
+        data.electricity,
+        data.water,
+        data.fuel,
+        data.paper,
+        data.ghg,
+        data.recycledWaste,
+        data.user || ''
+      ]);
+      return { success: true, message: 'เพิ่มข้อมูลเรียบร้อยแล้ว' };
+    }
+  } catch (error) {
+    return { success: false, message: 'Error: ' + error.message };
+  }
+}
+
+function deleteResourceData(id) {
+  try {
+    const sheet = ensureResourcesSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === id) {
+        sheet.deleteRow(i + 1);
+        return { success: true, message: 'ลบข้อมูลเรียบร้อยแล้ว' };
+      }
+    }
+    return { success: false, message: 'ไม่พบข้อมูลที่ต้องการลบ' };
+  } catch (error) {
+    return { success: false, message: 'Error: ' + error.message };
+  }
+}
