@@ -1030,6 +1030,14 @@ function initCalendar() {
       }
       
       openModal('eventDetailModal');
+    },
+    eventDidMount: function(info) {
+      let tooltipText = info.event.title;
+      if (!info.event.allDay && info.event.start) {
+        const timeOpts = { hour: '2-digit', minute: '2-digit' };
+        tooltipText += '\\nเวลา: ' + info.event.start.toLocaleTimeString('th-TH', timeOpts) + ' น.';
+      }
+      info.el.setAttribute('title', tooltipText);
     }
   });
   
