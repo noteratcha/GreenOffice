@@ -410,8 +410,8 @@ function ensureCalendarSheet() {
   let sheet = ss.getSheetByName('calendar');
   if (!sheet) {
     sheet = ss.insertSheet('calendar');
-    sheet.appendRow(['id', 'title', 'start', 'end', 'color', 'allDay']);
-    sheet.getRange('A1:F1').setFontWeight('bold').setBackground('#f3f3f3');
+    sheet.appendRow(['id', 'title', 'start', 'end', 'color', 'allDay', 'createdBy']);
+    sheet.getRange('A1:G1').setFontWeight('bold').setBackground('#f3f3f3');
     sheet.setFrozenRows(1);
   }
   return sheet;
@@ -453,7 +453,8 @@ function getCalendarEvents() {
         start: startVal,
         end: endVal || null,
         color: row[4] || '#27ae60',
-        allDay: allDay
+        allDay: allDay,
+        createdBy: row[6] || ''
       });
     }
     return events;
@@ -484,7 +485,8 @@ function addCalendarEvent(eventData) {
       start,
       end, // end time is null for now, can be added later
       eventData.color || '#27ae60',
-      allDay
+      allDay,
+      eventData.createdBy || ''
     ]);
     
     return { success: true, message: 'บันทึกกิจกรรมเรียบร้อย' };
@@ -509,6 +511,41 @@ function deleteCalendarEvent(id) {
     return { success: false, message: 'ไม่พบกิจกรรมที่ต้องการลบ' };
   } catch (e) {
     Logger.log('Error deleteCalendarEvent: ' + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
+
+function editCalendarEvent(eventData) {
+  try {
+    const sheet = ensureCalendarSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    // Parse date and time
+    let start = eventData.date;
+    let end = null;
+    let allDay = true;
+    
+    if (eventData.time) {
+      start = eventData.date + 'T' + eventData.time + ':00';
+      allDay = false;
+    }
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === eventData.id) {
+        // Update row (index is i + 1 in sheet)
+        const rowNum = i + 1;
+        sheet.getRange(rowNum, 2).setValue(eventData.title);
+        sheet.getRange(rowNum, 3).setValue(start);
+        sheet.getRange(rowNum, 4).setValue(end);
+        sheet.getRange(rowNum, 5).setValue(eventData.color || '#27ae60');
+        sheet.getRange(rowNum, 6).setValue(allDay);
+        // Do not update createdBy, keep the original creator
+        return { success: true, message: 'แก้ไขกิจกรรมเรียบร้อยแล้ว' };
+      }
+    }
+    return { success: false, message: 'ไม่พบกิจกรรมที่ต้องการแก้ไข' };
+  } catch (e) {
+    Logger.log('Error editCalendarEvent: ' + e.message);
     return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
   }
 }
