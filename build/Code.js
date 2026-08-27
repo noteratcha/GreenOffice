@@ -427,13 +427,33 @@ function getCalendarEvents() {
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       if (!row[0]) continue; // skip empty ids
+      
+      let startVal = row[2];
+      let endVal = row[3];
+      let allDay = row[5] === true || String(row[5]).toLowerCase() === 'true';
+      
+      if (startVal instanceof Date) {
+        if (allDay) {
+          startVal = Utilities.formatDate(startVal, Session.getScriptTimeZone(), "yyyy-MM-dd");
+        } else {
+          startVal = Utilities.formatDate(startVal, Session.getScriptTimeZone(), "yyyy-MM-dd'T'HH:mm:ss");
+        }
+      }
+      if (endVal instanceof Date) {
+        if (allDay) {
+          endVal = Utilities.formatDate(endVal, Session.getScriptTimeZone(), "yyyy-MM-dd");
+        } else {
+          endVal = Utilities.formatDate(endVal, Session.getScriptTimeZone(), "yyyy-MM-dd'T'HH:mm:ss");
+        }
+      }
+
       events.push({
         id: row[0],
         title: row[1],
-        start: row[2],
-        end: row[3] || null,
+        start: startVal,
+        end: endVal || null,
         color: row[4] || '#27ae60',
-        allDay: row[5] === true || String(row[5]).toLowerCase() === 'true'
+        allDay: allDay
       });
     }
     return events;
