@@ -16,6 +16,7 @@
   
   <!-- CSS Stylesheet -->
   <?!= include('Stylesheet'); ?>
+  <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 </head>
 <body>
 
@@ -42,6 +43,7 @@
       <ul class="nav-menu">
         <li><a class="nav-link active" href="#home">หน้าแรก</a></li>
         <li><a class="nav-link" href="#news">ข่าวสารกิจกรรม</a></li>
+        <li><a class="nav-link" href="#calendar-section">ปฏิทินกิจกรรม</a></li>
         <li><a class="nav-link" href="#categories">7 หมวด Green Office</a></li>
       </ul>
     </div>
@@ -178,6 +180,9 @@
     </button>
     <button class="fab fab-secondary hidden" id="fabManagePhotos" onclick="openManagePhotos()" title="จัดการรูปภาพหลัก">
       <span class="material-icons">edit</span>
+    </button>
+    <button class="fab fab-secondary hidden" id="fabAddEvent" onclick="openModal('eventModal')" title="เพิ่มกิจกรรมในปฏิทิน">
+      <span class="material-icons">event_note</span>
     </button>
     <button class="fab fab-primary hidden" id="fabAddNews" onclick="openModal('newsModal')" title="เพิ่มข่าวสารกิจกรรม">
       <span class="material-icons">campaign</span>

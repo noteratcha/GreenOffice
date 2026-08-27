@@ -401,3 +401,75 @@ function saveCategoryLinks(links) {
 function authorizeDrive() {
   DriveApp.getFiles();
 }
+
+// ------------------------------------------------------------
+// Calendar Management
+// ------------------------------------------------------------
+function ensureCalendarSheet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName('calendar');
+  if (!sheet) {
+    sheet = ss.insertSheet('calendar');
+    sheet.appendRow(['id', 'title', 'start', 'end', 'color', 'allDay']);
+    sheet.getRange('A1:F1').setFontWeight('bold').setBackground('#f3f3f3');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function getCalendarEvents() {
+  try {
+    const sheet = ensureCalendarSheet();
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return [];
+    
+    const events = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (!row[0]) continue; // skip empty ids
+      events.push({
+        id: row[0],
+        title: row[1],
+        start: row[2],
+        end: row[3] || null,
+        color: row[4] || '#27ae60',
+        allDay: row[5] === true || String(row[5]).toLowerCase() === 'true'
+      });
+    }
+    return events;
+  } catch (e) {
+    Logger.log('Error getCalendarEvents: ' + e.message);
+    return [];
+  }
+}
+
+function addCalendarEvent(eventData) {
+  try {
+    const sheet = ensureCalendarSheet();
+    const id = Utilities.getUuid();
+    
+    // date and time parsing
+    let start = eventData.date;
+    let end = null;
+    let allDay = true;
+    
+    if (eventData.time) {
+      start = eventData.date + 'T' + eventData.time + ':00';
+      allDay = false;
+    }
+    
+    sheet.appendRow([
+      id,
+      eventData.title,
+      start,
+      end, // end time is null for now, can be added later
+      eventData.color || '#27ae60',
+      allDay
+    ]);
+    
+    return { success: true, message: 'บันทึกกิจกรรมเรียบร้อย' };
+  } catch (e) {
+    Logger.log('Error addCalendarEvent: ' + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}

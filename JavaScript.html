@@ -54,6 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadImages();
   loadNews();
   loadCategoryLinks();
+  initCalendar();
   
   // Drag & Drop
   setupDragAndDrop();
@@ -113,11 +114,13 @@ function setUserSession(username, role) {
   document.getElementById('fabContainer').classList.remove('hidden');
   
   if (role === 'admin' || username.toLowerCase() === 'admin') {
+    document.getElementById('fabAddEvent').classList.remove('hidden');
     document.getElementById('fabUpload').classList.remove('hidden');
     document.getElementById('fabAddNews').classList.remove('hidden');
     document.getElementById('fabManagePhotos').classList.remove('hidden');
     document.getElementById('fabEditCategories').classList.remove('hidden');
   } else {
+    document.getElementById('fabAddEvent').classList.add('hidden');
     document.getElementById('fabUpload').classList.add('hidden');
     document.getElementById('fabAddNews').classList.add('hidden');
     document.getElementById('fabManagePhotos').classList.add('hidden');
@@ -964,6 +967,50 @@ function showToast(message, type = 'success') {
 
 let currentCategoryLinks = [];
 
+
+function initCalendar() {
+  const calendarEl = document.getElementById('calendar');
+  if (!calendarEl) return;
+  
+  if (typeof FullCalendar === 'undefined') {
+    setTimeout(initCalendar, 500); // Wait for library to load
+    return;
+  }
+  
+  calendar = new FullCalendar.Calendar(calendarEl, {
+    initialView: 'dayGridMonth',
+    locale: 'th',
+    headerToolbar: {
+      left: 'prev,next today',
+      center: 'title',
+      right: 'dayGridMonth,listMonth'
+    },
+    buttonText: {
+      today: 'วันนี้',
+      month: 'เดือน',
+      list: 'กำหนดการ'
+    },
+    height: 'auto',
+    events: function(info, successCallback, failureCallback) {
+      google.script.run.withSuccessHandler(function(events) {
+        successCallback(events);
+      }).withFailureHandler(function(error) {
+        console.error('Failed to load events', error);
+        failureCallback(error);
+      }).getCalendarEvents();
+    },
+    eventClick: function(info) {
+      let msg = info.event.title;
+      if (!info.event.allDay && info.event.start) {
+        msg += '\nเวลา: ' + info.event.start.toLocaleTimeString('th-TH', {hour: '2-digit', minute:'2-digit'});
+      }
+      alert(msg);
+    }
+  });
+  
+  calendar.render();
+}
+
 function loadCategoryLinks() {
   google.script.run
     .withSuccessHandler(updateCategoryLinks)
@@ -1025,3 +1072,35 @@ function saveEditCategories() {
 }
 </script>
 
+
+function handleAddEvent(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnEventSubmit');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '<span class="material-icons rotating">sync</span> กำลังบันทึก...';
+  btn.disabled = true;
+
+  const eventData = {
+    title: document.getElementById('eventTitle').value,
+    date: document.getElementById('eventDate').value,
+    time: document.getElementById('eventTime').value,
+    color: document.getElementById('eventColor').value
+  };
+
+  google.script.run.withSuccessHandler(function(res) {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+    if (res.success) {
+      closeModal('eventModal');
+      document.getElementById('eventForm').reset();
+      if(calendar) calendar.refetchEvents();
+      alert('บันทึกกิจกรรมเรียบร้อยแล้ว');
+    } else {
+      alert(res.message);
+    }
+  }).withFailureHandler(function(err) {
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+    alert('เกิดข้อผิดพลาดในการเชื่อมต่อ');
+  }).addCalendarEvent(eventData);
+}
