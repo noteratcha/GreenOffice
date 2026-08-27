@@ -1245,7 +1245,7 @@ function submitEditEvent(e) {
 // Resource Management Logic
 // ==========================================
 let resourceDataList = [];
-let resourcesChartInstance = null;
+let resourcesChartInstances = {};
 
 function loadResourcesData() {
   google.script.run.withSuccessHandler(function(data) {
@@ -1279,75 +1279,86 @@ function renderResourcesChart() {
   container.style.display = 'block';
   emptyState.classList.add('hidden');
   
-  // Get latest 2 years if available, otherwise just 1
   const sorted = [...resourceDataList].sort((a, b) => b.year - a.year);
-  const dataToShow = sorted.slice(0, 2).reverse(); // Oldest first for chart left-to-right
+  const dataToShow = sorted.slice(0, 2).reverse();
   
   if (dataToShow.length === 0) return;
-  
-  const labels = [
-    'การใช้ไฟฟ้า (kWh)', 
-    'การใช้น้ำ (m³)', 
-    'น้ำมันเชื้อเพลิง (L)', 
-    'การใช้กระดาษ (Ream)', 
-    'ก๊าซเรือนกระจก (kgCO2e)', 
-    'นำของเสียกลับมาใช้ (kg)'
-  ];
-  
-  const datasets = [];
   
   const colors = [
     { bg: 'rgba(54, 162, 235, 0.7)', border: 'rgba(54, 162, 235, 1)' }, // Year 1 (Older)
     { bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(39, 174, 96, 1)' }   // Year 2 (Newer)
   ];
   
-  dataToShow.forEach((item, index) => {
-    const color = colors[index % colors.length];
-    datasets.push({
-      label: 'ปี ' + item.year,
-      data: [
-        item.electricity,
-        item.water,
-        item.fuel,
-        item.paper,
-        item.ghg,
-        item.recycledWaste
-      ],
-      backgroundColor: color.bg,
-      borderColor: color.border,
-      borderWidth: 1
-    });
-  });
-
-  const ctx = document.getElementById('resourcesChart').getContext('2d');
+  const chartsConfig = [
+    { id: 'chartElec', key: 'electricity', label: 'การใช้ไฟฟ้า' },
+    { id: 'chartWater', key: 'water', label: 'การใช้น้ำ' },
+    { id: 'chartFuel', key: 'fuel', label: 'น้ำมันเชื้อเพลิง' },
+    { id: 'chartPaper', key: 'paper', label: 'การใช้กระดาษ' },
+    { id: 'chartGhg', key: 'ghg', label: 'ก๊าซเรือนกระจก' },
+    { id: 'chartWaste', key: 'recycledWaste', label: 'นำของเสียกลับมาใช้' }
+  ];
   
-  if (resourcesChartInstance) {
-    resourcesChartInstance.destroy();
-  }
+  // Register datalabels plugin globally if not done already
+  Chart.register(ChartDataLabels);
   
-  resourcesChartInstance = new Chart(ctx, {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: datasets
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-        },
-        title: {
-          display: false
+  chartsConfig.forEach(config => {
+    const ctx = document.getElementById(config.id).getContext('2d');
+    
+    if (resourcesChartInstances[config.id]) {
+      resourcesChartInstances[config.id].destroy();
+    }
+    
+    const datasets = dataToShow.map((item, index) => {
+      const color = colors[index % colors.length];
+      return {
+        label: 'ปี ' + item.year,
+        data: [item[config.key]],
+        backgroundColor: color.bg,
+        borderColor: color.border,
+        borderWidth: 1,
+        datalabels: {
+          color: '#1a2622',
+          anchor: 'end',
+          align: 'top',
+          font: { weight: 'bold', size: 12 },
+          formatter: (value) => Number(value).toLocaleString()
         }
+      };
+    });
+    
+    resourcesChartInstances[config.id] = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: [''], // Single category label to center the bars
+        datasets: datasets
       },
-      scales: {
-        y: {
-          beginAtZero: true
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: { top: 30 } // Add padding to fit datalabels on top
+        },
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: { boxWidth: 12, font: { size: 10 } }
+          },
+          tooltip: {
+            callbacks: {
+              title: () => config.label,
+              label: (context) => ' ' + Number(context.raw).toLocaleString()
+            }
+          },
+          datalabels: {
+            display: true
+          }
+        },
+        scales: {
+          x: { display: false },
+          y: { beginAtZero: true }
         }
       }
-    }
+    });
   });
 }
 

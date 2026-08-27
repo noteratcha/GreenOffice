@@ -50,6 +50,14 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Section titled "7 หมวด Green Office".
   - Layout: 4-column grid (`width: calc(25% - 1.5rem)`), making it elegantly wrap into 2 rows (4 cards on top, 3 centered on the bottom).
   - Configurable external links to Google Drive, editable by admin via the Edit Categories FAB.
+- **Resource Statistics Dashboard (`#resources-section`)**:
+  - Titled "สถิติการใช้ทรัพยากร พลังงาน และการจัดการของเสีย".
+  - Implemented using **Chart.js CDN**.
+  - Layout: 6 individual charts structured in a responsive CSS Grid (3 columns on desktop, wrapping to 2 or 1 on smaller screens).
+  - Data Visualization: Displays annual comparisons (latest 2 years) with consistent styling (Blue for older year, Green for newer year) and hidden x-axes for a clean, minimalist UI.
+  - Value Labels: Implemented `chartjs-plugin-datalabels` to display absolute numbers on top of bars, formatted with comma thousand separators (`.toLocaleString()`).
+  - State Management: Chart instances are tracked in a `resourcesChartInstances` object and `.destroy()` is actively called before re-rendering to prevent canvas overlaps/memory leaks.
+  - Data connected directly to the `resources` Google Sheet.
 - **Floating Action Buttons (FAB)**: 
   - Column layout anchored to bottom-right.
   - **Admin-Only**: Upload (`fabUpload`), Manage Photos (`fabManagePhotos`), Add Event (`fabAddEvent`), Edit Categories (`fabEditCategories`).
@@ -62,6 +70,7 @@ This file contains the accumulated rules, skills, workflow, architectural patter
 - **Data Storage**:
   - **News (`news` sheet)**: title, content, date, imageFileId, user.
   - **Calendar (`calendar` sheet)**: id, title, start (datetime), end, backgroundColor, allDay.
+  - **Resources (`resources` sheet)**: id, year, electricity, water, fuel, paper, ghg, recycledWaste, user.
 - **Role-based Permissions**:
   - Authors can edit/delete their own news.
   - Admins have master permissions to edit/delete any news, manage categories, and add calendar events.

@@ -18,6 +18,7 @@
   <?!= include('Stylesheet'); ?>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 </head>
 <body>
 
@@ -45,6 +46,7 @@
         <li><a class="nav-link active" href="#home">หน้าแรก</a></li>
         <li><a class="nav-link" href="#news">ข่าวสารกิจกรรม</a></li>
         <li><a class="nav-link" href="#calendar-section">ปฏิทินกิจกรรม</a></li>
+        <li><a class="nav-link" href="#resources-section">สถิติเปรียบเทียบ</a></li>
         <li><a class="nav-link" href="#categories">7 หมวด Green Office</a></li>
       </ul>
     </div>
@@ -122,7 +124,7 @@
     <!-- Resources Section -->
     <section id="resources-section" class="section">
       <div class="section-header">
-        <h2><span class="material-icons">analytics</span> ผลการใช้ทรัพยากร พลังงาน และการจัดการของเสีย</h2>
+        <h2><span class="material-icons">analytics</span> สถิติการใช้ทรัพยากร พลังงาน และการจัดการของเสีย</h2>
         <p>เปรียบเทียบข้อมูลการใช้ทรัพยากร 6 ด้าน ระหว่างปีปัจจุบันและปีก่อนหน้า</p>
         <div class="section-divider"></div>
       </div>
@@ -132,8 +134,23 @@
           <p>ยังไม่มีข้อมูลทรัพยากร (รอผู้ดูแลระบบเพิ่มข้อมูล)</p>
         </div>
         
-        <div id="resourcesChartContainer" style="position: relative; height: 400px; width: 100%; max-width: 1000px; margin: 0 auto; display: none; background: var(--color-white); border-radius: var(--radius-lg); padding: 1.5rem; box-shadow: var(--shadow-sm);">
-          <canvas id="resourcesChart"></canvas>
+        <style>
+          .resources-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+          .chart-card { background: var(--color-white); border-radius: var(--radius-lg); padding: 1rem; box-shadow: var(--shadow-sm); height: 350px; position: relative; display: flex; flex-direction: column; }
+          .chart-card h3 { text-align: center; font-size: 1rem; margin-bottom: 0.5rem; color: var(--color-text); font-weight: 500; }
+          .chart-canvas-wrapper { flex: 1; position: relative; width: 100%; height: 100%; }
+          @media (max-width: 900px) { .resources-grid { grid-template-columns: repeat(2, 1fr); } }
+          @media (max-width: 600px) { .resources-grid { grid-template-columns: 1fr; } }
+        </style>
+        <div id="resourcesChartContainer" style="display: none; max-width: 1200px; margin: 0 auto; width: 100%;">
+          <div class="resources-grid">
+            <div class="chart-card"><h3>การใช้ไฟฟ้า (kWh)</h3><div class="chart-canvas-wrapper"><canvas id="chartElec"></canvas></div></div>
+            <div class="chart-card"><h3>การใช้น้ำ (m³)</h3><div class="chart-canvas-wrapper"><canvas id="chartWater"></canvas></div></div>
+            <div class="chart-card"><h3>น้ำมันเชื้อเพลิง (L)</h3><div class="chart-canvas-wrapper"><canvas id="chartFuel"></canvas></div></div>
+            <div class="chart-card"><h3>การใช้กระดาษ (Ream)</h3><div class="chart-canvas-wrapper"><canvas id="chartPaper"></canvas></div></div>
+            <div class="chart-card"><h3>ก๊าซเรือนกระจก (kgCO2e)</h3><div class="chart-canvas-wrapper"><canvas id="chartGhg"></canvas></div></div>
+            <div class="chart-card"><h3>นำของเสียกลับมาใช้ (kg)</h3><div class="chart-canvas-wrapper"><canvas id="chartWaste"></canvas></div></div>
+          </div>
         </div>
       </div>
     </section>
@@ -235,7 +252,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0828.0134</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0828.0300</p>
   </footer>
 
   <!-- ==================== MODALS ==================== -->
