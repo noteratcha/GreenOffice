@@ -121,11 +121,13 @@ function setUserSession(username, role) {
     document.getElementById('fabUpload').classList.remove('hidden');
     document.getElementById('fabManagePhotos').classList.remove('hidden');
     document.getElementById('fabEditCategories').classList.remove('hidden');
+    document.getElementById('fabResources').classList.remove('hidden');
   } else {
     document.getElementById('fabAddEvent').classList.add('hidden');
     document.getElementById('fabUpload').classList.add('hidden');
     document.getElementById('fabManagePhotos').classList.add('hidden');
     document.getElementById('fabEditCategories').classList.add('hidden');
+    document.getElementById('fabResources').classList.add('hidden');
   }
 }
 
@@ -1247,6 +1249,16 @@ let resourcesChartInstance = null;
 
 function loadResourcesData() {
   google.script.run.withSuccessHandler(function(data) {
+    if (data.length === 0) {
+      // Seed dummy data automatically
+      const dummy1 = { year: 2566, electricity: 14500, water: 1250, fuel: 820, paper: 55, ghg: 4600, recycledWaste: 180, user: 'admin' };
+      const dummy2 = { year: 2567, electricity: 13200, water: 1100, fuel: 760, paper: 42, ghg: 4100, recycledWaste: 240, user: 'admin' };
+      google.script.run.saveResourceData(dummy1);
+      google.script.run.saveResourceData(dummy2);
+      // Wait a bit and reload
+      setTimeout(loadResourcesData, 2000);
+      return;
+    }
     resourceDataList = data;
     renderResourcesChart();
   }).withFailureHandler(function(error) {
