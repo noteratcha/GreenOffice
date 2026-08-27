@@ -547,8 +547,20 @@ body {
 /* --- News Cards --- */
 .news-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.75rem;
+}
+
+@media (max-width: 992px) {
+  .news-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .news-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .news-card {
@@ -564,6 +576,7 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 550px;
+  cursor: pointer;
 }
 
 .news-card:hover {
@@ -573,21 +586,22 @@ body {
 
 .news-card-image {
   width: 100%;
-  height: 280px;
+  height: auto;
+  max-height: 350px;
   object-fit: cover;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 /* --- News 3D Slider --- */
 .news-card-3d-slider {
   position: relative;
   width: 100%;
-  height: 280px;
+  height: auto;
+  aspect-ratio: 4 / 3;
   perspective: 1000px;
   overflow: hidden;
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
   background: transparent;
 }
 
@@ -601,6 +615,8 @@ body {
   transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
   transform-style: preserve-3d;
   z-index: 0;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .news-card-3d-slider .news-slide.active {
@@ -815,6 +831,12 @@ body {
 
 .modal-lg {
   max-width: 640px;
+}
+
+.modal-xl {
+  width: 70vw;
+  max-width: 1200px;
+  max-height: 90vh;
 }
 
 .modal-header {
@@ -1149,6 +1171,12 @@ body {
 }
 
 /* --- Responsive --- */
+@media (max-width: 1024px) {
+  .news-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .navbar {
     padding: 0 1rem;
@@ -1304,5 +1332,121 @@ body {
   font-size: 0.9rem;
   font-weight: 500;
   color: var(--color-forest);
+}
+
+/* --- News Detail Modal (2-Column Layout) --- */
+.news-detail-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .news-detail-layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.news-detail-left {
+  display: flex;
+  flex-direction: column;
+}
+
+.news-detail-image-container {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.news-gallery-main img,
+.news-detail-image-container > img {
+  max-width: 100%;
+  max-height: 420px;
+  width: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  background: #f8faf8;
+}
+
+.news-gallery-thumbs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 8px 2px;
+  margin-top: 0.5rem;
+  justify-content: flex-start;
+}
+
+.news-gallery-thumbs .news-thumb {
+  width: 80px !important;
+  height: 60px !important;
+  max-width: 80px !important;
+  max-height: 60px !important;
+  object-fit: cover !important;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  opacity: 0.6;
+  border: 2px solid transparent;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  background: transparent !important;
+  flex-shrink: 0;
+}
+
+.news-gallery-thumbs .news-thumb:hover {
+  opacity: 0.9;
+}
+
+.news-gallery-thumbs .news-thumb.active {
+  opacity: 1;
+  border-color: var(--color-primary);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.22);
+}
+
+.news-detail-right {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.news-detail-date {
+  color: var(--color-primary);
+  font-size: 0.9rem;
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-weight: 500;
+}
+
+.news-detail-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-dark);
+  margin-bottom: 1rem;
+  line-height: 1.35;
+}
+
+.news-detail-content {
+  font-size: 0.98rem;
+  line-height: 1.8;
+  color: rgba(26, 38, 34, 0.85);
+  white-space: pre-wrap;
+  max-height: 380px;
+  overflow-y: auto;
+  padding-right: 8px;
+  margin-bottom: 1rem;
+}
+
+/* --- News Action Buttons --- */
+.news-action-bar {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: auto;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  padding-top: 1rem;
 }
 </style>

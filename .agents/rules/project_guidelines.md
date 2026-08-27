@@ -1,14 +1,19 @@
 # Green Office Project Guidelines
 
-This file contains the accumulated rules, skills, workflow, and styling preferences for the Green Office web application project.
+This file contains the accumulated rules, skills, workflow, architectural patterns, and styling preferences for the Green Office web application project.
 
 ## 1. Tech Stack & Deployment (Apps Script + Clasp)
 - **Framework**: Google Apps Script (HtmlService) functioning as a Single Page Application (SPA).
-- **Files Structure**: `Code.gs` (Server logic), `Index.html` (DOM/UI), `Stylesheet.html` (CSS), `JavaScript.html` (Client logic).
-- **Deployment Strategy**: 
-  - Code is pushed to Apps Script using `clasp`.
-  - Deployment command: `Copy-Item ..\*.* . -Force; npx @google/clasp push` (Executed inside the `build/` directory).
-  - Pushing changes requires manual deployment in the Apps Script Editor (New Version) to reflect changes on the web app.
+- **Files Structure**: 
+  - `Code.gs` (Server-side logic, Google Sheets & Drive APIs)
+  - `Index.html` (DOM / Modal templates)
+  - `Stylesheet.html` (Vanilla CSS design system)
+  - `JavaScript.html` (Client-side controllers, animation intervals, image processing)
+  - `appsscript.json` (Manifest with explicit OAuth scopes: `drive`, `spreadsheets`)
+- **Deployment & Sync Rules**: 
+  - Every time any file in the project is modified, it **MUST be copied to the `build/` folder** and deployed using `clasp push -f` from inside `build/`.
+  - For rapid testing, always use the `/dev` URL.
+  - When updating `/exec` (production link on `@thailandpost.com`), manual deployment (New Version) via Apps Script UI is required due to Google Workspace domain security restrictions.
 
 ## 2. Design System & Aesthetics
 - **Theme**: Earthy, eco-friendly, green-themed color palette with glassmorphism touches.
@@ -20,21 +25,45 @@ This file contains the accumulated rules, skills, workflow, and styling preferen
   - Text / Darkest Green: `#1a2622`
 
 ## 3. UI/UX Components & Styles
-- **Image Carousel**: Displayed as a **3D Vertical Card Coverflow**. Active cards are scaled up (`scale(1)`), while adjacent cards are scaled down, rotated (`rotateY`), faded, and layered in 3D space (`perspective`, `translateZ`).
-- **News Cards**: Uses a floating nested card design where the image is a separate floating card above the content (`border-radius`, `box-shadow` separated from `news-card-body`).
-- **News 3D Slider**: Multi-image news items use a CSS-driven 3D continuous slider (`rotateY`) that automatically loops via a central JS interval.
-- **News Pagination**: Max 3 items per page. Pagination is built dynamically via JS since backend `getNews` returns everything at once.
-- **Floating Action Buttons (FAB)**: Uses `flex-direction: column` so DOM order defines visual top-to-bottom order. Buttons are visible to Admin only and have distinct shadows.
-- **Upload Modal**: Uses Drag-and-Drop functionality. Closes automatically upon successful upload and clears the file input to prevent caching issues.
-- **Scrolling in Iframe**: Apps Script `href="#id"` doesn't work inside iframes. Smooth scrolling is manually handled in JS by intercepting `.nav-link` clicks and using `element.scrollIntoView({ behavior: 'smooth' })`.
-- **Version Numbering**: Displayed in the footer using the format: `vYYYY.MMDD.HHMM` (Year.MonthDay.HourMinute) (e.g., `v2026.0827.1947`).
+- **Activity Carousel**: 3D Vertical Card Coverflow with scale, depth (`translateZ`), and rotation (`rotateY`). Clicking the active center card opens a Fullscreen HD Lightbox preview modal with zoom cursor.
+- **News Section**:
+  - **3-Column Grid**: 3 items per row on desktop with responsive mobile/tablet breakpoints.
+  - **Pagination**: Exactly 3 items per page.
+  - **Sequential Left-to-Right 3D Slider**: Multi-image news cards cycle their images sequentially from left to right (Card 1 -> Card 2 -> Card 3) with a fixed 3-second delay between each card switch.
+  - **News Detail Modal & Gallery (2-Column Modal-XL)**:
+    - Title: `รายละเอียดข่าวสารกิจกรรม`
+    - Sized at `width: 70vw; max-width: 1200px` (leaving 30% viewable margin).
+    - **Left Column**: Interactive Gallery (Large Main Image + cleanly aligned horizontal Thumbnails; main image has no zoom popup on click).
+    - **Right Column**: Clean Thai Date (`D MMMM YYYY โดย [user]`), Title, scrollable Content, and Action buttons.
+    - Responsive: Automatically stacks to 1 column on mobile/tablet screens.
+- **Edit News Modal (Interactive Image Manager)**:
+  - Displays existing photos in a thumbnail grid with individual red delete buttons (`x`).
+  - Allows selecting additional photos with "+ เพิ่มรูปภาพ", which display with a "ใหม่" tag.
+  - Granularly submits kept image IDs + newly compressed images to `editNews(row, title, content, keptIds, newImages)`.
+- **Floating Action Buttons (FAB)**: Column layout, visible to Admin only.
+- **Version Numbering**: Displayed in footer as `vYYYY.MMDD.HHMM`.
 
-## 4. Backend Integrations & Logic
-- **Authentication**: Checked against Google Sheets. Sheet ID: `10ZhFi99f45BJ5epvT4bqJ0xMCl-UeMsN3pM3Dbv0Dpo` (Sheet name: `user&pass`).
-- **File Storage**: Images are uploaded to Google Drive folder ID: `1jmdhZ0VkyC7M0jCg1JVjrCjOgCKq1xzT`.
-  - Images are saved in a subfolder named after the logged-in user.
-  - Image naming convention: `user+DDMMYYYY_HHMMSS+index.jpg`
-- **Payload Limits**: Image uploads are chunked/optimized to avoid Apps Script payload limits (max ~50MB limit, recommended to keep under 5MB per batch).
+## 4. Backend Integrations, Permissions & Security
+- **Authentication**: Checked against Google Sheet ID: `10ZhFi99f45BJ5epvT4bqJ0xMCl-UeMsN3pM3Dbv0Dpo` (Sheet: `user&pass`).
+- **News Storage (`news` sheet)**:
+  - Column A: `title`
+  - Column B: `content`
+  - Column C: `date`
+  - Column D: `imageFileId` (comma-separated Drive IDs)
+  - Column E: `user` (stores creator's username)
+- **Role-based Permissions**:
+  - Authors can edit/delete their own news.
+  - Admins have master permissions to edit/delete any news.
+  - Display Name Mapping: When author/user is `admin`, the UI dynamically formats the display name to `สำนักงานไปรษณีย์เขต 10`.
+- **Google Drive Storage & Domain Policies**:
+  - Folder ID: `1jmdhZ0VkyC7M0jCg1JVjrCjOgCKq1xzT`.
+  - Subfolder `news/` for news images; user-named subfolders for activity uploads.
+  - `file.setSharing(...)` must always be wrapped in `try/catch` to ensure compatibility with enterprise domains (`@thailandpost.com`) that restrict public link sharing.
+  - Fail-safe decoupled saving: Database records are preserved even if Drive service encounters network/policy interruptions.
 
-## 5. Repository Sync
-- **GitHub Sync**: When pushing to GitHub, the repository URL is `https://github.com/noteratcha/GreenOffice`.
+## 5. Client-Side Performance & Image Handling
+- **Smart Image Compression**: All image uploads are processed client-side via HTML5 Canvas (`processFilesToBase64`) to max 1280px, quality 0.75 before base64 encoding. This:
+  - Reduces file size by >90%.
+  - Bypasses Apps Script parameter payload limitations.
+  - Guarantees fast, reliable uploads from mobile devices.
+- **Async/Await Validation**: File streams are fully resolved before dispatching `google.script.run`.

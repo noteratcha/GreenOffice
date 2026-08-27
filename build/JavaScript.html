@@ -209,15 +209,23 @@ function goToSlide(index) {
     
     if (idx === currentSlide) {
       slide.classList.add('active');
+      slide.style.cursor = 'zoom-in';
+      slide.onclick = () => {
+        const img = carouselImages[currentSlide];
+        if (img) openPhotoPreview(img.url, currentSlide, img.id);
+      };
     } else if (idx === prevIdx && carouselImages.length > 1) {
       slide.classList.add('prev');
+      slide.style.cursor = 'pointer';
       slide.onclick = () => goToSlide(prevIdx);
     } else if (idx === nextIdx && carouselImages.length > 2) {
       slide.classList.add('next');
+      slide.style.cursor = 'pointer';
       slide.onclick = () => goToSlide(nextIdx);
     } else if (idx === nextIdx && carouselImages.length === 2) {
       // If only 2 images, next and prev are the same
       slide.classList.add('next');
+      slide.style.cursor = 'pointer';
       slide.onclick = () => goToSlide(nextIdx);
     }
   });
@@ -284,12 +292,32 @@ function deletePhoto(fileId, event) {
 }
 
 function openPhotoPreview(url, index, fileId) {
-  document.getElementById('photoPreviewImg').src = url.replace('&sz=w600', ''); // Get full size
-  document.getElementById('photoPreviewNumber').innerText = index + 1;
-  document.getElementById('photoPreviewDeleteBtn').onclick = (e) => {
-    deletePhoto(fileId, e);
-    closeModal('photoPreviewModal');
-  };
+  if (!url) return;
+  const fullUrl = url.replace('&sz=w600', '&sz=w1600').replace('&sz=w1200', '&sz=w1600');
+  document.getElementById('photoPreviewImg').src = fullUrl;
+  
+  const numElem = document.getElementById('photoPreviewNumber');
+  if (numElem) {
+    if (typeof index === 'number' && index >= 0) {
+      numElem.innerText = index + 1;
+      numElem.style.display = 'block';
+    } else {
+      numElem.style.display = 'none';
+    }
+  }
+
+  const delBtn = document.getElementById('photoPreviewDeleteBtn');
+  if (delBtn) {
+    if (fileId && currentRole === 'admin') {
+      delBtn.style.display = 'flex';
+      delBtn.onclick = (e) => {
+        deletePhoto(fileId, e);
+        closeModal('photoPreviewModal');
+      };
+    } else {
+      delBtn.style.display = 'none';
+    }
+  }
   openModal('photoPreviewModal');
 }
 
@@ -535,10 +563,10 @@ function renderNews() {
     }
       
     html += `
-      <div class="news-card" style="animation-delay: ${idx * 0.1}s">
+      <div class="news-card" style="animation-delay: ${idx * 0.1}s" onclick="openNewsDetail(${globalNewsData.indexOf(news)})">
         ${imgHtml}
         <div class="news-card-body">
-          <div class="news-card-date"><span class="material-icons" style="font-size:14px;">calendar_today</span> ${news.date}</div>
+          <div class="news-card-date"><span class="material-icons" style="font-size:14px;">calendar_today</span> ${formatNewsDate(news.date)}${news.user || news.author ? ' โดย ' + (news.user || news.author) : ''}</div>
           <h3 class="news-card-title">${news.title}</h3>
           <p class="news-card-content">${news.content}</p>
         </div>
@@ -549,31 +577,33 @@ function renderNews() {
   container.innerHTML = html;
   renderNewsPagination(totalPages);
   
-  // Initialize 3D Slider animation
+  // Initialize 3D Slider animation: Sequential left to right with 3-second delay
   if (news3DSliderInterval) clearInterval(news3DSliderInterval);
+  let currentSliderTurn = 0;
+
   news3DSliderInterval = setInterval(() => {
-    document.querySelectorAll('.news-card-3d-slider').forEach(slider => {
-      const slides = slider.querySelectorAll('.news-slide');
-      if (slides.length <= 1) return;
-      
+    const sliders = document.querySelectorAll('.news-card-3d-slider');
+    if (sliders.length === 0) return;
+
+    const currentSlider = sliders[currentSliderTurn % sliders.length];
+    const slides = currentSlider.querySelectorAll('.news-slide');
+    if (slides.length > 1) {
       let activeIdx = -1;
       slides.forEach((s, i) => { if (s.classList.contains('active')) activeIdx = i; });
-      
+
       if (activeIdx !== -1) {
         slides[activeIdx].classList.remove('active');
         slides[activeIdx].classList.add('prev');
-        
         slides.forEach((s, i) => {
-          if (i !== activeIdx && s.classList.contains('prev')) {
-            s.classList.remove('prev');
-          }
+          if (i !== activeIdx && s.classList.contains('prev')) s.classList.remove('prev');
         });
-        
         let nextIdx = (activeIdx + 1) % slides.length;
         slides[nextIdx].classList.add('active');
       }
-    });
-  }, 3500);
+    }
+
+    currentSliderTurn = (currentSliderTurn + 1) % sliders.length;
+  }, 3000);
 }
 
 function renderNewsPagination(totalPages) {
@@ -604,30 +634,55 @@ function changeNewsPage(newPage) {
   document.getElementById('news').scrollIntoView({ behavior: 'smooth' });
 }
 
-let newsImagesBase64 = [];
-document.getElementById('newsImage').addEventListener('change', function(e) {
-  newsImagesBase64 = [];
-  const files = e.target.files;
-  if (!files || files.length === 0) return;
-  
-  for(let i = 0; i < files.length; i++) {
-    const file = files[i];
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      newsImagesBase64.push({
-        data: ev.target.result.split(',')[1],
-        mimeType: file.type
-      });
-    };
-    reader.readAsDataURL(file);
-  }
-});
+function processFilesToBase64(files, maxDimension = 1280, quality = 0.75) {
+  const promises = Array.from(files).map(file => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let width = img.width;
+          let height = img.height;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = Math.round((height * maxDimension) / width);
+              width = maxDimension;
+            } else {
+              width = Math.round((width * maxDimension) / height);
+              height = maxDimension;
+            }
+          }
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve({
+            data: dataUrl.split(',')[1],
+            mimeType: 'image/jpeg'
+          });
+        };
+        img.onerror = () => {
+          resolve({
+            data: e.target.result.split(',')[1],
+            mimeType: file.type || 'image/jpeg'
+          });
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  });
+  return Promise.all(promises);
+}
 
-function submitNews(e) {
+async function submitNews(e) {
   e.preventDefault();
   
   const title = document.getElementById('newsTitle').value;
   const content = document.getElementById('newsContent').value;
+  const fileInput = document.getElementById('newsImage');
   const btn = document.getElementById('btnNewsSubmit');
   const progress = document.getElementById('newsProgress');
   
@@ -636,15 +691,23 @@ function submitNews(e) {
   btn.disabled = true;
   progress.classList.add('show');
   
+  let imagesData = [];
+  if (fileInput.files && fileInput.files.length > 0) {
+    try {
+      imagesData = await processFilesToBase64(fileInput.files);
+    } catch(err) {
+      console.error('Error processing images:', err);
+    }
+  }
+  
   google.script.run
     .withSuccessHandler((res) => {
       btn.disabled = false;
       progress.classList.remove('show');
       
       if (res.success) {
-        showToast('เพิ่มข่าวสารสำเร็จ', 'success');
+        showToast(res.message || 'เพิ่มข่าวสารสำเร็จ', 'success');
         document.getElementById('newsForm').reset();
-        newsImagesBase64 = [];
         closeModal('newsModal');
         loadNews();
       } else {
@@ -654,9 +717,198 @@ function submitNews(e) {
     .withFailureHandler((err) => {
       btn.disabled = false;
       progress.classList.remove('show');
+      showToast('การเชื่อมต่อล้มเหลว: ' + (err.message || ''), 'error');
+    })
+    .addNews(title, content, imagesData, currentUser);
+}
+
+// ============================================================
+// News Detail, Edit & Delete
+// ============================================================
+function openNewsDetail(idx) {
+  const news = globalNewsData[idx];
+  if (!news) return;
+
+  const imgContainer = document.getElementById('newsDetailImageContainer');
+  const leftCol = document.getElementById('newsDetailLeft');
+  const layout = document.getElementById('newsDetailLayout');
+
+  if (news.imageUrls && news.imageUrls.length > 0) {
+    if (leftCol) leftCol.style.display = 'flex';
+    if (layout) layout.style.gridTemplateColumns = '';
+
+    if (news.imageUrls.length === 1) {
+      imgContainer.innerHTML = `<img src="${news.imageUrls[0]}" style="cursor: zoom-in;" onclick="openPhotoPreview('${news.imageUrls[0]}')">`;
+    } else {
+      let html = `
+        <div class="news-gallery-main">
+          <img id="newsGalleryMainImg" src="${news.imageUrls[0]}" style="cursor: zoom-in;" onclick="openPhotoPreview(this.src)">
+        </div>
+        <div class="news-gallery-thumbs">
+      `;
+      news.imageUrls.forEach((url, i) => {
+        html += `<img src="${url}" class="news-thumb ${i === 0 ? 'active' : ''}" onclick="setNewsGalleryMain('${url}', this)">`;
+      });
+      html += '</div>';
+      imgContainer.innerHTML = html;
+    }
+  } else {
+    if (leftCol) leftCol.style.display = 'none';
+    if (layout) layout.style.gridTemplateColumns = '1fr';
+    imgContainer.innerHTML = '';
+  }
+
+  const newsAuthor = news.user || news.author || '';
+  document.getElementById('newsDetailDate').innerHTML = `<span class="material-icons" style="font-size:16px;">calendar_today</span> <span>${formatNewsDate(news.date)}${newsAuthor ? ' โดย ' + newsAuthor : ''}</span>`;
+  document.getElementById('newsDetailTitle').textContent = news.title;
+  document.getElementById('newsDetailContent').textContent = news.content;
+
+  const actionBar = document.getElementById('newsDetailActionBar');
+  if (currentUser && (newsAuthor === currentUser || currentRole === 'admin')) {
+    actionBar.classList.remove('hidden');
+    document.getElementById('btnEditNewsAction').onclick = () => {
+      closeModal('newsDetailModal');
+      openEditNews(idx);
+    };
+    document.getElementById('btnDeleteNewsAction').onclick = () => {
+      if (confirm('คุณต้องการลบข่าวสารนี้ใช่หรือไม่?')) {
+        deleteNewsItem(idx);
+      }
+    };
+  } else {
+    actionBar.classList.add('hidden');
+  }
+
+  openModal('newsDetailModal');
+}
+
+function setNewsGalleryMain(url, thumbElem) {
+  document.getElementById('newsGalleryMainImg').src = url;
+  const thumbs = document.querySelectorAll('.news-thumb');
+  thumbs.forEach(t => t.classList.remove('active'));
+  thumbElem.classList.add('active');
+}
+
+function formatNewsDate(dateVal) {
+  if (!dateVal) return '';
+  const thaiMonths = [
+    'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+    'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+  ];
+  
+  if (typeof dateVal === 'string') {
+    const match = dateVal.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (match) {
+      const day = parseInt(match[1]);
+      const monthIdx = parseInt(match[2]) - 1;
+      let year = parseInt(match[3]);
+      if (year < 2500) year += 543;
+      return `${day} ${thaiMonths[monthIdx] || match[2]} ${year}`;
+    }
+  }
+
+  const d = new Date(dateVal);
+  if (!isNaN(d.getTime())) {
+    const day = d.getDate();
+    const month = thaiMonths[d.getMonth()];
+    let year = d.getFullYear();
+    if (year < 2500) year += 543;
+    return `${day} ${month} ${year}`;
+  }
+
+  return String(dateVal).split(' ')[0];
+}
+
+let editNewsImagesBase64 = [];
+document.getElementById('editNewsImage').addEventListener('change', function(e) {
+  editNewsImagesBase64 = [];
+  const files = e.target.files;
+  if (!files || files.length === 0) return;
+  for(let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      editNewsImagesBase64.push({
+        data: ev.target.result.split(',')[1],
+        mimeType: file.type
+      });
+    };
+    reader.readAsDataURL(file);
+  }
+});
+
+function openEditNews(idx) {
+  const news = globalNewsData[idx];
+  if (!news) return;
+
+  document.getElementById('editNewsRow').value = news.row;
+  document.getElementById('editNewsTitle').value = news.title;
+  document.getElementById('editNewsContent').value = news.content;
+  document.getElementById('editNewsImage').value = '';
+  editNewsImagesBase64 = [];
+
+  openModal('editNewsModal');
+}
+
+async function submitEditNews(e) {
+  e.preventDefault();
+  const row = parseInt(document.getElementById('editNewsRow').value);
+  const title = document.getElementById('editNewsTitle').value;
+  const content = document.getElementById('editNewsContent').value;
+  const fileInput = document.getElementById('editNewsImage');
+  const btn = document.getElementById('btnEditNewsSubmit');
+  const progress = document.getElementById('editNewsProgress');
+
+  btn.disabled = true;
+  progress.classList.add('show');
+
+  let imagesData = [];
+  if (fileInput.files && fileInput.files.length > 0) {
+    try {
+      imagesData = await processFilesToBase64(fileInput.files);
+    } catch(err) {
+      console.error('Error processing images for edit:', err);
+    }
+  }
+
+  google.script.run
+    .withSuccessHandler((res) => {
+      btn.disabled = false;
+      progress.classList.remove('show');
+      if (res.success) {
+        showToast('แก้ไขข่าวสารสำเร็จ', 'success');
+        closeModal('editNewsModal');
+        loadNews();
+      } else {
+        showToast(res.message, 'error');
+      }
+    })
+    .withFailureHandler((err) => {
+      btn.disabled = false;
+      progress.classList.remove('show');
+      showToast('การเชื่อมต่อล้มเหลว: ' + (err.message || ''), 'error');
+    })
+    .editNews(row, title, content, imagesData);
+}
+
+function deleteNewsItem(idx) {
+  const news = globalNewsData[idx];
+  if (!news) return;
+  
+  google.script.run
+    .withSuccessHandler((res) => {
+      if (res.success) {
+        showToast('ลบข่าวสารสำเร็จ', 'success');
+        closeModal('newsDetailModal');
+        loadNews();
+      } else {
+        showToast(res.message, 'error');
+      }
+    })
+    .withFailureHandler((err) => {
       showToast('การเชื่อมต่อล้มเหลว', 'error');
     })
-    .addNews(title, content, newsImagesBase64);
+    .deleteNews(news.row);
 }
 
 // ============================================================

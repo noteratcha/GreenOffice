@@ -84,7 +84,11 @@ function uploadImages(imagesData, username) {
       const blob = Utilities.newBlob(decoded, imgData.mimeType || 'image/jpeg', fileName);
 
       const file = userFolder.createFile(blob);
-      file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      try {
+        file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+      } catch (errSharing) {
+        Logger.log('Sharing warning: ' + errSharing.message);
+      }
 
       results.push({
         id: file.getId(),
@@ -95,6 +99,7 @@ function uploadImages(imagesData, username) {
 
     return { success: true, count: results.length, files: results };
   } catch (e) {
+    Logger.log('uploadImages error: ' + e.message);
     return { success: false, message: 'อัปโหลดไม่สำเร็จ: ' + e.message };
   }
 }
@@ -141,7 +146,6 @@ function getImages() {
       const folderName = folder.getName();
 
       // Skip non-admin folders (and 'news')
-      // Allow if the user has admin role OR if the folder name is explicitly 'admin'
       if (folderName.toLowerCase() !== 'admin' && !adminUsers.includes(folderName)) continue;
 
       const files = folder.getFiles();
@@ -183,7 +187,7 @@ function getNews() {
     // Create sheet if not exists
     if (!sheet) {
       sheet = ss.insertSheet('news');
-      sheet.appendRow(['title', 'content', 'date', 'imageFileId']);
+      sheet.appendRow(['title', 'content', 'date', 'imageFileId', 'user']);
       return [];
     }
 
@@ -192,13 +196,18 @@ function getNews() {
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][0]) {
+        const userVal = data[i][4] ? String(data[i][4]).trim() : '';
         news.push({
+          row: i + 1,
           title: String(data[i][0]),
           content: String(data[i][1]),
           date: String(data[i][2]),
+          user: userVal,
+          author: userVal,
           imageUrls: data[i][3] 
             ? String(data[i][3]).split(',').map(id => 'https://drive.google.com/thumbnail?id=' + id.trim() + '&sz=w600')
-            : []
+            : [],
+          rawImageIds: data[i][3] ? String(data[i][3]) : ''
         });
       }
     }
@@ -212,19 +221,28 @@ function getNews() {
   }
 }
 
-function addNews(title, content, imagesData) {
+function addNews(title, content, imagesData, username) {
+  // Step 1: Save to Spreadsheet first (always works)
+  let sheet;
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-    let sheet = ss.getSheetByName('news');
+    sheet = ss.getSheetByName('news');
 
     if (!sheet) {
       sheet = ss.insertSheet('news');
-      sheet.appendRow(['title', 'content', 'date', 'imageFileId']);
+      sheet.appendRow(['title', 'content', 'date', 'imageFileId', 'user']);
     }
+  } catch (e) {
+    Logger.log('addNews Spreadsheet Error: ' + e.message + '\n' + e.stack);
+    return { success: false, message: 'เชื่อมต่อ Spreadsheet ไม่ได้: ' + e.message };
+  }
 
-    let imageFileIds = [];
+  // Step 2: Upload images to Drive
+  let imageFileIds = [];
+  let imageWarning = '';
 
-    if (imagesData && imagesData.length > 0) {
+  if (imagesData && imagesData.length > 0) {
+    try {
       const parentFolder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
       let newsFolder;
       const folders = parentFolder.getFoldersByName('news');
@@ -245,34 +263,104 @@ function addNews(title, content, imagesData) {
           );
 
           const file = newsFolder.createFile(blob);
-          file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          try {
+            file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          } catch (errShare) {
+            Logger.log('News image sharing warning: ' + errShare.message);
+          }
           imageFileIds.push(file.getId());
         }
       }
+    } catch (e) {
+      Logger.log('addNews Drive Error: ' + e.message + '\n' + e.stack);
+      imageWarning = ' (แต่อัปโหลดรูปไม่สำเร็จ: ' + e.message + ')';
     }
+  }
 
+  // Step 3: Write the row
+  try {
     const now = new Date();
     const dateStr = Utilities.formatDate(now, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
+    sheet.appendRow([title, content, dateStr, imageFileIds.join(','), username || 'admin']);
 
-    sheet.appendRow([title, content, dateStr, imageFileIds.join(',')]);
-
+    if (imageWarning) {
+      return { success: true, message: 'บันทึกข่าวสารสำเร็จ' + imageWarning };
+    }
     return { success: true };
   } catch (e) {
-    return { success: false, message: 'เพิ่มข่าวไม่สำเร็จ: ' + e.message };
+    Logger.log('addNews Write Error: ' + e.message + '\n' + e.stack);
+    return { success: false, message: 'บันทึกข้อมูลไม่สำเร็จ: ' + e.message };
   }
 }
 
-function deleteNews(rowIndex) {
+function deleteNews(row) {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName('news');
     if (!sheet) return { success: false, message: 'ไม่พบชีต news' };
 
-    // rowIndex is 0-based from client (excluding header)
-    // Sheet rows are 1-based, row 1 is header
-    sheet.deleteRow(rowIndex + 2);
+    sheet.deleteRow(row);
     return { success: true };
   } catch (e) {
     return { success: false, message: 'ลบข่าวไม่สำเร็จ: ' + e.message };
   }
+}
+
+function editNews(row, title, content, imagesData) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName('news');
+    if (!sheet) return { success: false, message: 'ไม่พบชีต news' };
+
+    // Update title and content
+    sheet.getRange(row, 1).setValue(title);
+    sheet.getRange(row, 2).setValue(content);
+    
+    // Update date
+    const now = new Date();
+    const dateStr = Utilities.formatDate(now, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
+    sheet.getRange(row, 3).setValue(dateStr);
+
+    // If new images provided, upload and replace
+    if (imagesData && imagesData.length > 0) {
+      const parentFolder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+      let newsFolder;
+      const folders = parentFolder.getFoldersByName('news');
+      if (folders.hasNext()) {
+        newsFolder = folders.next();
+      } else {
+        newsFolder = parentFolder.createFolder('news');
+      }
+
+      let imageFileIds = [];
+      for (let i = 0; i < imagesData.length; i++) {
+        const img = imagesData[i];
+        if (img && img.data) {
+          const decoded = Utilities.base64Decode(img.data);
+          const blob = Utilities.newBlob(
+            decoded,
+            img.mimeType || 'image/jpeg',
+            'news_edit_' + Date.now() + '_' + i + '.jpg'
+          );
+          const file = newsFolder.createFile(blob);
+          try {
+            file.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+          } catch (errShare) {
+            Logger.log('Edit news image sharing warning: ' + errShare.message);
+          }
+          imageFileIds.push(file.getId());
+        }
+      }
+      sheet.getRange(row, 4).setValue(imageFileIds.join(','));
+    }
+
+    return { success: true };
+  } catch (e) {
+    return { success: false, message: 'แก้ไขข่าวไม่สำเร็จ: ' + e.message };
+  }
+}
+
+// Force OAuth authorization for DriveApp
+function authorizeDrive() {
+  DriveApp.getFiles();
 }
