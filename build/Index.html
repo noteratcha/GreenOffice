@@ -104,6 +104,19 @@
       </div>
     </section>
 
+    
+    <!-- Calendar Section -->
+    <section id="calendar-section" class="section">
+      <div class="section-header">
+        <h2><span class="material-icons">event</span> ปฏิทินกิจกรรมสิ่งแวดล้อม</h2>
+        <p>ติดตามวันรณรงค์และกิจกรรมต่างๆ ของ Green Office Reg.10</p>
+        <div class="section-divider"></div>
+      </div>
+      <div id="fullcalendar-wrapper" style="background: var(--color-white); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm); max-width: 1000px; margin: 0 auto;">
+        <div id="calendar"></div>
+      </div>
+    </section>
+
     <!-- Categories Section -->
     <section id="categories" class="section categories-section">
       <div class="section-header">
@@ -257,6 +270,50 @@
     </div>
   </div>
 
+
+  
+  <!-- Add Event Modal -->
+  <div id="eventModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <h3><span class="material-icons">event_note</span> เพิ่มกิจกรรมใหม่</h3>
+        <button class="modal-close" onclick="closeModal('eventModal')">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="eventForm" onsubmit="handleAddEvent(event)">
+          <div class="form-group">
+            <label class="form-label">ชื่อกิจกรรม</label>
+            <input type="text" id="eventTitle" class="form-input" required placeholder="เช่น ประชุม Green Office">
+          </div>
+          <div class="form-group">
+            <label class="form-label">วันที่</label>
+            <input type="date" id="eventDate" class="form-input" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">เวลา (ถ้ามี)</label>
+            <input type="time" id="eventTime" class="form-input">
+          </div>
+          <div class="form-group">
+            <label class="form-label">สีป้ายกำกับ</label>
+            <select id="eventColor" class="form-input">
+              <option value="#27ae60">สีเขียว (ทั่วไป)</option>
+              <option value="#2980b9">สีฟ้า (ประชุม)</option>
+              <option value="#e67e22">สีส้ม (สำคัญ)</option>
+              <option value="#c0392b">สีแดง (ด่วน)</option>
+            </select>
+          </div>
+          <div class="modal-footer" style="margin-top: 1.5rem;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('eventModal')">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary" id="btnEventSubmit">
+              <span class="material-icons">save</span> บันทึกกิจกรรม
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
   <!-- Login Modal -->
   <div id="loginModal" class="modal-backdrop">
