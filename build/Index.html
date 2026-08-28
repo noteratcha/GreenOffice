@@ -290,23 +290,27 @@
           <span class="material-icons">close</span>
         </button>
       </div>
-      <form id="policyForm" onsubmit="submitPolicy(event)">
-        <div class="form-group">
-          <label>เลือกนโยบายที่ต้องการเปลี่ยน</label>
-          <select id="policySelect" required>
-            <option value="1">นโยบายที่ 1 (ฝั่งซ้าย)</option>
-            <option value="2">นโยบายที่ 2 (ฝั่งขวา)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>เลือกรูปภาพ</label>
-          <input type="file" id="policyFile" accept="image/*" required>
-        </div>
-        <div class="modal-footer" style="margin-top: 1.5rem;">
-          <button type="button" class="btn btn-secondary" onclick="closeModal('policyModal')">ยกเลิก</button>
-          <button type="submit" class="btn btn-primary">บันทึกรูปภาพ</button>
-        </div>
-      </form>
+      <div class="modal-body">
+        <form id="policyForm" onsubmit="submitPolicy(event)">
+          <div class="form-group">
+            <label class="form-label">เลือกนโยบายที่ต้องการเปลี่ยน</label>
+            <select id="policySelect" class="form-input" required>
+              <option value="1">นโยบายที่ 1 (ฝั่งซ้าย)</option>
+              <option value="2">นโยบายที่ 2 (ฝั่งขวา)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">เลือกรูปภาพ</label>
+            <input type="file" id="policyFile" class="form-input" accept="image/*" required style="padding: 0.6rem;">
+          </div>
+          <div class="modal-footer" style="padding: 1.5rem 0 0;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('policyModal')">ยกเลิก</button>
+            <button type="submit" class="btn btn-primary">
+              <span class="material-icons">upload</span> บันทึกรูปภาพ
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 
