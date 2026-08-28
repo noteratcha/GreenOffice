@@ -433,7 +433,7 @@ async function submitPolicy(e) {
     }).withFailureHandler(function(err) {
       btn.disabled = false;
       showToast('เชื่อมต่อล้มเหลว', 'error');
-    }).savePolicyImage(policyNum, fileData.data, fileData.name, fileData.type);
+    }).savePolicyImage(policyNum, fileData.data, fileInput.files[0].name, fileData.mimeType);
   } catch(err) {
     btn.disabled = false;
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
