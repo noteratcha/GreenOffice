@@ -661,3 +661,237 @@ function deleteResourceData(id) {
     return { success: false, message: 'Error: ' + error.message };
   }
 }
+
+// ============================================================
+// Policy Image Handling
+// ============================================================
+
+function savePolicyImage(policyNum, base64Data, filename, mimeType) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    
+    const decoded = Utilities.base64Decode(base64Data);
+    const blob = Utilities.newBlob(decoded, mimeType, filename);
+    const file = folder.createFile(blob);
+    
+    // Attempt to set sharing permissions
+    try { file.setSharing(DriveApp.Access.ANYONE, DriveApp.Permission.VIEW); } catch (e) {}
+    
+    const fileId = file.getId();
+    
+    // Save to Properties
+    props.setProperty('POLICY_IMG_' + policyNum, fileId);
+    
+    const url = 'https://drive.google.com/uc?export=view&id=' + fileId;
+    return { success: true, url: url };
+  } catch (e) {
+    Logger.log('Error addCalendarEvent: ' + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
+
+
+function deleteCalendarEvent(id) {
+  try {
+    const sheet = ensureCalendarSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === id) {
+        sheet.deleteRow(i + 1);
+        return { success: true, message: 'ลบกิจกรรมเรียบร้อยแล้ว' };
+      }
+    }
+    return { success: false, message: 'ไม่พบกิจกรรมที่ต้องการลบ' };
+  } catch (e) {
+    Logger.log('Error deleteCalendarEvent: ' + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
+
+function editCalendarEvent(eventData) {
+  try {
+    const sheet = ensureCalendarSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    // Parse date and time
+    let start = eventData.date;
+    let end = null;
+    let allDay = true;
+    
+    if (eventData.time) {
+      start = eventData.date + 'T' + eventData.time + ':00';
+      allDay = false;
+    }
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === eventData.id) {
+        // Update row (index is i + 1 in sheet)
+        const rowNum = i + 1;
+        sheet.getRange(rowNum, 2).setValue(eventData.title);
+        sheet.getRange(rowNum, 3).setValue(start);
+        sheet.getRange(rowNum, 4).setValue(end);
+        sheet.getRange(rowNum, 5).setValue(eventData.color || '#27ae60');
+        sheet.getRange(rowNum, 6).setValue(allDay);
+        // Do not update user, keep the original creator
+        return { success: true, message: 'แก้ไขกิจกรรมเรียบร้อยแล้ว' };
+      }
+    }
+    return { success: false, message: 'ไม่พบกิจกรรมที่ต้องการแก้ไข' };
+  } catch (e) {
+    Logger.log('Error editCalendarEvent: ' + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
+
+// ------------------------------------------------------------
+// Resource Management
+// ------------------------------------------------------------
+function ensureResourcesSheet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName('resources');
+  if (!sheet) {
+    sheet = ss.insertSheet('resources');
+    sheet.appendRow(['id', 'year', 'electricity', 'water', 'fuel', 'paper', 'ghg', 'recycledWaste', 'user']);
+    sheet.getRange('A1:I1').setFontWeight('bold').setBackground('#f3f3f3');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function getResourcesData() {
+  try {
+    const sheet = ensureResourcesSheet();
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return [];
+    
+    const resources = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (!row[0]) continue;
+      
+      resources.push({
+        id: row[0],
+        year: row[1],
+        electricity: row[2],
+        water: row[3],
+        fuel: row[4],
+        paper: row[5],
+        ghg: row[6],
+        recycledWaste: row[7],
+        user: row[8] || ''
+      });
+    }
+    
+    // Sort by year descending
+    resources.sort((a, b) => b.year - a.year);
+    
+    return resources;
+  } catch (error) {
+    console.error('Error getting resources data:', error);
+    return [];
+  }
+}
+
+function saveResourceData(data) {
+  try {
+    const sheet = ensureResourcesSheet();
+    const id = data.id || Utilities.getUuid();
+    
+    if (data.id) {
+      // Edit existing
+      const values = sheet.getDataRange().getValues();
+      for (let i = 1; i < values.length; i++) {
+        if (values[i][0] === data.id) {
+          const rowData = [
+            data.id,
+            data.year,
+            data.electricity,
+            data.water,
+            data.fuel,
+            data.paper,
+            data.ghg,
+            data.recycledWaste,
+            data.user || values[i][8]
+          ];
+          sheet.getRange(i + 1, 1, 1, 9).setValues([rowData]);
+          return { success: true, message: 'บันทึกข้อมูลเรียบร้อยแล้ว' };
+        }
+      }
+      return { success: false, message: 'ไม่พบข้อมูลที่ต้องการแก้ไข' };
+    } else {
+      // Add new
+      sheet.appendRow([
+        id,
+        data.year,
+        data.electricity,
+        data.water,
+        data.fuel,
+        data.paper,
+        data.ghg,
+        data.recycledWaste,
+        data.user || ''
+      ]);
+      return { success: true, message: 'เพิ่มข้อมูลเรียบร้อยแล้ว' };
+    }
+  } catch (error) {
+    return { success: false, message: 'Error: ' + error.message };
+  }
+}
+
+function deleteResourceData(id) {
+  try {
+    const sheet = ensureResourcesSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][0] === id) {
+        sheet.deleteRow(i + 1);
+        return { success: true, message: 'ลบข้อมูลเรียบร้อยแล้ว' };
+      }
+    }
+    return { success: false, message: 'ไม่พบข้อมูลที่ต้องการลบ' };
+  } catch (error) {
+    return { success: false, message: 'Error: ' + error.message };
+  }
+}
+
+// ============================================================
+// Policy Image Handling
+// ============================================================
+
+function savePolicyImage(policyNum, base64Data, filename, mimeType) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const folder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
+    
+    const decoded = Utilities.base64Decode(base64Data);
+    const blob = Utilities.newBlob(decoded, mimeType, filename);
+    const file = folder.createFile(blob);
+    
+    // Attempt to set sharing permissions
+    try { file.setSharing(DriveApp.Access.ANYONE, DriveApp.Permission.VIEW); } catch (e) {}
+    
+    const fileId = file.getId();
+    
+    // Save to Properties
+    props.setProperty('POLICY_IMG_' + policyNum, fileId);
+    
+    const url = 'https://drive.google.com/uc?export=view&id=' + fileId;
+    return { success: true, url: url };
+  } catch(e) {
+    return { success: false, error: e.toString() };
+  }
+}
+
+function getPolicyImages() {
+  const props = PropertiesService.getScriptProperties();
+  const id1 = props.getProperty('POLICY_IMG_1');
+  const id2 = props.getProperty('POLICY_IMG_2');
+  
+  return {
+    url1: id1 ? 'https://drive.google.com/uc?export=view&id=' + id1 : null,
+    url2: id2 ? 'https://drive.google.com/uc?export=view&id=' + id2 : null
+  };
+}

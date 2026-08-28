@@ -55,6 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadImages();
   loadNews();
   loadResourcesData();
+  loadPolicyImages();
   
   initCalendar();
   
@@ -117,12 +118,14 @@ function setUserSession(username, role) {
   document.getElementById('fabAddNews').classList.remove('hidden');
   
   if (role === 'admin' || username.toLowerCase() === 'admin') {
+    document.getElementById('fabPolicy').classList.remove('hidden');
     document.getElementById('fabAddEvent').classList.remove('hidden');
     document.getElementById('fabUpload').classList.remove('hidden');
     document.getElementById('fabManagePhotos').classList.remove('hidden');
     document.getElementById('fabEditCategories').classList.remove('hidden');
     document.getElementById('fabResources').classList.remove('hidden');
   } else {
+    document.getElementById('fabPolicy').classList.add('hidden');
     document.getElementById('fabAddEvent').classList.add('hidden');
     document.getElementById('fabUpload').classList.add('hidden');
     document.getElementById('fabManagePhotos').classList.add('hidden');
@@ -370,6 +373,75 @@ function renderManagePhotos() {
 
 // ============================================================
 // Upload Images
+// ============================================================
+
+// ============================================================
+// Policy Image Handling
+// ============================================================
+
+function loadPolicyImages() {
+  google.script.run.withSuccessHandler(function(data) {
+    if (data.url1) {
+      const img1 = document.getElementById('policyImg1');
+      img1.src = data.url1;
+      img1.classList.remove('hidden');
+      document.getElementById('policySkeleton1').classList.add('hidden');
+    }
+    if (data.url2) {
+      const img2 = document.getElementById('policyImg2');
+      img2.src = data.url2;
+      img2.classList.remove('hidden');
+      document.getElementById('policySkeleton2').classList.add('hidden');
+    }
+  }).getPolicyImages();
+}
+
+async function submitPolicy(e) {
+  e.preventDefault();
+  const policyNum = document.getElementById('policySelect').value;
+  const fileInput = document.getElementById('policyFile');
+  const btn = e.target.querySelector('button[type="submit"]');
+  
+  if (fileInput.files.length === 0) {
+    showToast('กรุณาเลือกรูปภาพ', 'error');
+    return;
+  }
+
+  showToast('กำลังประมวลผลรูปภาพ...', 'info');
+  btn.disabled = true;
+  
+  try {
+    const imagesData = await processFilesToBase64(fileInput.files, 1600, 0.8);
+    const fileData = imagesData[0];
+    
+    showToast('กำลังอัปโหลด...', 'info');
+    
+    google.script.run.withSuccessHandler(function(res) {
+      btn.disabled = false;
+      if(res.success) {
+        showToast('อัปโหลดรูปภาพนโยบายสำเร็จ', 'success');
+        closeModal('policyModal');
+        document.getElementById('policyForm').reset();
+        
+        const img = document.getElementById(`policyImg${policyNum}`);
+        img.src = res.url;
+        img.classList.remove('hidden');
+        document.getElementById(`policySkeleton${policyNum}`).classList.add('hidden');
+      } else {
+        showToast('เกิดข้อผิดพลาด: ' + res.error, 'error');
+      }
+    }).withFailureHandler(function(err) {
+      btn.disabled = false;
+      showToast('เชื่อมต่อล้มเหลว', 'error');
+    }).savePolicyImage(policyNum, fileData.data, fileData.name, fileData.type);
+  } catch(err) {
+    btn.disabled = false;
+    showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
+  }
+}
+
+// ============================================================
+// File Upload & Base64 processing
 // ============================================================
 
 function setupDragAndDrop() {
