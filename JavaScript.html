@@ -1092,6 +1092,14 @@ function openModal(id) {
 function closeModal(id) {
   document.getElementById(id).classList.remove('show');
   document.body.style.overflow = '';
+  
+  // Clear preview image when closing to prevent showing old image on next open
+  if (id === 'photoPreviewModal') {
+    setTimeout(() => {
+      const img = document.getElementById('photoPreviewImg');
+      if (img) img.src = '';
+    }, 300); // Wait for fade out animation
+  }
 }
 
 // Close modal on click outside
