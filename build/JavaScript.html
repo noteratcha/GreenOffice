@@ -55,6 +55,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
+  const btnNavLogin = document.getElementById('btnNavLogin');
+  if (btnNavLogin) btnNavLogin.addEventListener('click', () => document.getElementById('loginModal').classList.add('show'));
+  const btnLogout = document.getElementById('btnLogout');
+  if (btnLogout) btnLogout.addEventListener('click', handleLogout);
+
   // Check saved session
   const savedUser = localStorage.getItem('go_user');
   const savedRole = localStorage.getItem('go_role');
