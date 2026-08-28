@@ -878,7 +878,7 @@ function savePolicyImage(policyNum, base64Data, filename, mimeType) {
     // Save to Properties
     props.setProperty('POLICY_IMG_' + policyNum, fileId);
     
-    const url = 'https://drive.google.com/uc?export=view&id=' + fileId;
+    const url = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1200';
     return { success: true, url: url };
   } catch(e) {
     return { success: false, error: e.toString() };
@@ -891,7 +891,7 @@ function getPolicyImages() {
   const id2 = props.getProperty('POLICY_IMG_2');
   
   return {
-    url1: id1 ? 'https://drive.google.com/uc?export=view&id=' + id1 : null,
-    url2: id2 ? 'https://drive.google.com/uc?export=view&id=' + id2 : null
+    url1: id1 ? 'https://drive.google.com/thumbnail?id=' + id1 + '&sz=w1200' : null,
+    url2: id2 ? 'https://drive.google.com/thumbnail?id=' + id2 + '&sz=w1200' : null
   };
 }
