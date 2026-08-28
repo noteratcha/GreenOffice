@@ -87,3 +87,13 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Bypasses Apps Script parameter payload limitations.
   - Guarantees fast, reliable uploads from mobile devices.
 - **Async/Await Validation**: File streams are fully resolved before dispatching `google.script.run`.
+
+## 6. Advanced Layout & UI Techniques (Recent Learnings)
+- **Grid Overflow Prevention**: When CSS Grid items contain flex containers or scrollable content that forces the grid to expand beyond its bounds, ALWAYS apply `min-width: 0;` to the grid item itself.
+- **Thai Text Word-Wrapping**: For robust text containment (especially long continuous strings without spaces), strictly apply `overflow-wrap: break-word;` and `word-break: break-word;`.
+- **Custom Confirm Dialogs**: Strictly avoid native browser `alert()` or `confirm()` dialogs. Use custom-styled HTML/CSS modals (`confirmModal`) integrated with callbacks (`showConfirmModal`) to maintain a premium and consistent UX.
+- **Image Lightbox Memory/Flash Fix**: Always clear the `src` attribute of a preview `<img>` tag (`img.src = ''`) when a modal is closed. This prevents the previous image from briefly flashing the next time the modal is opened.
+- **Interactive Image Zoom Engine**: For full-screen image previews, implement zoom features using CSS `transform: scale(zoomLevel)` coupled with `transform-origin: X% Y%`. This should be mapped to the mouse `wheel` and `mousemove` events for an intuitive desktop zooming experience.
+- **Z-Index Layering**: When dealing with nested or overlapping modals (e.g., opening a photo preview *from within* a news detail modal), manage `z-index` classes systematically (e.g., Backdrop 2000, Top-level modal 3000, Confirm modal 4000).
+- **Drive Image Bypassing**: To bypass strict Google Workspace domain policies preventing direct Drive image loading, ALWAYS use the thumbnail API: `https://drive.google.com/thumbnail?id=[ID]&sz=w1200`.
+- **Session & Display Name Hydration**: Separate system User IDs from Display Names. Retrieve the friendly name from the database upon login, persist it via `localStorage` (e.g., `go_name`), and hydrate the UI (`userNameDisplay`) with the friendly name upon every refresh.
