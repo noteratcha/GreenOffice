@@ -46,8 +46,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Check saved session
   const savedUser = localStorage.getItem('go_user');
   const savedRole = localStorage.getItem('go_role');
+  const savedName = localStorage.getItem('go_name');
   if (savedUser) {
-    setUserSession(savedUser, savedRole);
+    setUserSession(savedUser, savedRole, savedName || savedUser);
   }
 
   // Fetch initial data
@@ -86,7 +87,7 @@ function handleLogin(e) {
       btn.disabled = false;
       btn.innerHTML = 'เข้าสู่ระบบ';
       if (res.success) {
-        setUserSession(res.user, res.role);
+        setUserSession(res.user, res.role, res.name);
         closeModal('loginModal');
         showToast('เข้าสู่ระบบสำเร็จ', 'success');
         document.getElementById('loginForm').reset();
@@ -104,16 +105,18 @@ function handleLogin(e) {
     .checkLogin(user, pass);
 }
 
-function setUserSession(username, role) {
+function setUserSession(username, role, name = null) {
   currentUser = username;
   currentRole = role;
+  const displayName = name || username;
   localStorage.setItem('go_user', username);
   if(role) localStorage.setItem('go_role', role);
+  if(name) localStorage.setItem('go_name', name);
   
   document.getElementById('btnNavLogin').classList.add('hidden');
   document.getElementById('navUserInfo').classList.remove('hidden');
-  document.getElementById('userNameDisplay').textContent = username;
-  document.getElementById('userAvatarIcon').textContent = username.charAt(0).toUpperCase();
+  document.getElementById('userNameDisplay').textContent = displayName;
+  document.getElementById('userAvatarIcon').textContent = displayName.charAt(0).toUpperCase();
   
   document.getElementById('fabContainer').classList.remove('hidden');
   document.getElementById('fabAddNews').classList.remove('hidden');
@@ -140,6 +143,7 @@ function logout() {
   currentRole = null;
   localStorage.removeItem('go_user');
   localStorage.removeItem('go_role');
+  localStorage.removeItem('go_name');
   
   document.getElementById('btnNavLogin').classList.remove('hidden');
   document.getElementById('navUserInfo').classList.add('hidden');

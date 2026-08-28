@@ -40,10 +40,12 @@ function checkLogin(username, password) {
       const rowPass = String(data[i][1]).trim();
 
       if (rowUser === username && rowPass === password) {
-        const role = data[i][2] ? String(data[i][2]).trim().toLowerCase() : 'user';
+        const name = data[i][2] ? String(data[i][2]).trim() : rowUser;
+        const role = rowUser.toLowerCase() === 'admin' ? 'admin' : 'user';
         return {
           success: true,
           user: rowUser,
+          name: name,
           role: role
         };
       }
@@ -129,9 +131,9 @@ function getImages() {
     if (sheet) {
       const data = sheet.getDataRange().getValues();
       for (let i = 1; i < data.length; i++) {
-        const role = data[i][2] ? String(data[i][2]).trim().toLowerCase() : 'user';
-        if (role === 'admin') {
-          adminUsers.push(String(data[i][0]).trim());
+        const rowUser = String(data[i][0]).trim();
+        if (rowUser.toLowerCase() === 'admin') {
+          adminUsers.push(rowUser);
         }
       }
     }
