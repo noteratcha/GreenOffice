@@ -383,15 +383,27 @@ function loadPolicyImages() {
   google.script.run.withSuccessHandler(function(data) {
     if (data.url1) {
       const img1 = document.getElementById('policyImg1');
+      img1.onload = () => {
+        img1.classList.remove('hidden');
+        document.getElementById('policySkeleton1').classList.add('hidden');
+      };
+      img1.onerror = () => {
+        img1.classList.add('hidden');
+        document.getElementById('policySkeleton1').classList.remove('hidden');
+      };
       img1.src = data.url1;
-      img1.classList.remove('hidden');
-      document.getElementById('policySkeleton1').classList.add('hidden');
     }
     if (data.url2) {
       const img2 = document.getElementById('policyImg2');
+      img2.onload = () => {
+        img2.classList.remove('hidden');
+        document.getElementById('policySkeleton2').classList.add('hidden');
+      };
+      img2.onerror = () => {
+        img2.classList.add('hidden');
+        document.getElementById('policySkeleton2').classList.remove('hidden');
+      };
       img2.src = data.url2;
-      img2.classList.remove('hidden');
-      document.getElementById('policySkeleton2').classList.add('hidden');
     }
   }).getPolicyImages();
 }
@@ -424,9 +436,15 @@ async function submitPolicy(e) {
         document.getElementById('policyForm').reset();
         
         const img = document.getElementById(`policyImg${policyNum}`);
+        img.onload = () => {
+          img.classList.remove('hidden');
+          document.getElementById(`policySkeleton${policyNum}`).classList.add('hidden');
+        };
+        img.onerror = () => {
+          img.classList.add('hidden');
+          document.getElementById(`policySkeleton${policyNum}`).classList.remove('hidden');
+        };
         img.src = res.url;
-        img.classList.remove('hidden');
-        document.getElementById(`policySkeleton${policyNum}`).classList.add('hidden');
       } else {
         showToast('เกิดข้อผิดพลาด: ' + res.error, 'error');
       }
