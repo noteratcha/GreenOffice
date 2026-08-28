@@ -10,22 +10,10 @@ let uploadFiles = [];
 let carouselImages = [];
 let currentSlide = 0;
 let carouselInterval = null;
-let confirmCallback = null;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('currentYear').textContent = new Date().getFullYear();
-  
-  const btnConfirmOk = document.getElementById('btnConfirmOk');
-  if (btnConfirmOk) {
-    btnConfirmOk.addEventListener('click', () => {
-      closeModal('confirmModal');
-      if (confirmCallback) {
-        confirmCallback();
-        confirmCallback = null;
-      }
-    });
-  }
   
   // Mobile Nav Toggle
   const hamburger = document.getElementById('navHamburger');
@@ -54,11 +42,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
-
-  const btnNavLogin = document.getElementById('btnNavLogin');
-  if (btnNavLogin) btnNavLogin.addEventListener('click', () => document.getElementById('loginModal').classList.add('show'));
-  const btnLogout = document.getElementById('btnLogout');
-  if (btnLogout) btnLogout.addEventListener('click', handleLogout);
 
   // Check saved session
   const savedUser = localStorage.getItem('go_user');
@@ -961,9 +944,9 @@ function openNewsDetail(idx) {
       openEditNews(idx);
     };
     document.getElementById('btnDeleteNewsAction').onclick = () => {
-      showConfirmModal('คุณต้องการลบข่าวสารนี้ใช่หรือไม่?', () => {
+      if (confirm('คุณต้องการลบข่าวสารนี้ใช่หรือไม่?')) {
         deleteNewsItem(idx);
-      });
+      }
     };
   } else {
     actionBar.classList.add('hidden');
@@ -1129,12 +1112,6 @@ window.addEventListener('click', (e) => {
     closeModal(e.target.id);
   }
 });
-
-function showConfirmModal(message, onConfirm) {
-  document.getElementById('confirmModalMessage').textContent = message;
-  confirmCallback = onConfirm;
-  document.getElementById('confirmModal').classList.add('show');
-}
 
 function showToast(message, type = 'success') {
   const container = document.getElementById('toastContainer');
@@ -1369,7 +1346,7 @@ function deleteEventAction() {
   const eventId = btn.dataset.eventId;
   if (!eventId) return;
   
-  showConfirmModal('คุณต้องการลบกิจกรรมนี้ใช่หรือไม่?', () => {
+  if (confirm('คุณต้องการลบกิจกรรมนี้ใช่หรือไม่?')) {
     btn.disabled = true;
     btn.innerHTML = '<span class="material-icons rotating">autorenew</span> กำลังลบ...';
     
@@ -1388,7 +1365,7 @@ function deleteEventAction() {
       btn.innerHTML = '<span class="material-icons">delete</span> ลบกิจกรรม';
       showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
     }).deleteCalendarEvent(eventId);
-  });
+  }
 }
 
 function openEditEventModal() {
@@ -1624,7 +1601,7 @@ function editResourceAction(id) {
 }
 
 function deleteResourceAction(id) {
-  showConfirmModal('คุณต้องการลบทรัพยากรนี้ใช่หรือไม่?', () => {
+  if (confirm('คุณต้องการลบข้อมูลทรัพยากรปีนี้ใช่หรือไม่?')) {
     google.script.run.withSuccessHandler(function(res) {
       if (res.success) {
         showToast(res.message, 'success');
