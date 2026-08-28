@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
   loadNews();
   loadResourcesData();
   loadPolicyImages();
+  initImageZoom();
   
   initCalendar();
   
@@ -303,10 +304,22 @@ function deletePhoto(fileId, event) {
     .deleteImage(fileId);
 }
 
+let previewScale = 1;
+let isPreviewDragging = false;
+let previewStartX, previewStartY, previewTranslateX = 0, previewTranslateY = 0;
+
 function openPhotoPreview(url, index, fileId) {
   if (!url) return;
   const fullUrl = url.replace('&sz=w600', '&sz=w1600').replace('&sz=w1200', '&sz=w1600');
-  document.getElementById('photoPreviewImg').src = fullUrl;
+  const img = document.getElementById('photoPreviewImg');
+  img.src = fullUrl;
+  
+  // Reset zoom state
+  previewScale = 1;
+  previewTranslateX = 0;
+  previewTranslateY = 0;
+  img.style.transform = `translate(0px, 0px) scale(1)`;
+  img.style.cursor = 'zoom-in';
   
   const numElem = document.getElementById('photoPreviewNumber');
   if (numElem) {
@@ -331,6 +344,63 @@ function openPhotoPreview(url, index, fileId) {
     }
   }
   openModal('photoPreviewModal');
+}
+
+function initImageZoom() {
+  const img = document.getElementById('photoPreviewImg');
+  if (!img) return;
+
+  img.style.transition = 'transform 0.2s ease-out';
+
+  img.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const zoomAmount = 0.25;
+    if (e.deltaY < 0) {
+      previewScale += zoomAmount;
+    } else {
+      previewScale -= zoomAmount;
+    }
+    previewScale = Math.min(Math.max(0.5, previewScale), 5); // Limit 0.5x to 5x
+    updatePreviewTransform();
+  });
+
+  img.addEventListener('mousedown', (e) => {
+    if (previewScale > 1) {
+      isPreviewDragging = true;
+      previewStartX = e.clientX - previewTranslateX;
+      previewStartY = e.clientY - previewTranslateY;
+      img.style.cursor = 'grabbing';
+      img.style.transition = 'none';
+    } else {
+      // Zoom in on click if not zoomed
+      previewScale = 2;
+      updatePreviewTransform();
+    }
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (!isPreviewDragging) return;
+    previewTranslateX = e.clientX - previewStartX;
+    previewTranslateY = e.clientY - previewStartY;
+    updatePreviewTransform();
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (isPreviewDragging) {
+      isPreviewDragging = false;
+      img.style.cursor = 'grab';
+      img.style.transition = 'transform 0.2s ease-out';
+    }
+  });
+
+  function updatePreviewTransform() {
+    if (previewScale <= 1) {
+      previewTranslateX = 0;
+      previewTranslateY = 0;
+    }
+    img.style.transform = `translate(${previewTranslateX}px, ${previewTranslateY}px) scale(${previewScale})`;
+    img.style.cursor = previewScale > 1 ? (isPreviewDragging ? 'grabbing' : 'grab') : 'zoom-in';
+  }
 }
 
 function openManagePhotos() {
