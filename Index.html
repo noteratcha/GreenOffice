@@ -282,11 +282,13 @@
   <!-- ==================== MODALS ==================== -->
 
   <!-- Policy Upload Modal -->
-  <div id="policyModal" class="modal">
-    <div class="modal-content">
+  <div id="policyModal" class="modal-backdrop">
+    <div class="modal">
       <div class="modal-header">
         <h3><span class="material-icons">policy</span> อัปโหลดรูปภาพนโยบาย</h3>
-        <span class="close" onclick="closeModal('policyModal')">&times;</span>
+        <button class="modal-close" onclick="closeModal('policyModal')">
+          <span class="material-icons">close</span>
+        </button>
       </div>
       <form id="policyForm" onsubmit="submitPolicy(event)">
         <div class="form-group">
