@@ -97,3 +97,45 @@ This file contains the accumulated rules, skills, workflow, architectural patter
 - **Z-Index Layering**: When dealing with nested or overlapping modals (e.g., opening a photo preview *from within* a news detail modal), manage `z-index` classes systematically (e.g., Backdrop 2000, Top-level modal 3000, Confirm modal 4000).
 - **Drive Image Bypassing**: To bypass strict Google Workspace domain policies preventing direct Drive image loading, ALWAYS use the thumbnail API: `https://drive.google.com/thumbnail?id=[ID]&sz=w1200`.
 - **Session & Display Name Hydration**: Separate system User IDs from Display Names. Retrieve the friendly name from the database upon login, persist it via `localStorage` (e.g., `go_name`), and hydrate the UI (`userNameDisplay`) with the friendly name upon every refresh.
+
+## 7. Google Sites Iframe Compatibility & Scrolling
+- **Internal Iframe Scroll Management (`scrollToSection`)**:
+  - **Issue**: When the web app is embedded inside an `<iframe>` on Google Sites (e.g. `https://sites.google.com/view/greenofficereg10`), native `element.scrollIntoView()` propagates scroll events to the parent Google Sites window, causing the iframe to move up and hiding the top fixed navbar off-screen.
+  - **Rule**: NEVER use `scrollIntoView()`. ALWAYS use internal `window.scrollTo()` calculations:
+    ```javascript
+    function scrollToSection(targetId) {
+      const targetElement = document.querySelector(targetId);
+      if (!targetElement) return;
+      const navbar = document.querySelector('.navbar');
+      const navHeight = navbar ? navbar.offsetHeight : 64;
+      const rect = targetElement.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const targetY = rect.top + scrollTop - navHeight;
+      window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+    }
+    ```
+- **Desktop Single-Line Typography**: For prominent headers and CTA banners, use `@media (min-width: 992px) { white-space: nowrap; }` to maintain single-line layout on desktop screens without awkward line wraps.
+
+## 8. Multi-Stage Upload Progress & Percentage System
+- **Real-Time Stage Feedback**:
+  - Replace indeterminate spinners with informative progress components (`.upload-progress-wrapper`, `.progress-percentage-badge`, `.progress-status-text`, `.modern-progress-bar`).
+  - **Stage 1 (Client-side Compression)**: Compute real-time percentage per file processed (`5% + (i+1)/total * 35%`) with descriptive text (`กำลังบีบอัดและปรับขนาดรูปภาพ X จาก Y (Z%)...`).
+  - **Stage 2 (Server Transmission Simulation)**: Smoothly increment percentage from 45% to ~92% during `google.script.run` backend execution.
+  - **Stage 3 (Success Completion & Auto-dismiss)**: Set to 100% (`บันทึกข้อมูลสำเร็จเรียบร้อยแล้ว (100%)`), delay for 600-700ms before closing modal and firing toast.
+- **Loading Screen Safety Timeout**:
+  - Add an automatic safety timeout in `DOMContentLoaded` (3000ms) to ensure `#loadingScreen` is hidden even if Google Drive API responses are slow or encounter network delays.
+
+## 9. Modern Eco Modal UI/UX Design System
+- **Standard Modal Header**:
+  - Always include `.modal-title-wrapper`, `.modal-icon-badge` (circular eco-themed icon container), Title, and Subtitle (`.modal-subtitle`).
+- **Drag & Drop Upload Dropzones**:
+  - Replaces raw `<input type="file">` with modern dropzones (`.upload-zone`).
+  - Support drag over/leave/drop events and click-to-select.
+- **Live Image Previews**:
+  - **Multiple images**: Render in `.upload-preview-grid` with thumbnail previews and individual circular `✕` delete buttons.
+  - **Single image** (Policy upload): Render in `.policy-preview-card` showing thumbnail, filename, file size (MB), and a quick remove/change button.
+- **Interactive Visual Selectors**:
+  - **Card Selectors** (`.policy-card-selector`): Replace boring dropdowns with visual option cards displaying icons, titles, descriptions, and active green border/checkmarks.
+  - **Color Palette Chips** (`.event-color-palette`, `.color-chip-option`): Visual category chips with colored dots, active rings, and checkmarks for calendar events.
+- **Compact Form Grids**:
+  - Use 2-column CSS Grid (`grid-template-columns: 1fr 1fr; gap: 0.85rem;`) for related fields like Date and Time to prevent unnecessary modal scrolling.
