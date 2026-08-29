@@ -1566,6 +1566,24 @@ function initCalendar() {
       list: 'กำหนดการ'
     },
     height: 'auto',
+    dayMaxEvents: 3,
+    eventContent: function(arg) {
+      const color = arg.event.backgroundColor || '#4a6344';
+      let timeStr = '';
+      if (!arg.event.allDay && arg.event.start) {
+        timeStr = arg.event.start.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+      }
+      
+      return {
+        html: `
+          <div class="custom-cal-event" style="--event-color: ${color};">
+            <span class="custom-event-dot" style="background: ${color};"></span>
+            ${timeStr ? `<span class="custom-event-time">${timeStr}</span>` : ''}
+            <span class="custom-event-title">${arg.event.title}</span>
+          </div>
+        `
+      };
+    },
     events: function(info, successCallback, failureCallback) {
       google.script.run.withSuccessHandler(function(events) {
         successCallback(events);
@@ -1596,8 +1614,6 @@ function initCalendar() {
         iconWrap.style.backgroundColor = 'var(--color-light)';
         iconWrap.style.color = 'var(--color-primary)';
       }
-      
-      document.getElementById('btnDeleteEvent').dataset.eventId = info.event.id;
       
       document.getElementById('btnDeleteEvent').dataset.eventId = info.event.id;
       
@@ -1636,7 +1652,9 @@ function initCalendar() {
       let tooltipText = info.event.title;
       if (!info.event.allDay && info.event.start) {
         const timeOpts = { hour: '2-digit', minute: '2-digit' };
-        tooltipText += '\\nเวลา: ' + info.event.start.toLocaleTimeString('th-TH', timeOpts) + ' น.';
+        tooltipText += '\nเวลา: ' + info.event.start.toLocaleTimeString('th-TH', timeOpts) + ' น.';
+      } else {
+        tooltipText += '\nเวลา: ตลอดวัน';
       }
       info.el.setAttribute('title', tooltipText);
     }
