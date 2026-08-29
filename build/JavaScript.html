@@ -858,9 +858,14 @@ function renderNews() {
       <div class="news-card" style="animation-delay: ${idx * 0.1}s" onclick="openNewsDetail(${globalNewsData.indexOf(news)})">
         ${imgHtml}
         <div class="news-card-body">
-          <div class="news-card-date"><span class="material-icons" style="font-size:14px;">calendar_today</span> ${formatNewsDate(news.date)}${displayName ? ' โดย ' + displayName : ''}</div>
           <h3 class="news-card-title">${news.title}</h3>
           <p class="news-card-content">${news.content}</p>
+          <div class="news-card-footer">
+            <div class="news-card-date">
+              <span class="material-icons" style="font-size:14px;">calendar_today</span> 
+              <span>${formatNewsDate(news.date)}${displayName ? ' โดย ' + displayName : ''}</span>
+            </div>
+          </div>
         </div>
       </div>
     `;
