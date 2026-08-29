@@ -141,3 +141,10 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Use 2-column CSS Grid (`grid-template-columns: 1fr 1fr; gap: 0.85rem;`) for related fields like Date and Time to prevent unnecessary modal scrolling.
 - **Category Links Manager (`.cat-link-card`)**:
   - Encapsulate each link item in an independent card container with a category number badge (`.cat-badge-num`), dedicated Material Icon, title, URL input with leading icon, and an interactive **"ทดสอบ" (Test Link ↗)** button that tests opening the Google Drive link in a new browser tab.
+
+## 10. Card Metadata & Publisher Name Mapping
+- **Friendly Name (`name`) Resolution**:
+  - Always map raw login usernames (e.g. `admin`) to friendly display names (`name` column in `user&pass` sheet, with fallback `สำนักงานไปรษณีย์เขต 10`) before sending data to the client.
+  - Retain the raw username in `news.user` so author-only and admin edit/delete permission checks continue to work accurately.
+- **Card Bottom Alignment via `margin-top: auto`**:
+  - In dynamic card grids (such as `.news-card`), wrap metadata elements (date, author badge) inside a footer container (`.news-card-footer`) styled with `margin-top: auto`. This ensures that cards with varying title/description lengths maintain perfectly aligned bottom metadata badges across all rows.
