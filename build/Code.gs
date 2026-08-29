@@ -922,4 +922,57 @@ function getPolicyImages() {
   };
 }
 
+// ============================================================
+// Category Links & Feedback Link Management
+// ============================================================
+
+function getCategoryLinks() {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const links = [];
+    for (let i = 1; i <= 7; i++) {
+      const link = props.getProperty('CAT_LINK_' + i);
+      links.push(link || '');
+    }
+    return links;
+  } catch (e) {
+    Logger.log('getCategoryLinks error: ' + e.message);
+    return ['', '', '', '', '', '', ''];
+  }
+}
+
+function saveCategoryLinks(links) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    for (let i = 0; i < links.length; i++) {
+      props.setProperty('CAT_LINK_' + (i + 1), links[i]);
+    }
+    return { success: true, message: 'บันทึกลิงก์หมวดหมู่สำเร็จ' };
+  } catch (e) {
+    Logger.log('saveCategoryLinks error: ' + e.message);
+    return { success: false, message: 'บันทึกไม่สำเร็จ: ' + e.message };
+  }
+}
+
+function getFeedbackLink() {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    const defaultUrl = 'https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse';
+    const link = props.getProperty('FEEDBACK_FORM_URL');
+    return link || defaultUrl;
+  } catch (e) {
+    return 'https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse';
+  }
+}
+
+function saveFeedbackLink(url) {
+  try {
+    const props = PropertiesService.getScriptProperties();
+    props.setProperty('FEEDBACK_FORM_URL', (url || '').trim());
+    return { success: true, message: 'บันทึกลิงก์ข้อเสนอแนะสำเร็จ' };
+  } catch (e) {
+    return { success: false, message: 'บันทึกไม่สำเร็จ: ' + e.message };
+  }
+}
+
 

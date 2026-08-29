@@ -10,6 +10,7 @@ let uploadFiles = [];
 let carouselImages = [];
 let currentSlide = 0;
 let carouselInterval = null;
+let currentFeedbackLink = 'https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse';
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -50,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Fetch initial data
   loadCategoryLinks();
+  loadFeedbackLink();
   loadImages();
   loadNews();
   loadResourcesData();
@@ -161,12 +163,14 @@ function setUserSession(username, role, name = null) {
     document.getElementById('fabPhotosParent').classList.remove('hidden');
     document.getElementById('fabEditCategories').classList.remove('hidden');
     document.getElementById('fabResources').classList.remove('hidden');
+    document.getElementById('fabEditFeedback').classList.remove('hidden');
   } else {
     document.getElementById('fabPolicy').classList.add('hidden');
     document.getElementById('fabAddEvent').classList.add('hidden');
     document.getElementById('fabPhotosParent').classList.add('hidden');
     document.getElementById('fabEditCategories').classList.add('hidden');
     document.getElementById('fabResources').classList.add('hidden');
+    document.getElementById('fabEditFeedback').classList.add('hidden');
   }
 }
 
@@ -1756,6 +1760,67 @@ function testCategoryLink(num) {
   }
 }
 
+// ============================================================
+// Feedback Link Management
+// ============================================================
+
+function loadFeedbackLink() {
+  google.script.run
+    .withSuccessHandler((link) => {
+      if (link) currentFeedbackLink = link;
+    })
+    .withFailureHandler(err => console.error('Failed to load feedback link', err))
+    .getFeedbackLink();
+}
+
+function openEditFeedbackModal() {
+  const input = document.getElementById('editFeedbackLinkInput');
+  if (input) input.value = currentFeedbackLink || '';
+  openModal('editFeedbackModal');
+}
+
+function testFeedbackLink() {
+  const input = document.getElementById('editFeedbackLinkInput');
+  if (input && input.value.trim()) {
+    window.open(input.value.trim(), '_blank');
+  } else {
+    showToast('กรุณาระบุ URL สำหรับข้อเสนอแนะ', 'error');
+  }
+}
+
+function saveEditFeedback() {
+  const btn = document.getElementById('btnSaveFeedbackLink');
+  const input = document.getElementById('editFeedbackLinkInput');
+  const url = input ? input.value.trim() : '';
+
+  if (!url) {
+    showToast('กรุณาระบุ URL สำหรับรับข้อเสนอแนะ', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons rotating" style="animation: spin 0.8s linear infinite;">sync</span> กำลังบันทึก...';
+
+  google.script.run
+    .withSuccessHandler((res) => {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">save</span> บันทึกข้อมูล';
+      if (res.success) {
+        currentFeedbackLink = url;
+        showToast('บันทึกลิงก์ข้อเสนอแนะสำเร็จ', 'success');
+        closeModal('editFeedbackModal');
+      } else {
+        showToast(res.message || 'บันทึกไม่สำเร็จ', 'error');
+      }
+    })
+    .withFailureHandler((err) => {
+      btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">save</span> บันทึกข้อมูล';
+      showToast('เชื่อมต่อล้มเหลว', 'error');
+    })
+    .saveFeedbackLink(url);
+}
+
 
 
 function selectEventColor(color, modalType = 'event') {
@@ -2251,7 +2316,8 @@ function submitFeedback(e) {
   });
 
   // Direct client-side fetch (no OAuth permission / UrlFetchApp needed!)
-  fetch('https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse', {
+  const targetFeedbackUrl = currentFeedbackLink || 'https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse';
+  fetch(targetFeedbackUrl, {
     method: 'POST',
     mode: 'no-cors',
     headers: {
@@ -2266,6 +2332,7 @@ function submitFeedback(e) {
     // If fetch gets blocked or fails, fallback to standard form submit via hidden iframe
     console.warn('Fetch fallback to hidden iframe:', err);
     const form = document.getElementById('feedbackForm');
+    form.action = targetFeedbackUrl;
     
     // Configure input names
     document.getElementById('feedbackDate').name = 'entry.877086558';

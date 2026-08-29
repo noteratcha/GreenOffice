@@ -302,6 +302,9 @@
     <button class="fab fab-secondary hidden" id="fabEditCategories" onclick="openEditCategoriesModal()" title="แก้ไขลิงก์หมวดหมู่">
       <span class="material-icons">link</span>
     </button>
+    <button class="fab fab-secondary hidden" id="fabEditFeedback" onclick="openEditFeedbackModal()" title="แก้ไขลิงก์ข้อเสนอแนะ">
+      <span class="material-icons">rate_review</span>
+    </button>
   </div>
 
   <!-- Footer -->
@@ -679,6 +682,58 @@
               <span class="material-icons">close</span> ยกเลิก
             </button>
             <button type="submit" class="btn btn-primary" id="btnSaveCategories">
+              <span class="material-icons">save</span> บันทึกข้อมูล
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Feedback Link Modal -->
+  <div id="editFeedbackModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title-wrapper">
+          <div class="modal-icon-badge">
+            <span class="material-icons">rate_review</span>
+          </div>
+          <div>
+            <h3>แก้ไขลิงก์รับข้อเสนอแนะ</h3>
+            <p class="modal-subtitle">กำหนด URL ปลายทางสำหรับรับข้อมูลข้อเสนอแนะด้านสิ่งแวดล้อม</p>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeModal('editFeedbackModal')">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="editFeedbackForm" onsubmit="event.preventDefault(); saveEditFeedback();">
+          
+          <div class="form-group">
+            <label for="editFeedbackLinkInput" class="form-label">
+              <span class="material-icons form-label-icon">link</span> URL ปลายทาง Google Form หรือ Form Action
+            </label>
+            <div class="cat-input-group">
+              <div class="cat-input-wrapper">
+                <span class="material-icons cat-input-icon">link</span>
+                <input type="url" id="editFeedbackLinkInput" class="cat-input" required placeholder="https://docs.google.com/forms/d/e/.../formResponse">
+              </div>
+              <button type="button" class="btn-test-link" onclick="testFeedbackLink()" title="ทดสอบเปิดลิงก์ในแท็บใหม่">
+                <span class="material-icons">open_in_new</span>
+                <span>ทดสอบ</span>
+              </button>
+            </div>
+            <p style="font-size: 0.78rem; color: #778877; margin-top: 0.5rem; line-height: 1.4;">
+              💡 สามารถระบุ Google Form response URL หรือลิงก์แบบฟอร์มที่ต้องการส่งข้อมูลข้อเสนอแนะไป
+            </p>
+          </div>
+
+          <div class="modal-footer" style="padding: 1.25rem 0 0; margin-top: 1rem;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('editFeedbackModal')">
+              <span class="material-icons">close</span> ยกเลิก
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnSaveFeedbackLink">
               <span class="material-icons">save</span> บันทึกข้อมูล
             </button>
           </div>
