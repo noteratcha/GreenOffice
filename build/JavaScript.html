@@ -2271,8 +2271,15 @@ function addNewResourceYear() {
 
 function deleteResourceTableRow(idx) {
   const row = document.getElementById(`resourceRow_${idx}`);
-  if (row) {
+  if (!row) return;
+  
+  const yearInput = document.getElementById(`resYear_${idx}`);
+  const yearVal = yearInput && yearInput.value.trim() ? `ปี พ.ศ. ${yearInput.value.trim()}` : 'แถวนี้';
+  const metricName = RESOURCE_METRIC_LABELS[currentResourceTab] || 'สถิติทรัพยากร';
+  
+  if (confirm(`⚠️ ยืนยันการลบข้อมูล\n\nคุณต้องการลบข้อมูล "${metricName}" ของ ${yearVal} ใช่หรือไม่?\n(หมายเหตุ: การลบจะมีผลสมบูรณ์เมื่อกดปุ่ม "บันทึกข้อมูล")`)) {
     row.remove();
+    showToast(`ลบแถว ${yearVal} เรียบร้อยแล้ว (กดปุ่มบันทึกเพื่อยืนยัน)`, 'info');
   }
 }
 
