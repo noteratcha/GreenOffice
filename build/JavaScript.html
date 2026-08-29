@@ -31,8 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (targetId && targetId.startsWith('#')) {
         e.preventDefault();
         scrollToSection(targetId);
-        document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
-        this.classList.add('active');
         
         // Close mobile menu if open
         hamburger.classList.remove('active');
@@ -40,6 +38,20 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   });
+
+  // ScrollSpy: Passive listener with requestAnimationFrame
+  let scrollRafId = null;
+  window.addEventListener('scroll', () => {
+    if (!scrollRafId) {
+      scrollRafId = requestAnimationFrame(() => {
+        updateActiveNavOnScroll();
+        scrollRafId = null;
+      });
+    }
+  }, { passive: true });
+
+  // Initial check on load
+  setTimeout(updateActiveNavOnScroll, 100);
 
   // Check saved session
   const savedUser = localStorage.getItem('go_user');
@@ -1499,9 +1511,86 @@ function deleteNewsItem(idx) {
 // UI Utils
 // ============================================================
 
+let isManualScrolling = false;
+let manualScrollTimeout = null;
+
+function setActiveNav(targetHref) {
+  const navLinks = document.querySelectorAll('.nav-link');
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    if (href === targetHref) {
+      if (!link.classList.contains('active')) {
+        link.classList.add('active');
+      }
+    } else {
+      link.classList.remove('active');
+    }
+  });
+}
+
+function updateActiveNavOnScroll() {
+  if (isManualScrolling) return;
+
+  const sections = [
+    { id: 'home', el: document.getElementById('home') },
+    { id: 'policy', el: document.getElementById('policy') },
+    { id: 'news', el: document.getElementById('news') },
+    { id: 'calendar-section', el: document.getElementById('calendar-section') },
+    { id: 'resources-section', el: document.getElementById('resources-section') },
+    { id: 'categories', el: document.getElementById('categories') },
+    { id: 'feedback-section', el: document.getElementById('feedback-section') }
+  ].filter(s => s.el);
+
+  if (sections.length === 0) return;
+
+  const navbar = document.querySelector('.navbar');
+  const navHeight = navbar ? navbar.offsetHeight : 64;
+  const viewportTop = navHeight;
+  const viewportBottom = window.innerHeight;
+  const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+  const maxScrollY = document.documentElement.scrollHeight - window.innerHeight;
+
+  // 1. Scrolled near top (within 80px)
+  if (scrollY < 80) {
+    setActiveNav('#home');
+    return;
+  }
+
+  // 2. Scrolled near bottom of page (within 80px)
+  if (maxScrollY > 0 && scrollY >= maxScrollY - 80) {
+    setActiveNav('#' + sections[sections.length - 1].id);
+    return;
+  }
+
+  // 3. Find section occupying the largest visible area in the viewport
+  let bestSection = null;
+  let maxVisibleArea = -1;
+
+  sections.forEach(s => {
+    const rect = s.el.getBoundingClientRect();
+    // Visible vertical span of section inside viewport
+    const visibleTop = Math.max(rect.top, viewportTop);
+    const visibleBottom = Math.min(rect.bottom, viewportBottom);
+    const visibleHeight = Math.max(0, visibleBottom - visibleTop);
+
+    if (visibleHeight > maxVisibleArea) {
+      maxVisibleArea = visibleHeight;
+      bestSection = s;
+    }
+  });
+
+  if (bestSection && maxVisibleArea > 40) {
+    setActiveNav('#' + bestSection.id);
+  }
+}
+
 function scrollToSection(targetId) {
   const targetElement = document.querySelector(targetId);
   if (!targetElement) return;
+
+  isManualScrolling = true;
+  if (manualScrollTimeout) clearTimeout(manualScrollTimeout);
+  setActiveNav(targetId);
 
   const navbar = document.querySelector('.navbar');
   const navHeight = navbar ? navbar.offsetHeight : 64;
@@ -1514,6 +1603,11 @@ function scrollToSection(targetId) {
     top: Math.max(0, targetY),
     behavior: 'smooth'
   });
+
+  manualScrollTimeout = setTimeout(() => {
+    isManualScrolling = false;
+    updateActiveNavOnScroll();
+  }, 750);
 }
 
 function openModal(id) {
