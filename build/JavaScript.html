@@ -2215,183 +2215,214 @@ function renderResourcesChart() {
   }
   
   chartsConfig.forEach(config => {
-    const canvas = document.getElementById(config.id);
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    
-    if (resourcesChartInstances[config.id]) {
-      resourcesChartInstances[config.id].destroy();
-    }
-    
-    const rawItems = resourceData[config.key] || [];
-    // Sort chronological ascending (e.g. 2567, 2568, 2569)
-    const sortedAsc = [...rawItems].sort((a, b) => {
-      const numA = parseInt(a.year, 10);
-      const numB = parseInt(b.year, 10);
-      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-      return String(a.year || '').localeCompare(String(b.year || ''));
-    });
-    
-    // Automatically display ONLY the 2 latest years on the overview cards!
-    const dataToShow = sortedAsc.slice(-2);
-    const itemBase = dataToShow.length === 2 ? dataToShow[0] : (dataToShow[0] || { year: '-', months: Array(12).fill(0), total: 0 });
-    const itemTarget = dataToShow.length === 2 ? dataToShow[1] : (dataToShow[0] || { year: '-', months: Array(12).fill(0), total: 0 });
-    
-    // Calculate same-period percentage comparison
-    const badgeEl = document.getElementById(`percent_${config.key}`);
-    if (badgeEl) {
-      if (dataToShow.length === 2) {
-        const comp = calculateSamePeriodComparison(itemBase, itemTarget, config.key);
-        if (comp) {
-          const p = comp.percentDiff;
-          const pFormatted = Math.abs(p).toFixed(1) + '%';
-          const isIncrease = p > 0;
-          const isDecrease = p < 0;
-          
-          let isGood = isDecrease;
-          if (config.key === 'recycledWaste') {
-            isGood = isIncrease;
-          }
-          
-          let periodText = '';
-          if (comp.recordedMonthsIndices && comp.recordedMonthsIndices.length > 0) {
-            const firstM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[0]];
-            const lastM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[comp.recordedMonthsIndices.length - 1]];
-            const rangeStr = (firstM === lastM) ? firstM : `${firstM} - ${lastM}`;
-            periodText = ` <span style="font-size: 0.72rem; opacity: 0.88; font-weight: normal; margin-left: 2px;">(${rangeStr})</span>`;
-          }
-          
-          if (p === 0) {
-            badgeEl.className = 'chart-percent-badge neutral';
-            badgeEl.innerHTML = `<span>0.0%${periodText}</span>`;
-          } else if (isGood) {
-            badgeEl.className = 'chart-percent-badge good';
-            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}${periodText}`;
-          } else {
-            badgeEl.className = 'chart-percent-badge warn';
-            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}${periodText}`;
-          }
-          badgeEl.title = `เทียบช่วงเวลาเดียวกัน (${itemBase.year} vs ${itemTarget.year})`;
-          badgeEl.style.display = 'inline-flex';
-        }
-      } else {
-        badgeEl.style.display = 'none';
-      }
-    }
-    
-    let datasets = [];
-    let rangeStr = '';
-    let hasUncalculated = false;
-
-    if (dataToShow.length === 2) {
-      const comp = calculateSamePeriodComparison(itemBase, itemTarget, config.key);
-      const sumPrevCalc = comp ? comp.sumPrev : (parseFloat(itemBase.total) || 0);
-      const uncalculatedPrev = Math.max(0, (parseFloat(itemBase.total) || 0) - sumPrevCalc);
-      hasUncalculated = uncalculatedPrev > 0;
+    try {
+      const canvas = document.getElementById(config.id);
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
       
-      if (comp && comp.recordedMonthsIndices && comp.recordedMonthsIndices.length > 0) {
-        const firstM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[0]];
-        const lastM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[comp.recordedMonthsIndices.length - 1]];
-        rangeStr = (firstM === lastM) ? firstM : `${firstM} - ${lastM}`;
+      if (resourcesChartInstances[config.id]) {
+        resourcesChartInstances[config.id].destroy();
+        delete resourcesChartInstances[config.id];
+      }
+      
+      const rawItems = resourceData[config.key] || [];
+      // Sort chronological ascending (e.g. 2567, 2568, 2569)
+      const sortedAsc = [...rawItems].sort((a, b) => {
+        const numA = parseInt(a.year, 10);
+        const numB = parseInt(b.year, 10);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return String(a.year || '').localeCompare(String(b.year || ''));
+      });
+      
+      // Automatically display ONLY the 2 latest years on the overview cards!
+      const dataToShow = sortedAsc.slice(-2);
+      if (dataToShow.length === 0) {
+        const badgeEl = document.getElementById(`percent_${config.key}`);
+        if (badgeEl) badgeEl.style.display = 'none';
+        return;
       }
 
-      if (hasUncalculated) {
-        // Year Base - ส่วนล่าง (ค่าที่เอาไปคำนวณเปรียบเทียบ - สีฟ้า)
-        datasets.push({
-          label: 'ปี ' + itemBase.year,
-          data: [sumPrevCalc],
-          backgroundColor: 'rgba(93, 173, 226, 0.9)',
-          borderColor: 'rgba(41, 128, 185, 1)',
-          borderWidth: 1,
-          borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 },
-          barPercentage: 0.75,
-          categoryPercentage: 0.85,
-          stack: 'baseStack',
-          isCalculatedSegment: true,
-          datalabels: {
-            color: '#ffffff',
-            anchor: 'center',
-            align: 'center',
-            font: { weight: 'bold', size: 10.5, family: "'Kanit', sans-serif" },
-            formatter: (val) => val > 0 ? Number(val).toLocaleString() : ''
-          }
-        });
-
-        // Year Base - ส่วนบนที่ซ้อนต่อกัน (ค่าที่ไม่ได้เอาไปคำนวณ - สีเหลือง)
-        datasets.push({
-          label: 'ปี ' + itemBase.year + ' (ไม่ได้นำมาคำนวณ)',
-          data: [uncalculatedPrev],
-          backgroundColor: 'rgba(244, 208, 63, 0.92)',
-          borderColor: 'rgba(212, 172, 13, 1)',
-          borderWidth: 1,
-          borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 },
-          barPercentage: 0.75,
-          categoryPercentage: 0.85,
-          stack: 'baseStack',
-          isUncalculatedSegment: true,
-          datalabels: {
-            color: '#4a3802',
-            anchor: 'center',
-            align: 'center',
-            font: { weight: 'bold', size: 10.5, family: "'Kanit', sans-serif" },
-            formatter: function(val, context) {
-              if (!val || val <= 0) return '';
-              const chart = context.chart;
-              const meta0 = chart.getDatasetMeta(0);
-              const meta1 = chart.getDatasetMeta(1);
-              if (meta0 && meta1 && meta0.data[0] && meta1.data[0]) {
-                const segH = Math.abs(meta0.data[0].y - meta1.data[0].y);
-                if (segH < 22) return ''; // จะแสดงด้วยเส้นชี้โยง (Callout Line) แทนเพื่อไม่ให้ทับซ้อน
-              }
-              return Number(val).toLocaleString();
+      const itemBase = dataToShow.length === 2 ? dataToShow[0] : dataToShow[0];
+      const itemTarget = dataToShow.length === 2 ? dataToShow[1] : dataToShow[0];
+      
+      // Calculate same-period percentage comparison
+      const badgeEl = document.getElementById(`percent_${config.key}`);
+      if (badgeEl) {
+        if (dataToShow.length === 2) {
+          const comp = calculateSamePeriodComparison(itemBase, itemTarget, config.key);
+          if (comp) {
+            const p = comp.percentDiff;
+            const pFormatted = Math.abs(p).toFixed(1) + '%';
+            const isIncrease = p > 0;
+            const isDecrease = p < 0;
+            
+            let isGood = isDecrease;
+            if (config.key === 'recycledWaste') {
+              isGood = isIncrease;
             }
+            
+            let periodText = '';
+            if (comp.recordedMonthsIndices && comp.recordedMonthsIndices.length > 0) {
+              const firstM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[0]];
+              const lastM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[comp.recordedMonthsIndices.length - 1]];
+              const rangeStr = (firstM === lastM) ? firstM : `${firstM} - ${lastM}`;
+              periodText = ` <span style="font-size: 0.72rem; opacity: 0.88; font-weight: normal; margin-left: 2px;">(${rangeStr})</span>`;
+            }
+            
+            if (p === 0) {
+              badgeEl.className = 'chart-percent-badge neutral';
+              badgeEl.innerHTML = `<span>0.0%${periodText}</span>`;
+            } else if (isGood) {
+              badgeEl.className = 'chart-percent-badge good';
+              badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}${periodText}`;
+            } else {
+              badgeEl.className = 'chart-percent-badge warn';
+              badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}${periodText}`;
+            }
+            badgeEl.title = `เทียบช่วงเวลาเดียวกัน (${itemBase.year} vs ${itemTarget.year})`;
+            badgeEl.style.display = 'inline-flex';
+          } else {
+            badgeEl.style.display = 'none';
           }
-        });
+        } else {
+          badgeEl.style.display = 'none';
+        }
+      }
+      
+      let datasets = [];
+      let chartLabels = [];
+      let rangeStr = '';
+      let hasUncalculated = false;
+      let sumPrevCalc = 0;
+      let uncalculatedPrev = 0;
 
-        // Year Target (ปีเปรียบเทียบล่าสุด - สีเขียว)
-        datasets.push({
-          label: 'ปี ' + itemTarget.year,
-          data: [itemTarget.total],
-          backgroundColor: 'rgba(82, 190, 128, 0.95)',
-          borderColor: 'rgba(39, 174, 96, 1)',
-          borderWidth: 1,
-          borderRadius: 4,
-          barPercentage: 0.75,
-          categoryPercentage: 0.85,
-          stack: 'targetStack',
-          datalabels: {
-            color: '#1a2622',
-            anchor: 'end',
-            align: 'top',
-            offset: 4,
-            font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
-            formatter: (value) => Number(value).toLocaleString()
-          }
-        });
-      } else {
-        // Standard unstacked datasets if all 12 months are recorded
-        datasets = [
-          {
+      if (dataToShow.length === 2) {
+        chartLabels = ['ปี ' + itemBase.year, 'ปี ' + itemTarget.year];
+        const comp = calculateSamePeriodComparison(itemBase, itemTarget, config.key);
+        sumPrevCalc = comp ? comp.sumPrev : (parseFloat(itemBase.total) || 0);
+        uncalculatedPrev = Math.max(0, (parseFloat(itemBase.total) || 0) - sumPrevCalc);
+        hasUncalculated = uncalculatedPrev > 0;
+        
+        if (comp && comp.recordedMonthsIndices && comp.recordedMonthsIndices.length > 0) {
+          const firstM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[0]];
+          const lastM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[comp.recordedMonthsIndices.length - 1]];
+          rangeStr = (firstM === lastM) ? firstM : `${firstM} - ${lastM}`;
+        }
+
+        if (hasUncalculated) {
+          // Dataset 0: Year Base - ส่วนล่าง (ค่าที่เอาไปคำนวณเปรียบเทียบ - สีฟ้า)
+          datasets.push({
             label: 'ปี ' + itemBase.year,
-            data: [itemBase.total],
+            data: [sumPrevCalc, null],
             backgroundColor: 'rgba(93, 173, 226, 0.9)',
             borderColor: 'rgba(41, 128, 185, 1)',
             borderWidth: 1,
-            borderRadius: 4,
+            borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 },
             barPercentage: 0.75,
             categoryPercentage: 0.85,
+            stack: 'stackBase',
+            isCalculatedSegment: true,
+            datalabels: {
+              color: '#ffffff',
+              anchor: 'center',
+              align: 'center',
+              font: { weight: 'bold', size: 10.5, family: "'Kanit', sans-serif" },
+              formatter: (val, ctx) => (ctx.dataIndex === 0 && val > 0) ? Number(val).toLocaleString() : ''
+            }
+          });
+
+          // Dataset 1: Year Base - ส่วนบนที่ซ้อนต่อกัน (ค่าที่ไม่ได้เอาไปคำนวณ - สีเหลือง)
+          datasets.push({
+            label: 'ปี ' + itemBase.year + ' (ไม่ได้นำมาคำนวณ)',
+            data: [uncalculatedPrev, null],
+            backgroundColor: 'rgba(244, 208, 63, 0.92)',
+            borderColor: 'rgba(212, 172, 13, 1)',
+            borderWidth: 1,
+            borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 },
+            barPercentage: 0.75,
+            categoryPercentage: 0.85,
+            stack: 'stackBase',
+            isUncalculatedSegment: true,
             datalabels: {
               color: '#1a2622',
               anchor: 'end',
               align: 'top',
               offset: 4,
               font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
-              formatter: (value) => Number(value).toLocaleString()
+              formatter: (val, ctx) => (ctx.dataIndex === 0) ? Number(itemBase.total).toLocaleString() : ''
             }
-          },
-          {
+          });
+
+          // Dataset 2: Year Target (ปีเปรียบเทียบล่าสุด - สีเขียว)
+          datasets.push({
             label: 'ปี ' + itemTarget.year,
-            data: [itemTarget.total],
+            data: [null, itemTarget.total],
+            backgroundColor: 'rgba(82, 190, 128, 0.95)',
+            borderColor: 'rgba(39, 174, 96, 1)',
+            borderWidth: 1,
+            borderRadius: 4,
+            barPercentage: 0.75,
+            categoryPercentage: 0.85,
+            stack: 'stackTarget',
+            datalabels: {
+              color: '#1a2622',
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
+              formatter: (val, ctx) => (ctx.dataIndex === 1 && val > 0) ? Number(val).toLocaleString() : ''
+            }
+          });
+        } else {
+          // Standard unstacked if all 12 months are recorded
+          datasets = [
+            {
+              label: 'ปี ' + itemBase.year,
+              data: [itemBase.total, null],
+              backgroundColor: 'rgba(93, 173, 226, 0.9)',
+              borderColor: 'rgba(41, 128, 185, 1)',
+              borderWidth: 1,
+              borderRadius: 4,
+              barPercentage: 0.75,
+              categoryPercentage: 0.85,
+              stack: 'stackBase',
+              datalabels: {
+                color: '#1a2622',
+                anchor: 'end',
+                align: 'top',
+                offset: 4,
+                font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
+                formatter: (val, ctx) => (ctx.dataIndex === 0 && val > 0) ? Number(val).toLocaleString() : ''
+              }
+            },
+            {
+              label: 'ปี ' + itemTarget.year,
+              data: [null, itemTarget.total],
+              backgroundColor: 'rgba(82, 190, 128, 0.95)',
+              borderColor: 'rgba(39, 174, 96, 1)',
+              borderWidth: 1,
+              borderRadius: 4,
+              barPercentage: 0.75,
+              categoryPercentage: 0.85,
+              stack: 'stackTarget',
+              datalabels: {
+                color: '#1a2622',
+                anchor: 'end',
+                align: 'top',
+                offset: 4,
+                font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
+                formatter: (val, ctx) => (ctx.dataIndex === 1 && val > 0) ? Number(val).toLocaleString() : ''
+              }
+            }
+          ];
+        }
+      } else {
+        // Single year fallback
+        chartLabels = ['ปี ' + itemBase.year];
+        datasets = [
+          {
+            label: 'ปี ' + itemBase.year,
+            data: [itemBase.total],
             backgroundColor: 'rgba(82, 190, 128, 0.95)',
             borderColor: 'rgba(39, 174, 96, 1)',
             borderWidth: 1,
@@ -2409,96 +2440,49 @@ function renderResourcesChart() {
           }
         ];
       }
-    } else {
-      datasets = dataToShow.map((item, index) => {
-        const color = colors[index % colors.length];
-        return {
-          label: 'ปี ' + item.year,
-          data: [item.total],
-          backgroundColor: color.bg,
-          borderColor: color.border,
-          borderWidth: 1,
-          borderRadius: 4,
-          barPercentage: 0.75,
-          categoryPercentage: 0.85,
-          datalabels: {
-            color: '#1a2622',
-            anchor: 'end',
-            align: 'top',
-            offset: 4,
-            font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
-            formatter: (value) => Number(value).toLocaleString()
-          }
-        };
-      });
-    }
-    
-    // Custom plugin: draws direct year labels under each bar, total on top, and callout line for thin segments
-    const overviewBarLabelsPlugin = {
-      id: 'overviewBarLabelsPlugin',
-      afterDatasetsDraw(chart) {
-        const ctx = chart.ctx;
-        const yBottom = chart.scales.y.bottom;
-        const meta0 = chart.getDatasetMeta(0);
-        const metaTarget = chart.getDatasetMeta(hasUncalculated ? 2 : 1);
-
-        // 1. Direct Year labels under each bar on X-axis
-        if (meta0 && meta0.data && meta0.data[0]) {
-          const bar0 = meta0.data[0];
-          ctx.save();
-          ctx.font = "bold 12px 'Kanit', sans-serif";
-          ctx.fillStyle = '#2471a3';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          ctx.fillText('ปี ' + itemBase.year, bar0.x, yBottom + 7);
-          ctx.restore();
-        }
-
-        if (dataToShow.length > 1 && metaTarget && metaTarget.data && metaTarget.data[0]) {
-          const barT = metaTarget.data[0];
-          ctx.save();
-          ctx.font = "bold 12px 'Kanit', sans-serif";
-          ctx.fillStyle = '#1e8449';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'top';
-          ctx.fillText('ปี ' + itemTarget.year, barT.x, yBottom + 7);
-          ctx.restore();
-        }
-
-        // 2. Stacked Base Year total & Callout line
-        if (hasUncalculated) {
-          const metaTop = chart.getDatasetMeta(1); // Yellow dataset
-          if (metaTop && metaTop.data && metaTop.data[0] && meta0 && meta0.data && meta0.data[0]) {
-            const barYellow = metaTop.data[0];
+      
+      // Custom plugin: draws yellow segment value or callout line into the gap between bars
+      const yellowCalloutPlugin = {
+        id: 'yellowCalloutPlugin',
+        afterDatasetsDraw(chart) {
+          if (!hasUncalculated || uncalculatedPrev <= 0) return;
+          try {
+            const meta0 = chart.getDatasetMeta(0);
+            const meta1 = chart.getDatasetMeta(1);
+            if (!meta0 || !meta1 || !meta0.data || !meta1.data || !meta0.data[0] || !meta1.data[0]) return;
+            
             const barBlue = meta0.data[0];
+            const barYellow = meta1.data[0];
+            if (typeof barBlue.y !== 'number' || typeof barYellow.y !== 'number') return;
             const segH = Math.abs(barBlue.y - barYellow.y);
+            const ctx = chart.ctx;
+            const uncalcText = Number(uncalculatedPrev).toLocaleString();
 
-            // Draw Total on top of the stacked bar
-            ctx.save();
-            ctx.font = "bold 12px 'Kanit', sans-serif";
-            ctx.fillStyle = '#1a2622';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'bottom';
-            const totalText = Number(itemBase.total).toLocaleString();
-            ctx.fillText(totalText, barYellow.x, barYellow.y - 4);
-            ctx.restore();
-
-            // Draw Callout pointer line when yellow segment is thin (< 22px)
-            if (segH < 22 && uncalculatedPrev > 0) {
-              const xStart = barYellow.x - (barYellow.width / 2);
+            if (segH >= 22) {
+              // Thick enough -> draw centered inside yellow block
+              ctx.save();
+              ctx.font = "bold 10.5px 'Kanit', sans-serif";
+              ctx.fillStyle = '#4a3802';
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(uncalcText, barYellow.x, (barYellow.y + barBlue.y) / 2);
+              ctx.restore();
+            } else {
+              // Thin segment (< 22px) -> Draw callout line into the gap between bars
+              const xStart = barYellow.x + (barYellow.width / 2);
               const yMid = (barYellow.y + barBlue.y) / 2;
-              const xBend = xStart - 8;
+              const xBend = xStart + 8;
               const yBend = yMid - 6;
-              const xEnd = xStart - 18;
+              const xEnd = xStart + 16;
 
               ctx.save();
-              // Dot on yellow slice edge
+              // Dot on slice edge
               ctx.beginPath();
-              ctx.arc(xStart + 1, yMid, 2.5, 0, 2 * Math.PI);
+              ctx.arc(xStart - 1, yMid, 2.5, 0, 2 * Math.PI);
               ctx.fillStyle = '#d4ac0d';
               ctx.fill();
 
-              // Pointer line
+              // Line
               ctx.beginPath();
               ctx.moveTo(xStart, yMid);
               ctx.lineTo(xBend, yBend);
@@ -2507,92 +2491,104 @@ function renderResourcesChart() {
               ctx.lineWidth = 1.2;
               ctx.stroke();
 
-              // Callout text badge
-              const uncalcText = Number(uncalculatedPrev).toLocaleString();
-              ctx.font = "bold 10.5px 'Kanit', sans-serif";
+              // Text
+              ctx.font = "bold 10px 'Kanit', sans-serif";
               ctx.fillStyle = '#7d6608';
-              ctx.textAlign = 'right';
+              ctx.textAlign = 'left';
               ctx.textBaseline = 'middle';
-              ctx.fillText(uncalcText, xEnd - 2, yBend);
+              ctx.fillText(uncalcText, xEnd + 3, yBend);
               ctx.restore();
             }
+          } catch (e) {
+            console.warn('Callout plugin error:', e);
           }
         }
-      }
-    };
+      };
 
-    // Calculate max value to set Y-axis max +30%
-    const maxVal = Math.max(parseFloat(itemBase.total) || 0, parseFloat(itemTarget.total) || 0);
-    const overviewYMax = maxVal > 0 ? (maxVal * 1.30) : undefined;
+      // Calculate max value to set Y-axis max +30%
+      const maxVal = Math.max(parseFloat(itemBase.total) || 0, parseFloat(itemTarget.total) || 0);
+      const overviewYMax = maxVal > 0 ? (maxVal * 1.30) : undefined;
 
-    resourcesChartInstances[config.id] = new Chart(ctx, {
-      type: 'bar',
-      plugins: [overviewBarLabelsPlugin],
-      data: {
-        labels: [''],
-        datasets: datasets
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        layout: {
-          padding: { top: 28, bottom: 24, left: 24, right: 10 }
+      resourcesChartInstances[config.id] = new Chart(ctx, {
+        type: 'bar',
+        plugins: [yellowCalloutPlugin],
+        data: {
+          labels: chartLabels,
+          datasets: datasets
         },
-        plugins: {
-          legend: {
-            display: false
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          layout: {
+            padding: { top: 28, bottom: 5, left: 10, right: 10 }
           },
-          tooltip: {
-            backgroundColor: 'rgba(26, 38, 34, 0.92)',
-            titleFont: { size: 12, family: "'Kanit', sans-serif" },
-            bodyFont: { size: 12, family: "'Kanit', sans-serif" },
-            padding: 10,
-            cornerRadius: 8,
-            callbacks: {
-              title: () => config.label,
-              label: function(context) {
-                if (context.dataset.isCalculatedSegment) {
-                  return ` ปี ${itemBase.year} (ช่วงเทียบ ${rangeStr}): ${Number(context.raw).toLocaleString()}`;
+          plugins: {
+            legend: {
+              display: false
+            },
+            tooltip: {
+              backgroundColor: 'rgba(26, 38, 34, 0.92)',
+              titleFont: { size: 12, family: "'Kanit', sans-serif" },
+              bodyFont: { size: 12, family: "'Kanit', sans-serif" },
+              padding: 10,
+              cornerRadius: 8,
+              callbacks: {
+                title: () => config.label,
+                label: function(context) {
+                  if (context.raw === null || context.raw === undefined || context.raw === 0) return '';
+                  if (context.dataset.isCalculatedSegment) {
+                    return ` ปี ${itemBase.year} (ช่วงเทียบ ${rangeStr}): ${Number(context.raw).toLocaleString()}`;
+                  }
+                  if (context.dataset.isUncalculatedSegment) {
+                    return ` ปี ${itemBase.year} (ไม่ได้นำมาคำนวณ): ${Number(context.raw).toLocaleString()}`;
+                  }
+                  return ` ${context.dataset.label}: ${Number(context.raw).toLocaleString()}`;
+                },
+                afterBody: function(items) {
+                  if (hasUncalculated) {
+                    return `--------------------\n รวมทั้งปี ${itemBase.year}: ${Number(itemBase.total).toLocaleString()}`;
+                  }
+                  return '';
                 }
-                if (context.dataset.isUncalculatedSegment) {
-                  return ` ปี ${itemBase.year} (ไม่ได้นำมาคำนวณ): ${Number(context.raw).toLocaleString()}`;
-                }
-                return ` ${context.dataset.label}: ${Number(context.raw).toLocaleString()}`;
+              }
+            },
+            datalabels: {
+              display: true
+            }
+          },
+          scales: {
+            x: {
+              stacked: true,
+              display: true,
+              grid: { display: false },
+              ticks: {
+                font: { size: 12, family: "'Kanit', sans-serif", weight: 'bold' },
+                color: function(tickCtx) {
+                  return tickCtx.index === 0 ? '#2471a3' : '#1e8449';
+                },
+                padding: 6
+              }
+            },
+            y: {
+              stacked: true,
+              beginAtZero: true,
+              max: overviewYMax,
+              suggestedMax: overviewYMax,
+              grid: {
+                color: 'rgba(0, 0, 0, 0.06)',
+                drawBorder: false
               },
-              afterBody: function(items) {
-                if (hasUncalculated) {
-                  return `--------------------\n รวมทั้งปี ${itemBase.year}: ${Number(itemBase.total).toLocaleString()}`;
-                }
-                return '';
+              ticks: {
+                font: { size: 10, family: "'Kanit', sans-serif" },
+                callback: (val) => Number(val).toLocaleString()
               }
             }
-          },
-          datalabels: {
-            display: true
-          }
-        },
-        scales: {
-          x: {
-            stacked: true,
-            display: false
-          },
-          y: {
-            stacked: true,
-            beginAtZero: true,
-            max: overviewYMax,
-            suggestedMax: overviewYMax,
-            grid: {
-              color: 'rgba(0, 0, 0, 0.06)',
-              drawBorder: false
-            },
-            ticks: {
-              font: { size: 10, family: "'Kanit', sans-serif" },
-              callback: (val) => Number(val).toLocaleString()
-            }
           }
         }
-      }
-    });
+      });
+    } catch (err) {
+      console.error('Error rendering chart for ' + config.id, err);
+    }
   });
 }
 
