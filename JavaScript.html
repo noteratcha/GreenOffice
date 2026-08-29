@@ -1944,27 +1944,41 @@ function submitEditEvent(e) {
 }
 
 // ==========================================
-// Resource Management Logic
+// Resource Management Logic (6 Sheets)
 // ==========================================
-let resourceDataList = [];
+let resourceData = {
+  electricity: [],
+  water: [],
+  fuel: [],
+  paper: [],
+  ghg: [],
+  recycledWaste: []
+};
+let currentResourceTab = 'electricity';
 let resourcesChartInstances = {};
 
 function loadResourcesData() {
   google.script.run.withSuccessHandler(function(data) {
-    if (data.length === 0) {
-      // Seed dummy data automatically
-      const dummy1 = { year: 2566, electricity: 14500, water: 1250, fuel: 820, paper: 55, ghg: 4600, recycledWaste: 180, user: 'admin' };
-      const dummy2 = { year: 2567, electricity: 13200, water: 1100, fuel: 760, paper: 42, ghg: 4100, recycledWaste: 240, user: 'admin' };
-      google.script.run.saveResourceData(dummy1);
-      google.script.run.saveResourceData(dummy2);
-      // Wait a bit and reload
-      setTimeout(loadResourcesData, 2000);
-      return;
-    }
-    resourceDataList = data;
+    if (!data) return;
+    resourceData = data;
     renderResourcesChart();
+    renderResourceTable(currentResourceTab);
   }).withFailureHandler(function(error) {
     console.error('Failed to load resource data', error);
+  }).getResourcesData();
+}
+
+function refreshResourcesData() {
+  showToast('กำลังดึงข้อมูลล่าสุดจาก Google Sheets...', 'info');
+  google.script.run.withSuccessHandler(function(data) {
+    if (!data) return;
+    resourceData = data;
+    renderResourcesChart();
+    renderResourceTable(currentResourceTab);
+    showToast('อัปเดตข้อมูลสถิติทรัพยากรเรียบร้อยแล้ว', 'success');
+  }).withFailureHandler(function(error) {
+    console.error('Failed to load resource data', error);
+    showToast('เกิดข้อผิดพลาดในการดึงข้อมูล', 'error');
   }).getResourcesData();
 }
 
@@ -1972,57 +1986,70 @@ function renderResourcesChart() {
   const container = document.getElementById('resourcesChartContainer');
   const emptyState = document.getElementById('resourcesEmpty');
   
-  if (resourceDataList.length === 0) {
-    container.style.display = 'none';
-    emptyState.classList.remove('hidden');
+  if (!resourceData) return;
+  
+  const hasData = Object.keys(resourceData).some(k => Array.isArray(resourceData[k]) && resourceData[k].length > 0);
+  
+  if (!hasData) {
+    if (container) container.style.display = 'none';
+    if (emptyState) emptyState.classList.remove('hidden');
     return;
   }
   
-  container.style.display = 'block';
-  emptyState.classList.add('hidden');
+  if (container) container.style.display = 'block';
+  if (emptyState) emptyState.classList.add('hidden');
   
-  const sorted = [...resourceDataList].sort((a, b) => b.year - a.year);
-  const dataToShow = sorted.slice(0, 2).reverse();
-  
-  if (dataToShow.length === 0) return;
-  
+  // Vibrant, harmonious colors matching screenshot:
+  // Year 1 (Earlier year): Clean sky-blue (#5dade2)
+  // Year 2 (Later year): Fresh leaf-green (#52be80)
   const colors = [
-    { bg: 'rgba(54, 162, 235, 0.7)', border: 'rgba(54, 162, 235, 1)' }, // Year 1 (Older)
-    { bg: 'rgba(39, 174, 96, 0.7)', border: 'rgba(39, 174, 96, 1)' }   // Year 2 (Newer)
+    { bg: '#5dade2', border: '#3498db' }, // Blue
+    { bg: '#52be80', border: '#27ae60' }, // Green
+    { bg: '#f5b041', border: '#d68910' }, // Orange
+    { bg: '#af7ac5', border: '#884ea0' }  // Purple
   ];
   
   const chartsConfig = [
-    { id: 'chartElec', key: 'electricity', label: 'การใช้ไฟฟ้า' },
-    { id: 'chartWater', key: 'water', label: 'การใช้น้ำ' },
-    { id: 'chartFuel', key: 'fuel', label: 'น้ำมันเชื้อเพลิง' },
-    { id: 'chartPaper', key: 'paper', label: 'การใช้กระดาษ' },
-    { id: 'chartGhg', key: 'ghg', label: 'ก๊าซเรือนกระจก' },
-    { id: 'chartWaste', key: 'recycledWaste', label: 'นำของเสียกลับมาใช้' }
+    { id: 'chartElec', key: 'electricity', label: 'การใช้ไฟฟ้า (kWh)' },
+    { id: 'chartWater', key: 'water', label: 'การใช้น้ำ (m³)' },
+    { id: 'chartFuel', key: 'fuel', label: 'น้ำมันเชื้อเพลิง (L)' },
+    { id: 'chartPaper', key: 'paper', label: 'การใช้กระดาษ (Ream)' },
+    { id: 'chartGhg', key: 'ghg', label: 'ก๊าซเรือนกระจก (kgCO2e)' },
+    { id: 'chartWaste', key: 'recycledWaste', label: 'นำของเสียกลับมาใช้ (kg)' }
   ];
   
-  // Register datalabels plugin globally if not done already
-  Chart.register(ChartDataLabels);
+  if (typeof ChartDataLabels !== 'undefined') {
+    Chart.register(ChartDataLabels);
+  }
   
   chartsConfig.forEach(config => {
-    const ctx = document.getElementById(config.id).getContext('2d');
+    const canvas = document.getElementById(config.id);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
     
     if (resourcesChartInstances[config.id]) {
       resourcesChartInstances[config.id].destroy();
     }
     
-    const datasets = dataToShow.map((item, index) => {
+    const items = resourceData[config.key] || [];
+    
+    const datasets = items.map((item, index) => {
       const color = colors[index % colors.length];
       return {
         label: 'ปี ' + item.year,
-        data: [item[config.key]],
+        data: [item.total],
         backgroundColor: color.bg,
         borderColor: color.border,
         borderWidth: 1,
+        borderRadius: 4,
+        barPercentage: 0.75,
+        categoryPercentage: 0.85,
         datalabels: {
           color: '#1a2622',
           anchor: 'end',
           align: 'top',
-          font: { weight: 'bold', size: 12 },
+          offset: 4,
+          font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
           formatter: (value) => Number(value).toLocaleString()
         }
       };
@@ -2031,24 +2058,35 @@ function renderResourcesChart() {
     resourcesChartInstances[config.id] = new Chart(ctx, {
       type: 'bar',
       data: {
-        labels: [''], // Single category label to center the bars
+        labels: [''],
         datasets: datasets
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
         layout: {
-          padding: { top: 30 } // Add padding to fit datalabels on top
+          padding: { top: 28, bottom: 5, left: 10, right: 10 }
         },
         plugins: {
           legend: {
             position: 'bottom',
-            labels: { boxWidth: 12, font: { size: 10 } }
+            labels: {
+              boxWidth: 12,
+              boxHeight: 12,
+              padding: 14,
+              font: { size: 11, family: "'Kanit', sans-serif" },
+              usePointStyle: false
+            }
           },
           tooltip: {
+            backgroundColor: 'rgba(26, 38, 34, 0.9)',
+            titleFont: { size: 12, family: "'Kanit', sans-serif" },
+            bodyFont: { size: 12, family: "'Kanit', sans-serif" },
+            padding: 10,
+            cornerRadius: 8,
             callbacks: {
               title: () => config.label,
-              label: (context) => ' ' + Number(context.raw).toLocaleString()
+              label: (context) => ` ${context.dataset.label}: ${Number(context.raw).toLocaleString()}`
             }
           },
           datalabels: {
@@ -2057,7 +2095,17 @@ function renderResourcesChart() {
         },
         scales: {
           x: { display: false },
-          y: { beginAtZero: true }
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.06)',
+              drawBorder: false
+            },
+            ticks: {
+              font: { size: 10, family: "'Kanit', sans-serif" },
+              callback: (val) => Number(val).toLocaleString()
+            }
+          }
         }
       }
     });
@@ -2065,123 +2113,53 @@ function renderResourcesChart() {
 }
 
 function openManageResourcesModal() {
-  renderResourceList();
+  renderResourceTable(currentResourceTab);
   openModal('manageResourcesModal');
 }
 
-function renderResourceList() {
+function switchResourceTab(metricKey) {
+  currentResourceTab = metricKey;
+  
+  // Update active tab button style
+  const tabsWrapper = document.getElementById('resourceTabsWrapper');
+  if (tabsWrapper) {
+    tabsWrapper.querySelectorAll('button').forEach(btn => {
+      btn.classList.toggle('active', btn.id === 'tabRes_' + metricKey);
+    });
+  }
+  
+  renderResourceTable(metricKey);
+}
+
+function renderResourceTable(metricKey) {
   const tbody = document.getElementById('resourceListBody');
+  if (!tbody) return;
   tbody.innerHTML = '';
   
-  if (resourceDataList.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="2" style="text-align: center; padding: 1rem;">ไม่มีข้อมูล</td></tr>';
+  const items = (resourceData && resourceData[metricKey]) ? resourceData[metricKey] : [];
+  
+  if (items.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="14" style="text-align: center; padding: 1.5rem; color: var(--color-text-light);">ยังไม่มีข้อมูลในชีตนี้</td></tr>';
     return;
   }
   
-  resourceDataList.sort((a, b) => b.year - a.year).forEach(item => {
+  items.forEach(item => {
     const tr = document.createElement('tr');
+    tr.style.borderBottom = '1px solid rgba(0,0,0,0.05)';
     
-    // Check permission
-    let actionHtml = '-';
-    if (currentRole === 'admin' || (currentUser && currentUser === item.user)) {
-      actionHtml = `
-        <button class="btn btn-sm btn-outline" style="padding: 0.25rem 0.5rem; margin-right: 0.5rem;" onclick="editResourceAction('${item.id}')">
-          <span class="material-icons" style="font-size: 16px;">edit</span>
-        </button>
-        <button class="btn btn-sm btn-danger" style="padding: 0.25rem 0.5rem;" onclick="deleteResourceAction('${item.id}')">
-          <span class="material-icons" style="font-size: 16px;">delete</span>
-        </button>
-      `;
+    let monthsHtml = '';
+    for (let m = 0; m < 12; m++) {
+      const val = (item.months && item.months[m] !== undefined) ? item.months[m] : 0;
+      monthsHtml += `<td style="padding: 0.6rem; text-align: right;">${val ? Number(val).toLocaleString() : '-'}</td>`;
     }
     
     tr.innerHTML = `
-      <td style="padding: 0.75rem;">${item.year}</td>
-      <td style="padding: 0.75rem; text-align: center;">${actionHtml}</td>
+      <td style="padding: 0.6rem; font-weight: bold;">${item.year}</td>
+      <td style="padding: 0.6rem; text-align: right; color: var(--color-forest); font-weight: bold;">${Number(item.total).toLocaleString()}</td>
+      ${monthsHtml}
     `;
     tbody.appendChild(tr);
   });
-}
-
-function openResourceFormModal(id = null) {
-  document.getElementById('resourceForm').reset();
-  document.getElementById('resourceId').value = '';
-  document.getElementById('resourceFormTitle').innerHTML = '<span class="material-icons">add</span> เพิ่มข้อมูลทรัพยากร';
-  
-  if (id) {
-    const item = resourceDataList.find(x => x.id === id);
-    if (item) {
-      document.getElementById('resourceId').value = item.id;
-      document.getElementById('resourceYear').value = item.year;
-      document.getElementById('resourceElectricity').value = item.electricity;
-      document.getElementById('resourceWater').value = item.water;
-      document.getElementById('resourceFuel').value = item.fuel;
-      document.getElementById('resourcePaper').value = item.paper;
-      document.getElementById('resourceGhg').value = item.ghg;
-      document.getElementById('resourceRecycled').value = item.recycledWaste;
-      document.getElementById('resourceFormTitle').innerHTML = '<span class="material-icons">edit</span> แก้ไขข้อมูลทรัพยากร';
-    }
-  }
-  
-  closeModal('manageResourcesModal');
-  openModal('resourceFormModal');
-}
-
-function editResourceAction(id) {
-  openResourceFormModal(id);
-}
-
-function deleteResourceAction(id) {
-  if (confirm('คุณต้องการลบข้อมูลทรัพยากรปีนี้ใช่หรือไม่?')) {
-    google.script.run.withSuccessHandler(function(res) {
-      if (res.success) {
-        showToast(res.message, 'success');
-        loadResourcesData();
-        // keep modal open, just re-render
-        setTimeout(() => renderResourceList(), 500);
-      } else {
-        showToast(res.message, 'error');
-      }
-    }).withFailureHandler(function(err) {
-      showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
-    }).deleteResourceData(id);
-  }
-}
-
-function submitResourceForm(e) {
-  e.preventDefault();
-  const btn = document.getElementById('btnResourceSubmit');
-  const originalText = btn.innerHTML;
-  btn.innerHTML = '<span class="material-icons rotating">sync</span> กำลังบันทึก...';
-  btn.disabled = true;
-
-  const data = {
-    id: document.getElementById('resourceId').value,
-    year: document.getElementById('resourceYear').value,
-    electricity: document.getElementById('resourceElectricity').value,
-    water: document.getElementById('resourceWater').value,
-    fuel: document.getElementById('resourceFuel').value,
-    paper: document.getElementById('resourcePaper').value,
-    ghg: document.getElementById('resourceGhg').value,
-    recycledWaste: document.getElementById('resourceRecycled').value,
-    user: currentUser || ''
-  };
-
-  google.script.run.withSuccessHandler(function(res) {
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-    if (res.success) {
-      closeModal('resourceFormModal');
-      showToast(res.message, 'success');
-      loadResourcesData();
-      setTimeout(() => { openManageResourcesModal(); }, 500);
-    } else {
-      showToast(res.message, 'error');
-    }
-  }).withFailureHandler(function(err) {
-    btn.innerHTML = originalText;
-    btn.disabled = false;
-    showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
-  }).saveResourceData(data);
 }
 
 // ============================================================

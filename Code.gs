@@ -774,112 +774,87 @@ function editCalendarEvent(eventData) {
 // ------------------------------------------------------------
 // Resource Management
 // ------------------------------------------------------------
-function ensureResourcesSheet() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName('resources');
-  if (!sheet) {
-    sheet = ss.insertSheet('resources');
-    sheet.appendRow(['id', 'year', 'electricity', 'water', 'fuel', 'paper', 'ghg', 'recycledWaste', 'user']);
-    sheet.getRange('A1:I1').setFontWeight('bold').setBackground('#f3f3f3');
-    sheet.setFrozenRows(1);
-  }
-  return sheet;
-}
+// ============================================================
+// Resources Data (6 Separate Sheets: electricity, water, fuel, paper, ghg, recycledWaste)
+// ============================================================
+
+const RESOURCE_SHEETS = {
+  electricity: 'electricity',
+  water: 'water',
+  fuel: 'fuel',
+  paper: 'paper',
+  ghg: 'ghg',
+  recycledWaste: 'recycledWaste'
+};
+
+const MONTH_HEADERS = ['ปี', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
 function getResourcesData() {
   try {
-    const sheet = ensureResourcesSheet();
-    const data = sheet.getDataRange().getValues();
-    if (data.length <= 1) return [];
-    
-    const resources = [];
-    for (let i = 1; i < data.length; i++) {
-      const row = data[i];
-      if (!row[0]) continue;
-      
-      resources.push({
-        id: row[0],
-        year: row[1],
-        electricity: row[2],
-        water: row[3],
-        fuel: row[4],
-        paper: row[5],
-        ghg: row[6],
-        recycledWaste: row[7],
-        user: row[8] || ''
-      });
-    }
-    
-    // Sort by year descending
-    resources.sort((a, b) => b.year - a.year);
-    
-    return resources;
-  } catch (error) {
-    console.error('Error getting resources data:', error);
-    return [];
-  }
-}
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const result = {};
 
-function saveResourceData(data) {
-  try {
-    const sheet = ensureResourcesSheet();
-    const id = data.id || Utilities.getUuid();
-    
-    if (data.id) {
-      // Edit existing
+    for (const key in RESOURCE_SHEETS) {
+      const sheetName = RESOURCE_SHEETS[key];
+      let sheet = ss.getSheetByName(sheetName);
+      if (!sheet) {
+        sheet = ss.insertSheet(sheetName);
+        sheet.appendRow(MONTH_HEADERS);
+        sheet.getRange('A1:M1').setFontWeight('bold').setBackground('#f3f3f3');
+        sheet.setFrozenRows(1);
+      }
+
       const values = sheet.getDataRange().getValues();
-      for (let i = 1; i < values.length; i++) {
-        if (values[i][0] === data.id) {
-          const rowData = [
-            data.id,
-            data.year,
-            data.electricity,
-            data.water,
-            data.fuel,
-            data.paper,
-            data.ghg,
-            data.recycledWaste,
-            data.user || values[i][8]
-          ];
-          sheet.getRange(i + 1, 1, 1, 9).setValues([rowData]);
-          return { success: true, message: 'บันทึกข้อมูลเรียบร้อยแล้ว' };
-        }
-      }
-      return { success: false, message: 'ไม่พบข้อมูลที่ต้องการแก้ไข' };
-    } else {
-      // Add new
-      sheet.appendRow([
-        id,
-        data.year,
-        data.electricity,
-        data.water,
-        data.fuel,
-        data.paper,
-        data.ghg,
-        data.recycledWaste,
-        data.user || ''
-      ]);
-      return { success: true, message: 'เพิ่มข้อมูลเรียบร้อยแล้ว' };
-    }
-  } catch (error) {
-    return { success: false, message: 'Error: ' + error.message };
-  }
-}
+      const sheetData = [];
 
-function deleteResourceData(id) {
-  try {
-    const sheet = ensureResourcesSheet();
-    const data = sheet.getDataRange().getValues();
-    
-    for (let i = 1; i < data.length; i++) {
-      if (data[i][0] === id) {
-        sheet.deleteRow(i + 1);
-        return { success: true, message: 'ลบข้อมูลเรียบร้อยแล้ว' };
+      // Row 0 is headers, rows 1..N are years
+      for (let i = 1; i < values.length; i++) {
+        const row = values[i];
+        const year = String(row[0] || '').trim();
+        if (!year) continue;
+
+        let total = 0;
+        const months = [];
+        for (let m = 1; m <= 12; m++) {
+          const rawVal = row[m];
+          const valNum = parseFloat(String(rawVal).replace(/,/g, ''));
+          if (!isNaN(valNum)) {
+            total += valNum;
+            months.push(valNum);
+          } else {
+            months.push(0);
+          }
+        }
+
+        sheetData.push({
+          year: year,
+          total: total,
+          months: months
+        });
       }
+
+      // Sort years ascending (e.g. 2568, 2569) so chart bars display chronologically
+      sheetData.sort((a, b) => {
+        const numA = parseInt(a.year, 10);
+        const numB = parseInt(b.year, 10);
+        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+        return a.year.localeCompare(b.year);
+      });
+
+      result[key] = sheetData;
     }
-    return { success: false, message: 'ไม่พบข้อมูลที่ต้องการลบ' };
+
+    return result;
   } catch (error) {
-    return { success: false, message: 'Error: ' + error.message };
+    Logger.log('Error getting resources data: ' + error.message);
+    return {
+      electricity: [],
+      water: [],
+      fuel: [],
+      paper: [],
+      ghg: [],
+      recycledWaste: []
+    };
   }
 }
 

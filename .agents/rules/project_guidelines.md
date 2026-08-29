@@ -167,3 +167,21 @@ This file contains the accumulated rules, skills, workflow, architectural patter
 - **Backend Persistence**:
   - Store and retrieve the Google Forms response URL dynamically via `PropertiesService` (`getFeedbackLink()` / `saveFeedbackLink()`).
   - Enables flexible updates to form endpoints without modifying client-side JavaScript.
+
+## 13. 6-Sheet Resource & Waste Statistics Architecture
+- **Dedicated Sheets per Metric**:
+  - 6 dedicated Google Sheets correspond 1-to-1 with the 6 UI metrics:
+    1. `electricity` -> การใช้ไฟฟ้า (kWh)
+    2. `water` -> การใช้น้ำ (m³)
+    3. `fuel` -> น้ำมันเชื้อเพลิง (L)
+    4. `paper` -> การใช้กระดาษ (Ream)
+    5. `ghg` -> ก๊าซเรือนกระจก (kgCO2e)
+    6. `recycledWaste` -> นำของเสียกลับมาใช้ (kg)
+- **Monthly Breakdown & Annual Sum Calculation**:
+  - Row 1: Headers (`ปี`, `ม.ค.`, `ก.พ.`, `มี.ค.`, `เม.ย.`, `พ.ค.`, `มิ.ย.`, `ก.ค.`, `ส.ค.`, `ก.ย.`, `ต.ค.`, `พ.ย.`, `ธ.ค.`).
+  - Rows 2..N: Years in Column A, with monthly entries in Columns B through M.
+  - Backend `getResourcesData()` calculates the annual total as the sum of all monthly entries in that row, allowing partial-year entries to compute accurately.
+- **Visual Chart Rendering (Chart.js + DataLabels)**:
+  - Chart bars are grouped by year (e.g. Blue `#5dade2` for Year 1, Green `#52be80` for Year 2).
+  - Floating top datalabels with formatted comma separators (`Number(value).toLocaleString()`).
+  - Interactive Admin Modal with metric tabs and direct "เปิด Google Sheets ↗" deep-link.
