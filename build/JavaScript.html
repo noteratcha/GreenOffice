@@ -57,10 +57,20 @@ document.addEventListener('DOMContentLoaded', () => {
   initImageZoom();
   
   initCalendar();
+  initFeedbackForm();
+
   // Drag & Drop for all upload zones
   setupDragAndDrop();
   setupNewsDragAndDrop();
   setupEditNewsDragAndDrop();
+
+  // Safety fallback: ensure loading screen is hidden even if network is slow
+  setTimeout(() => {
+    const loader = document.getElementById('loadingScreen');
+    if (loader && !loader.classList.contains('hidden')) {
+      loader.classList.add('hidden');
+    }
+  }, 3000);
 });
 
 // ============================================================
@@ -916,8 +926,13 @@ async function processFilesToBase64WithProgress(files, onProgress, maxDimension 
       };
       reader.readAsDataURL(file);
     });
-  });
-  return Promise.all(promises);
+    results.push(item);
+  }
+  return results;
+}
+
+function processFilesToBase64(files, maxDimension = 1280, quality = 0.75) {
+  return processFilesToBase64WithProgress(files, null, maxDimension, quality);
 }
 
 // ============================================================
