@@ -1653,7 +1653,7 @@ body {
   pointer-events: none;
   transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
   white-space: nowrap;
-  z-index: 10;
+  z-index: 2; /* Lower than parent FAB */
 }
 
 .fab-sub-menu.open {
@@ -1662,13 +1662,13 @@ body {
   transform: translateY(-50%) translateX(0) scale(1);
 }
 
-/* Connecting Line (เส้นโยงระหว่าง FAB หลัก กับ FAB ย่อย อยู่ด้านหลังปุ่ม) */
+/* Connecting Line (เส้นโยงระหว่าง FAB หลัก กับ FAB ย่อย อยู่ด้านหลังปุ่มแบบ 100%) */
 .fab-sub-menu::before {
   content: '';
   position: absolute;
   top: 50%;
-  right: -1.25rem;
-  left: 20px;
+  right: -1.5rem; /* Extends behind fabPhotosParent */
+  left: 24px;    /* Starts behind fabUpload */
   height: 2px;
   background: var(--color-forest);
   border-top: 2px dashed rgba(74, 99, 68, 0.85);
@@ -1688,7 +1688,7 @@ body {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
   transition: var(--transition);
   position: relative;
-  z-index: 2;
+  z-index: 2; /* On top of line */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1704,7 +1704,7 @@ body {
 .fab-photos-parent {
   position: relative;
   transition: var(--transition);
-  z-index: 3;
+  z-index: 10; /* Highest: on top of the entire sub-menu and connector line */
 }
 
 .fab-photos-parent.active {
