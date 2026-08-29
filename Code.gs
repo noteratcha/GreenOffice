@@ -869,6 +869,59 @@ function getResourcesData() {
   }
 }
 
+function saveResourceSheetData(metricKey, rows) {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheetName = RESOURCE_SHEETS[metricKey] || metricKey;
+    let sheet = ss.getSheetByName(sheetName);
+    if (!sheet) {
+      sheet = ss.insertSheet(sheetName);
+    }
+
+    // Clear old data and set headers
+    sheet.clear();
+    sheet.appendRow(MONTH_HEADERS);
+    sheet.getRange('A1:M1').setFontWeight('bold').setBackground('#f3f3f3');
+    sheet.setFrozenRows(1);
+
+    if (!rows || !Array.isArray(rows) || rows.length === 0) {
+      return { success: true, message: 'บันทึกข้อมูลเรียบร้อยแล้ว' };
+    }
+
+    // Sort rows by year ascending
+    rows.sort((a, b) => {
+      const numA = parseInt(a.year, 10);
+      const numB = parseInt(b.year, 10);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return String(a.year || '').localeCompare(String(b.year || ''));
+    });
+
+    const valuesToWrite = [];
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i];
+      const year = String(r.year || '').trim();
+      if (!year) continue;
+
+      const rowVals = [year];
+      for (let m = 0; m < 12; m++) {
+        const raw = (r.months && r.months[m] !== undefined && r.months[m] !== null) ? String(r.months[m]).trim() : '';
+        const num = parseFloat(raw.replace(/,/g, ''));
+        rowVals.push(!isNaN(num) && raw !== '' ? num : '');
+      }
+      valuesToWrite.push(rowVals);
+    }
+
+    if (valuesToWrite.length > 0) {
+      sheet.getRange(2, 1, valuesToWrite.length, 13).setValues(valuesToWrite);
+    }
+
+    return { success: true, message: 'บันทึกข้อมูลสำเร็จ' };
+  } catch (e) {
+    Logger.log('saveResourceSheetData error: ' + e.message);
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + e.message };
+  }
+}
+
 // ============================================================
 // Policy Image Handling
 // ============================================================

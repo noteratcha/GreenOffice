@@ -2112,6 +2112,15 @@ function renderResourcesChart() {
   });
 }
 
+const RESOURCE_METRIC_LABELS = {
+  electricity: 'การใช้ไฟฟ้า',
+  water: 'การใช้น้ำ',
+  fuel: 'น้ำมันเชื้อเพลิง',
+  paper: 'การใช้กระดาษ',
+  ghg: 'ก๊าซเรือนกระจก',
+  recycledWaste: 'ของเสียกลับมาใช้'
+};
+
 function openManageResourcesModal() {
   renderResourceTable(currentResourceTab);
   openModal('manageResourcesModal');
@@ -2133,33 +2142,170 @@ function switchResourceTab(metricKey) {
 
 function renderResourceTable(metricKey) {
   const tbody = document.getElementById('resourceListBody');
+  const btnSave = document.getElementById('btnSaveResourceSheet');
+  if (btnSave) {
+    btnSave.innerHTML = `<span class="material-icons">save</span> บันทึกข้อมูล ${RESOURCE_METRIC_LABELS[metricKey] || ''}`;
+  }
+  
   if (!tbody) return;
   tbody.innerHTML = '';
   
-  const items = (resourceData && resourceData[metricKey]) ? resourceData[metricKey] : [];
+  const items = (resourceData && resourceData[metricKey] && resourceData[metricKey].length > 0) 
+    ? resourceData[metricKey] 
+    : [];
   
   if (items.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="14" style="text-align: center; padding: 1.5rem; color: var(--color-text-light);">ยังไม่มีข้อมูลในชีตนี้</td></tr>';
+    // Add default row if empty
+    addResourceRowHtml(tbody, 0, (new Date()).getFullYear() + 543, [0,0,0,0,0,0,0,0,0,0,0,0], 0);
     return;
   }
   
-  items.forEach(item => {
-    const tr = document.createElement('tr');
-    tr.style.borderBottom = '1px solid rgba(0,0,0,0.05)';
+  items.forEach((item, idx) => {
+    addResourceRowHtml(tbody, idx, item.year, item.months || [], item.total || 0);
+  });
+}
+
+function addResourceRowHtml(tbody, idx, yearVal, monthsArr, totalVal) {
+  const tr = document.createElement('tr');
+  tr.id = `resourceRow_${idx}`;
+  tr.style.borderBottom = '1px solid #eef2ed';
+  
+  let monthsInputs = '';
+  for (let m = 0; m < 12; m++) {
+    const val = (monthsArr && monthsArr[m] !== undefined && monthsArr[m] !== null && monthsArr[m] !== 0) 
+      ? monthsArr[m] 
+      : '';
+    monthsInputs += `
+      <td style="padding: 0.4rem 0.25rem;">
+        <input type="number" step="any" class="resource-month-input" id="resMonth_${idx}_${m}" value="${val}" placeholder="0" oninput="recalcRowTotal(${idx})">
+      </td>
+    `;
+  }
+  
+  tr.innerHTML = `
+    <td style="padding: 0.4rem 0.35rem; text-align: center;">
+      <input type="number" class="resource-year-input" id="resYear_${idx}" value="${yearVal || ''}" placeholder="พ.ศ.">
+    </td>
+    <td style="padding: 0.4rem 0.35rem; text-align: right;">
+      <span class="badge-total" id="resTotalBadge_${idx}">${Number(totalVal || 0).toLocaleString()}</span>
+    </td>
+    ${monthsInputs}
+    <td style="padding: 0.4rem 0.25rem; text-align: center;">
+      <button type="button" class="btn-del-row" onclick="deleteResourceTableRow(${idx})" title="ลบแถวปีนี้">
+        <span class="material-icons" style="font-size: 18px;">delete_outline</span>
+      </button>
+    </td>
+  `;
+  tbody.appendChild(tr);
+}
+
+function recalcRowTotal(idx) {
+  let sum = 0;
+  for (let m = 0; m < 12; m++) {
+    const input = document.getElementById(`resMonth_${idx}_${m}`);
+    if (input && input.value.trim() !== '') {
+      const val = parseFloat(input.value.trim().replace(/,/g, ''));
+      if (!isNaN(val)) sum += val;
+    }
+  }
+  const badge = document.getElementById(`resTotalBadge_${idx}`);
+  if (badge) {
+    badge.textContent = Number(sum).toLocaleString();
+  }
+}
+
+function addNewResourceYear() {
+  const tbody = document.getElementById('resourceListBody');
+  if (!tbody) return;
+  
+  // Calculate next year based on existing rows
+  let maxYear = (new Date()).getFullYear() + 543;
+  const yearInputs = tbody.querySelectorAll('.resource-year-input');
+  yearInputs.forEach(inp => {
+    const val = parseInt(inp.value, 10);
+    if (!isNaN(val) && val >= maxYear) {
+      maxYear = val + 1;
+    }
+  });
+  
+  const newIdx = Date.now();
+  addResourceRowHtml(tbody, newIdx, maxYear, [], 0);
+  
+  const newYearInput = document.getElementById(`resYear_${newIdx}`);
+  if (newYearInput) newYearInput.focus();
+}
+
+function deleteResourceTableRow(idx) {
+  const row = document.getElementById(`resourceRow_${idx}`);
+  if (row) {
+    row.remove();
+  }
+}
+
+function saveCurrentResourceSheet() {
+  const tbody = document.getElementById('resourceListBody');
+  if (!tbody) return;
+  
+  const rows = tbody.querySelectorAll('tr[id^="resourceRow_"]');
+  const rowsData = [];
+  
+  for (let i = 0; i < rows.length; i++) {
+    const rowEl = rows[i];
+    const rowId = rowEl.id.replace('resourceRow_', '');
+    const yearInput = document.getElementById(`resYear_${rowId}`);
+    const year = yearInput ? yearInput.value.trim() : '';
     
-    let monthsHtml = '';
-    for (let m = 0; m < 12; m++) {
-      const val = (item.months && item.months[m] !== undefined) ? item.months[m] : 0;
-      monthsHtml += `<td style="padding: 0.6rem; text-align: right;">${val ? Number(val).toLocaleString() : '-'}</td>`;
+    if (!year) {
+      showToast('กรุณาระบุปี (พ.ศ.) ให้ครบทุกแถว', 'error');
+      if (yearInput) yearInput.focus();
+      return;
     }
     
-    tr.innerHTML = `
-      <td style="padding: 0.6rem; font-weight: bold;">${item.year}</td>
-      <td style="padding: 0.6rem; text-align: right; color: var(--color-forest); font-weight: bold;">${Number(item.total).toLocaleString()}</td>
-      ${monthsHtml}
-    `;
-    tbody.appendChild(tr);
-  });
+    const months = [];
+    let total = 0;
+    for (let m = 0; m < 12; m++) {
+      const monthInput = document.getElementById(`resMonth_${rowId}_${m}`);
+      const valRaw = monthInput ? monthInput.value.trim() : '';
+      const valNum = parseFloat(valRaw.replace(/,/g, ''));
+      if (!isNaN(valNum) && valRaw !== '') {
+        months.push(valNum);
+        total += valNum;
+      } else {
+        months.push(0);
+      }
+    }
+    
+    rowsData.push({
+      year: year,
+      total: total,
+      months: months
+    });
+  }
+  
+  const btn = document.getElementById('btnSaveResourceSheet');
+  const originalText = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons rotating" style="animation: spin 0.8s linear infinite;">sync</span> กำลังบันทึก...';
+  
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+      if (res.success) {
+        showToast('บันทึกข้อมูลสำเร็จ', 'success');
+        // Update local state and re-render charts immediately
+        resourceData[currentResourceTab] = rowsData;
+        renderResourcesChart();
+      } else {
+        showToast(res.message || 'เกิดข้อผิดพลาดในการบันทึก', 'error');
+      }
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+      showToast('เชื่อมต่อล้มเหลว', 'error');
+    })
+    .saveResourceSheetData(currentResourceTab, rowsData);
 }
 
 // ============================================================

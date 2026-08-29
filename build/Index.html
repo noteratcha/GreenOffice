@@ -387,7 +387,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2215</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2222</p>
   </footer>
 
   <!-- ==================== MODALS ==================== -->
@@ -503,7 +503,7 @@
 
   <!-- Manage Resources Modal -->
   <div id="manageResourcesModal" class="modal-backdrop">
-    <div class="modal modal-lg">
+    <div class="modal modal-xl">
       <div class="modal-header">
         <div class="modal-title-wrapper">
           <div class="modal-icon-badge">
@@ -511,7 +511,7 @@
           </div>
           <div>
             <h3>จัดการข้อมูลสถิติทรัพยากร 6 ด้าน</h3>
-            <p class="modal-subtitle">ข้อมูลดึงจาก 6 ชีต (electricity, water, fuel, paper, ghg, recycledWaste) ใน Google Sheets</p>
+            <p class="modal-subtitle">แก้ไขและบันทึกข้อมูลรายเดือนของแต่ละปีได้โดยตรง หรือเปิด Google Sheets</p>
           </div>
         </div>
         <button class="modal-close" onclick="closeModal('manageResourcesModal')">
@@ -520,20 +520,23 @@
       </div>
       <div class="modal-body">
         <!-- Quick Action & Google Sheet Access Card -->
-        <div style="background: var(--color-light); border: 1px solid rgba(74, 99, 68, 0.2); border-radius: var(--radius-md); padding: 1.25rem; margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
+        <div style="background: var(--color-light); border: 1px solid rgba(74, 99, 68, 0.2); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
           <div>
-            <h4 style="color: var(--color-forest); font-size: 1rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
-              <span class="material-icons" style="font-size: 20px;">table_view</span> ข้อมูลเชื่อมต่อกับ Google Sheets
+            <h4 style="color: var(--color-forest); font-size: 0.95rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.4rem;">
+              <span class="material-icons" style="font-size: 18px;">edit_note</span> สามารถแก้ไขตัวเลขในช่องตารางด้านล่างได้โดยตรง
             </h4>
-            <p style="font-size: 0.82rem; color: var(--color-text-light); margin: 0;">
-              แก้ไข/เพิ่มข้อมูลรายเดือน (ม.ค. - ธ.ค.) ในแต่ละชีตของไฟล์ Google Sheets แล้วกดปุ่ม "ดึงข้อมูลล่าสุด"
+            <p style="font-size: 0.8rem; color: var(--color-text-light); margin: 0;">
+              ระบุตัวเลขในแต่ละเดือน ยอดรวมทั้งปีจะคำนวณให้อัตโนมัติ จากนั้นกดปุ่ม <strong>"บันทึกข้อมูล"</strong> ด้านล่าง
             </p>
           </div>
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <a href="https://docs.google.com/spreadsheets/d/10ZhFi99f45BJ5epvT4bqJ0xMCl-UeMsN3pM3Dbv0Dpo/edit" target="_blank" class="btn btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
-              <span class="material-icons" style="font-size: 16px;">open_in_new</span> เปิด Google Sheets
+            <button type="button" class="btn btn-outline btn-sm" onclick="addNewResourceYear()" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span class="material-icons" style="font-size: 16px;">add</span> เพิ่มแถวปีใหม่
+            </button>
+            <a href="https://docs.google.com/spreadsheets/d/10ZhFi99f45BJ5epvT4bqJ0xMCl-UeMsN3pM3Dbv0Dpo/edit" target="_blank" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+              <span class="material-icons" style="font-size: 16px;">open_in_new</span> Google Sheets
             </a>
-            <button type="button" class="btn btn-outline btn-sm" onclick="refreshResourcesData()" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="refreshResourcesData()" title="ดึงข้อมูลล่าสุดจาก Google Sheets" style="display: inline-flex; align-items: center; gap: 0.35rem;">
               <span class="material-icons" style="font-size: 16px;">sync</span> ดึงข้อมูลล่าสุด
             </button>
           </div>
@@ -549,39 +552,43 @@
           <button type="button" class="btn btn-sm btn-outline" id="tabRes_recycledWaste" onclick="switchResourceTab('recycledWaste')">♻️ ของเสียกลับมาใช้</button>
         </div>
 
-        <!-- Data Preview Table -->
-        <div class="table-responsive" style="max-height: 380px; overflow-y: auto;">
+        <!-- Editable Data Table -->
+        <div class="table-responsive" style="max-height: 420px; overflow-y: auto; border: 1px solid #e0e5df; border-radius: var(--radius-md);">
           <table class="table" style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
             <thead>
-              <tr style="background: var(--color-light); text-align: left; position: sticky; top: 0; z-index: 2;">
-                <th style="padding: 0.6rem;">ปี (พ.ศ.)</th>
-                <th style="padding: 0.6rem; text-align: right; color: var(--color-forest); font-weight: bold;">รวมทั้งปี</th>
-                <th style="padding: 0.6rem; text-align: right;">ม.ค.</th>
-                <th style="padding: 0.6rem; text-align: right;">ก.พ.</th>
-                <th style="padding: 0.6rem; text-align: right;">มี.ค.</th>
-                <th style="padding: 0.6rem; text-align: right;">เม.ย.</th>
-                <th style="padding: 0.6rem; text-align: right;">พ.ค.</th>
-                <th style="padding: 0.6rem; text-align: right;">มิ.ย.</th>
-                <th style="padding: 0.6rem; text-align: right;">ก.ค.</th>
-                <th style="padding: 0.6rem; text-align: right;">ส.ค.</th>
-                <th style="padding: 0.6rem; text-align: right;">ก.ย.</th>
-                <th style="padding: 0.6rem; text-align: right;">ต.ค.</th>
-                <th style="padding: 0.6rem; text-align: right;">พ.ย.</th>
-                <th style="padding: 0.6rem; text-align: right;">ธ.ค.</th>
+              <tr style="background: #eef2ed; text-align: left; position: sticky; top: 0; z-index: 5; border-bottom: 1.5px solid #d2dcd0;">
+                <th style="padding: 0.65rem 0.5rem; text-align: center; width: 95px;">ปี (พ.ศ.)</th>
+                <th style="padding: 0.65rem 0.5rem; text-align: right; color: var(--color-forest); font-weight: bold; width: 100px;">รวมทั้งปี</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">ม.ค.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">ก.พ.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">มี.ค.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">เม.ย.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">พ.ค.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">มิ.ย.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">ก.ค.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">ส.ค.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">ก.ย.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">ต.ค.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">พ.ย.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center;">ธ.ค.</th>
+                <th style="padding: 0.65rem 0.4rem; text-align: center; width: 44px;">ลบ</th>
               </tr>
             </thead>
             <tbody id="resourceListBody">
-              <!-- Rendered via JS -->
+              <!-- Rendered via JS as Editable Inputs -->
               <tr>
-                <td colspan="14" style="text-align: center; padding: 1.5rem; color: var(--color-text-light);">กำลังโหลดข้อมูล...</td>
+                <td colspan="15" style="text-align: center; padding: 1.5rem; color: var(--color-text-light);">กำลังโหลดข้อมูล...</td>
               </tr>
             </tbody>
           </table>
         </div>
 
-        <div class="modal-footer" style="padding: 1rem 0 0; margin-top: 1rem;">
+        <div class="modal-footer" style="padding: 1.25rem 0 0; margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
           <button type="button" class="btn btn-outline" onclick="closeModal('manageResourcesModal')">
             <span class="material-icons">close</span> ปิดหน้าต่าง
+          </button>
+          <button type="button" class="btn btn-primary" id="btnSaveResourceSheet" onclick="saveCurrentResourceSheet()">
+            <span class="material-icons">save</span> บันทึกข้อมูล
           </button>
         </div>
       </div>
