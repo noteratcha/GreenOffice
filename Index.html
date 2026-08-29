@@ -266,25 +266,17 @@
             color: var(--color-primary-dark);
           }
 
-          .resource-year-filter-bar {
+          .modal-year-filter-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 0.85rem;
-            background: #ffffff;
-            padding: 0.75rem 1.25rem;
-            border-radius: var(--radius-lg);
-            box-shadow: var(--shadow-sm);
-            border: 1px solid #e0e5df;
-            margin-bottom: 1.5rem;
-          }
-
-          .modal-year-filter-bar {
             background: #f7faf6;
             border-radius: var(--radius-md);
             margin-bottom: 1.15rem;
             padding: 0.65rem 1rem;
+            border: 1px solid #e0e5df;
           }
 
           .year-filter-label {
@@ -364,36 +356,9 @@
             .resources-grid {
               grid-template-columns: 1fr;
             }
-            .resource-year-filter-bar {
-              flex-direction: column;
-              align-items: flex-start;
-            }
           }
         </style>
         <div id="resourcesChartContainer" style="display: none; max-width: 1200px; margin: 0 auto; width: 100%;">
-          <!-- Year Range Filter Toolbar -->
-          <div class="resource-year-filter-bar" id="resourceYearFilterBar">
-            <div class="year-filter-label">
-              <span class="material-icons">compare_arrows</span>
-              <span>เลือกช่วงปีที่จะเปรียบเทียบ:</span>
-            </div>
-            <div class="year-filter-controls">
-              <div class="year-select-wrap">
-                <span class="year-legend-dot dot-base"></span>
-                <label for="selectResourceBaseYear">ปีก่อนหน้า:</label>
-                <select id="selectResourceBaseYear" class="form-control year-select" onchange="onResourceYearFilterChange('base')">
-                </select>
-              </div>
-              <span class="year-filter-separator">เทียบกับ</span>
-              <div class="year-select-wrap">
-                <span class="year-legend-dot dot-target"></span>
-                <label for="selectResourceTargetYear">ปีเปรียบเทียบ:</label>
-                <select id="selectResourceTargetYear" class="form-control year-select" onchange="onResourceYearFilterChange('target')">
-                </select>
-              </div>
-            </div>
-          </div>
-
           <div class="resources-grid">
             <div class="chart-card" onclick="openResourceMonthlyDetailModal('electricity')" title="คลิกเพื่อดูสถิติเปรียบเทียบรายเดือน">
               <div class="chart-card-header">
@@ -547,7 +512,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2308</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2312</p>
   </footer>
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->

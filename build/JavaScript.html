@@ -2020,13 +2020,24 @@ function getAllAvailableYears() {
   });
 }
 
-function populateYearSelectors() {
-  const years = getAllAvailableYears();
-  const filterBar = document.getElementById('resourceYearFilterBar');
+function populateModalYearSelectors(metricKey) {
+  const rawItems = (resourceData && resourceData[metricKey]) ? resourceData[metricKey] : [];
+  const years = [...rawItems].map(item => String(item.year).trim()).sort((a, b) => {
+    const numA = parseInt(a, 10);
+    const numB = parseInt(b, 10);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return a.localeCompare(b);
+  });
+  
+  const filterBar = document.querySelector('.modal-year-filter-bar');
   if (!filterBar) return;
   
-  if (years.length === 0) {
+  if (years.length < 2) {
     filterBar.style.display = 'none';
+    if (years.length === 1) {
+      selectedTargetYear = years[0];
+      selectedBaseYear = years[0];
+    }
     return;
   }
   
@@ -2045,87 +2056,38 @@ function populateYearSelectors() {
     return String(y).localeCompare(String(selectedTargetYear)) < 0;
   });
   
-  // If current base year is not strictly less than target year, auto-pick the largest valid base year
   if (!selectedBaseYear || !availableBaseYears.includes(selectedBaseYear)) {
     selectedBaseYear = availableBaseYears.length > 0 ? availableBaseYears[availableBaseYears.length - 1] : years[0];
   }
   
-  // Target year options (all years except the minimum year when multiple years exist)
-  const availableTargetYears = years.length > 1 ? years.slice(1) : years;
+  const availableTargetYears = years.slice(1);
   
-  // Populate Target Year selects
-  const populateTargetSelect = (selectId) => {
-    const el = document.getElementById(selectId);
-    if (!el) return;
-    el.innerHTML = '';
+  const modalTarget = document.getElementById('modalSelectTargetYear');
+  if (modalTarget) {
+    modalTarget.innerHTML = '';
     availableTargetYears.forEach(y => {
       const opt = document.createElement('option');
       opt.value = y;
       opt.textContent = 'ปี ' + y;
       if (y === selectedTargetYear) opt.selected = true;
-      el.appendChild(opt);
+      modalTarget.appendChild(opt);
     });
-    el.value = selectedTargetYear;
-  };
+    modalTarget.value = selectedTargetYear;
+  }
   
-  // Populate Base Year selects (strictly < selectedTargetYear)
-  const populateBaseSelect = (selectId) => {
-    const el = document.getElementById(selectId);
-    if (!el) return;
-    el.innerHTML = '';
+  const modalBase = document.getElementById('modalSelectBaseYear');
+  if (modalBase) {
+    modalBase.innerHTML = '';
     const baseList = availableBaseYears.length > 0 ? availableBaseYears : [years[0]];
     baseList.forEach(y => {
       const opt = document.createElement('option');
       opt.value = y;
       opt.textContent = 'ปี ' + y;
       if (y === selectedBaseYear) opt.selected = true;
-      el.appendChild(opt);
+      modalBase.appendChild(opt);
     });
-    el.value = selectedBaseYear;
-  };
-  
-  populateTargetSelect('selectResourceTargetYear');
-  populateTargetSelect('modalSelectTargetYear');
-  
-  populateBaseSelect('selectResourceBaseYear');
-  populateBaseSelect('modalSelectBaseYear');
-}
-
-function onResourceYearFilterChange(changedField) {
-  const baseEl = document.getElementById('selectResourceBaseYear');
-  const targetEl = document.getElementById('selectResourceTargetYear');
-  
-  const newBase = baseEl ? baseEl.value : selectedBaseYear;
-  const newTarget = targetEl ? targetEl.value : selectedTargetYear;
-  
-  const numBase = parseInt(newBase, 10);
-  const numTarget = parseInt(newTarget, 10);
-  
-  if (changedField === 'target') {
-    selectedTargetYear = newTarget;
-    if (numBase >= numTarget) {
-      // Find largest year < newTarget
-      const years = getAllAvailableYears();
-      const validBases = years.filter(y => parseInt(y, 10) < numTarget);
-      selectedBaseYear = validBases.length > 0 ? validBases[validBases.length - 1] : years[0];
-    } else {
-      selectedBaseYear = newBase;
-    }
-  } else {
-    // Base changed
-    selectedBaseYear = newBase;
-    if (numBase >= numTarget) {
-      // Auto adjust target to smallest year > newBase
-      const years = getAllAvailableYears();
-      const validTargets = years.filter(y => parseInt(y, 10) > numBase);
-      selectedTargetYear = validTargets.length > 0 ? validTargets[0] : years[years.length - 1];
-    } else {
-      selectedTargetYear = newTarget;
-    }
+    modalBase.value = selectedBaseYear;
   }
-  
-  populateYearSelectors();
-  renderResourcesChart();
 }
 
 function onModalYearChange(changedField) {
@@ -2138,10 +2100,17 @@ function onModalYearChange(changedField) {
   const numBase = parseInt(newBase, 10);
   const numTarget = parseInt(newTarget, 10);
   
+  const rawItems = (resourceData && resourceData[currentMonthlyModalMetric]) ? resourceData[currentMonthlyModalMetric] : [];
+  const years = [...rawItems].map(item => String(item.year).trim()).sort((a, b) => {
+    const numA = parseInt(a, 10);
+    const numB = parseInt(b, 10);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return a.localeCompare(b);
+  });
+  
   if (changedField === 'target') {
     selectedTargetYear = newTarget;
     if (numBase >= numTarget) {
-      const years = getAllAvailableYears();
       const validBases = years.filter(y => parseInt(y, 10) < numTarget);
       selectedBaseYear = validBases.length > 0 ? validBases[validBases.length - 1] : years[0];
     } else {
@@ -2150,7 +2119,6 @@ function onModalYearChange(changedField) {
   } else {
     selectedBaseYear = newBase;
     if (numBase >= numTarget) {
-      const years = getAllAvailableYears();
       const validTargets = years.filter(y => parseInt(y, 10) > numBase);
       selectedTargetYear = validTargets.length > 0 ? validTargets[0] : years[years.length - 1];
     } else {
@@ -2158,8 +2126,7 @@ function onModalYearChange(changedField) {
     }
   }
   
-  populateYearSelectors();
-  renderResourcesChart();
+  populateModalYearSelectors(currentMonthlyModalMetric);
   renderMonthlyModalContent(currentMonthlyModalMetric);
 }
 
@@ -2226,14 +2193,12 @@ function renderResourcesChart() {
   if (container) container.style.display = 'block';
   if (emptyState) emptyState.classList.add('hidden');
   
-  populateYearSelectors();
-  
   // Vibrant, harmonious colors:
-  // Base Year (Older/Selected Base): Sky-blue (#5dade2)
-  // Target Year (Newer/Selected Target): Leaf-green (#52be80)
+  // Earlier Year (ปีก่อนหน้า): Sky-blue (#5dade2)
+  // Latest Year (ปีล่าสุด): Leaf-green (#52be80)
   const colors = [
-    { bg: '#5dade2', border: '#3498db' }, // Base Year (Blue)
-    { bg: '#52be80', border: '#27ae60' }  // Target Year (Green)
+    { bg: '#5dade2', border: '#3498db' }, // Earlier Year (Blue)
+    { bg: '#52be80', border: '#27ae60' }  // Latest Year (Green)
   ];
   
   const chartsConfig = [
@@ -2259,23 +2224,23 @@ function renderResourcesChart() {
     }
     
     const rawItems = resourceData[config.key] || [];
+    // Sort chronological ascending (e.g. 2567, 2568, 2569)
+    const sortedAsc = [...rawItems].sort((a, b) => {
+      const numA = parseInt(a.year, 10);
+      const numB = parseInt(b.year, 10);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return String(a.year || '').localeCompare(String(b.year || ''));
+    });
     
-    // Find items matching selectedBaseYear and selectedTargetYear
-    const itemBase = rawItems.find(r => String(r.year) === String(selectedBaseYear)) || { year: selectedBaseYear, months: Array(12).fill(0), total: 0 };
-    const itemTarget = rawItems.find(r => String(r.year) === String(selectedTargetYear)) || { year: selectedTargetYear, months: Array(12).fill(0), total: 0 };
-    
-    const dataToShow = [];
-    if (selectedBaseYear === selectedTargetYear) {
-      dataToShow.push(itemTarget);
-    } else {
-      dataToShow.push(itemBase);
-      dataToShow.push(itemTarget);
-    }
+    // Automatically display ONLY the 2 latest years on the overview cards!
+    const dataToShow = sortedAsc.slice(-2);
+    const itemBase = dataToShow.length === 2 ? dataToShow[0] : (dataToShow[0] || { year: '-', months: Array(12).fill(0), total: 0 });
+    const itemTarget = dataToShow.length === 2 ? dataToShow[1] : (dataToShow[0] || { year: '-', months: Array(12).fill(0), total: 0 });
     
     // Calculate same-period percentage comparison
     const badgeEl = document.getElementById(`percent_${config.key}`);
     if (badgeEl) {
-      if (selectedBaseYear !== selectedTargetYear) {
+      if (dataToShow.length === 2) {
         const comp = calculateSamePeriodComparison(itemBase, itemTarget, config.key);
         if (comp) {
           const p = comp.percentDiff;
@@ -2297,7 +2262,7 @@ function renderResourcesChart() {
             badgeEl.className = 'chart-percent-badge warn';
             badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isReduction ? 'trending_down' : 'trending_up'}</span> ${isReduction ? 'ลดลง' : 'เพิ่มขึ้น'} ${pFormatted}`;
           }
-          badgeEl.title = `เทียบช่วงเวลาเดียวกัน (${selectedBaseYear} vs ${selectedTargetYear})`;
+          badgeEl.title = `เทียบช่วงเวลาเดียวกัน (${itemBase.year} vs ${itemTarget.year})`;
           badgeEl.style.display = 'inline-flex';
         }
       } else {
@@ -2392,7 +2357,9 @@ function renderResourcesChart() {
 
 function openResourceMonthlyDetailModal(metricKey) {
   currentMonthlyModalMetric = metricKey;
-  populateYearSelectors();
+  selectedBaseYear = null;
+  selectedTargetYear = null;
+  populateModalYearSelectors(metricKey);
   renderMonthlyModalContent(metricKey);
   openModal('resourceMonthlyDetailModal');
 }

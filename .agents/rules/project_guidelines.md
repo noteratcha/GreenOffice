@@ -186,12 +186,14 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Floating top datalabels with formatted comma separators (`Number(value).toLocaleString()`).
   - Interactive Admin Modal with metric tabs, live auto-calculated row totals, and inline year sorting (ปีมากไปน้อย).
 
-## 14. Dynamic Year Range Selection, Same-Period Percentage Comparison & 30% Overlapping Monthly Chart
-- **Dynamic Year Range Selection Toolbar (`#resourceYearFilterBar`)**:
-  - Available both on the main page above the 6 chart cards and inside the `#resourceMonthlyDetailModal`.
+## 14. 2 Latest Years Overview, Same-Period Percentage Comparison & 30% Overlapping Monthly Breakdown
+- **Main Overview Page (2 Latest Years Automatic Display)**:
+  - Main page cards automatically display ONLY the 2 most recent years in chronological order (Earlier year in Blue `#5dade2` on left, Latest year in Green `#52be80` on right). No year filter toolbar on the main page to keep the overview clean and uncluttered.
+- **Modal Dynamic Year Range Selection Toolbar (`.modal-year-filter-bar`)**:
+  - Available inside the `#resourceMonthlyDetailModal` popup.
   - Dropdown 1: **ปีก่อนหน้า / Base Year** (Blue `#5dade2` dot) - Strictly restricted to years `< Target Year` (cannot select $\ge \text{Target Year}$).
   - Dropdown 2: **ปีเปรียบเทียบ / Target Year** (Green `#52be80` dot).
-  - Defaults automatically to the 2 latest available years, and dynamically updates all 6 overview charts, badges, and modal charts whenever changed. Base Year options are dynamically filtered to ensure $\text{Base Year} < \text{Target Year}$ at all times.
+  - Defaults automatically to the 2 latest available years when opening modal, and allows dynamic exploration inside the popup. Base Year options are dynamically filtered to ensure $\text{Base Year} < \text{Target Year}$ at all times.
 - **Same-Period Percentage Calculation**:
   - Compares the sum of recorded months in the target year ($Sum_{curr}$) with the exact same months in the base year ($Sum_{prev}$).
   - Percentage Change formula: $\% = \frac{Sum_{curr} - Sum_{prev}}{Sum_{prev}} \times 100$.
