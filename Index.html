@@ -49,7 +49,7 @@
         <li><a class="nav-link" href="#calendar-section">ปฏิทินกิจกรรม</a></li>
         <li><a class="nav-link" href="#resources-section">สถิติเปรียบเทียบ</a></li>
         <li><a class="nav-link" href="#categories">7 หมวด Green Office</a></li>
-        <li><a class="nav-link" href="#feedback-section">ข้อเสนอแนะ</a></li>
+        <li><a class="nav-link" href="#feedback-section" onclick="openModal('feedbackModal')">ข้อเสนอแนะ</a></li>
       </ul>
     </div>
 
@@ -246,221 +246,26 @@
       </div>
     </section>
 
-    <!-- Feedback / Suggestions Section -->
+    <!-- Feedback / Suggestions Section (CTA Card) -->
     <section id="feedback-section" class="section feedback-section">
-      <div class="section-header">
-        <h2><span class="material-icons">rate_review</span> ช่องทางรับข้อเสนอแนะ / ข้อคิดเห็นด้านสิ่งแวดล้อม</h2>
-        <p>เพื่อนำข้อเสนอแนะมาปรับปรุงแก้ไขให้สภาพแวดล้อมภายในสำนักงานไปรษณีย์เขต 10 ดีมากยิ่งขึ้น (Green Office)</p>
-        <div class="section-divider"></div>
-      </div>
-
       <div class="feedback-container">
-        <div class="feedback-card">
-          <div class="feedback-card-header">
-            <div class="feedback-header-info">
-              <span class="material-icons feedback-header-icon">eco</span>
-              <div>
-                <h3>แบบฟอร์มรับข้อเสนอแนะด้านสิ่งแวดล้อม</h3>
-                <p>ร่วมเป็นส่วนหนึ่งในการพัฒนาสำนักงานสีเขียวอย่างยั่งยืน</p>
-              </div>
-            </div>
-            <a href="https://forms.gle/hKKq4z6tZycfqkot7" target="_blank" rel="noopener noreferrer" class="btn-google-form" title="เปิดใน Google Forms">
+        <div class="feedback-cta-card">
+          <div class="feedback-cta-icon-wrapper">
+            <span class="material-icons feedback-cta-icon">rate_review</span>
+          </div>
+          <div class="feedback-cta-content">
+            <h2>ช่องทางรับข้อเสนอแนะ / ข้อคิดเห็นด้านสิ่งแวดล้อม</h2>
+            <p>ร่วมเป็นส่วนหนึ่งในการพัฒนาสำนักงานสีเขียว (Green Office) สำนักงานไปรษณีย์เขต 10 เพื่อสภาพแวดล้อมที่ดียิ่งขึ้น</p>
+          </div>
+          <div class="feedback-cta-actions">
+            <button type="button" class="btn btn-primary btn-lg" onclick="openModal('feedbackModal')">
+              <span class="material-icons">edit_note</span> คลิกเพื่อส่งข้อเสนอแนะ
+            </button>
+            <a href="https://forms.gle/hKKq4z6tZycfqkot7" target="_blank" rel="noopener noreferrer" class="btn-google-form-cta" title="เปิดใน Google Forms">
               <span>เปิดใน Google Forms</span>
               <span class="material-icons" style="font-size: 16px;">open_in_new</span>
             </a>
           </div>
-
-          <!-- Success Alert Banner (Initially Hidden) -->
-          <div id="feedbackSuccessBanner" class="feedback-success-banner hidden">
-            <div class="success-banner-content">
-              <span class="material-icons success-icon">check_circle</span>
-              <div>
-                <h4>ส่งข้อเสนอแนะสำเร็จ!</h4>
-                <p>ข้อมูลของคุณถูกส่งไปยังระบบ Google Forms เรียบร้อยแล้ว ขอบคุณสำหรับการมีส่วนร่วมพัฒนาสำนักงานสีเขียว</p>
-              </div>
-            </div>
-            <button type="button" class="btn btn-sm btn-outline" onclick="resetFeedbackFormView()">ส่งข้อเสนอแนะอีกครั้ง</button>
-          </div>
-
-          <!-- Hidden Iframe to capture Google Form POST response without leaving the page -->
-          <iframe name="feedbackHiddenIframe" id="feedbackHiddenIframe" style="display:none; width:0; height:0; border:none;" onload="if(window.isSubmittingFeedback) { handleFeedbackSubmissionSuccess(); }"></iframe>
-
-          <form id="feedbackForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse" method="POST" target="feedbackHiddenIframe" onsubmit="submitFeedback(event)">
-            <!-- วันที่เสนอแนะ และ ประเภทผู้แจ้ง -->
-            <div class="form-row-2">
-              <div class="form-group">
-                <label class="form-label" for="feedbackDate">
-                  <span class="material-icons" style="font-size: 18px; vertical-align: middle;">calendar_today</span> วันที่เสนอแนะ <span class="text-danger">*</span>
-                </label>
-                <input type="date" id="feedbackDate" class="form-input" required>
-              </div>
-
-              <!-- ประเภทผู้แจ้ง -->
-              <div class="form-group">
-                <label class="form-label">
-                  <span class="material-icons" style="font-size: 18px; vertical-align: middle;">badge</span> ประเภทผู้แจ้ง <span class="text-danger">*</span>
-                </label>
-                <div class="user-type-toggle">
-                  <button type="button" class="user-type-btn active" id="btnUserInternal" onclick="switchFeedbackUserType('internal')">
-                    <span class="material-icons">domain</span> บุคคลภายใน ปข.10
-                  </button>
-                  <button type="button" class="user-type-btn" id="btnUserExternal" onclick="switchFeedbackUserType('external')">
-                    <span class="material-icons">public</span> บุคคลภายนอก
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <!-- ชื่อผู้แจ้งเสนอแนะ (สลับตามประเภท) -->
-            <div class="form-group" id="groupInternalName">
-              <label class="form-label" for="feedbackInternalName">
-                ชื่อผู้แจ้งเสนอแนะ <small class="text-muted">(บุคคลภายใน ปข.10/ปณ.วนารมย์/DB.1 ปจ.อุบลราชธานี)</small> <span class="text-danger">*</span>
-              </label>
-              <input type="text" id="feedbackInternalName" class="form-input" placeholder="ระบุชื่อ-นามสกุล หรือหน่วยงาน/สังกัด" required>
-            </div>
-
-            <div class="form-group hidden" id="groupExternalName">
-              <label class="form-label" for="feedbackExternalName">
-                ชื่อผู้แจ้งเสนอแนะ <small class="text-muted">(บุคคลภายนอก)</small> <span class="text-danger">*</span>
-              </label>
-              <input type="text" id="feedbackExternalName" class="form-input" placeholder="ระบุชื่อ-นามสกุล หรือช่องทางติดต่อ">
-            </div>
-
-            <!-- เรื่อง -->
-            <div class="form-group">
-              <label class="form-label">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">report_problem</span> เรื่องที่ต้องการเสนอแนะ <span class="text-danger">*</span>
-              </label>
-              <div class="topic-chips-grid">
-                <label class="topic-chip">
-                  <input type="radio" name="feedbackTopic" value="ฝุ่นละออง" checked onchange="toggleFeedbackOtherTopic(false)">
-                  <div class="topic-chip-card">
-                    <span class="topic-icon">🌫️</span>
-                    <span class="topic-title">ฝุ่นละออง</span>
-                  </div>
-                </label>
-
-                <label class="topic-chip">
-                  <input type="radio" name="feedbackTopic" value="เสียงรบกวน" onchange="toggleFeedbackOtherTopic(false)">
-                  <div class="topic-chip-card">
-                    <span class="topic-icon">🔊</span>
-                    <span class="topic-title">เสียงรบกวน</span>
-                  </div>
-                </label>
-
-                <label class="topic-chip">
-                  <input type="radio" name="feedbackTopic" value="ขยะ" onchange="toggleFeedbackOtherTopic(false)">
-                  <div class="topic-chip-card">
-                    <span class="topic-icon">🗑️</span>
-                    <span class="topic-title">ขยะ</span>
-                  </div>
-                </label>
-
-                <label class="topic-chip">
-                  <input type="radio" name="feedbackTopic" value="น้ำเสีย" onchange="toggleFeedbackOtherTopic(false)">
-                  <div class="topic-chip-card">
-                    <span class="topic-icon">💧</span>
-                    <span class="topic-title">น้ำเสีย</span>
-                  </div>
-                </label>
-
-                <label class="topic-chip">
-                  <input type="radio" name="feedbackTopic" value="กลิ่นรบกวน" onchange="toggleFeedbackOtherTopic(false)">
-                  <div class="topic-chip-card">
-                    <span class="topic-icon">👃</span>
-                    <span class="topic-title">กลิ่นรบกวน</span>
-                  </div>
-                </label>
-
-                <label class="topic-chip">
-                  <input type="radio" name="feedbackTopic" value="อื่นๆ" onchange="toggleFeedbackOtherTopic(true)">
-                  <div class="topic-chip-card">
-                    <span class="topic-icon">✏️</span>
-                    <span class="topic-title">อื่นๆ</span>
-                  </div>
-                </label>
-              </div>
-
-              <!-- Other Topic input field (hidden by default) -->
-              <div id="feedbackOtherTopicWrapper" class="form-group hidden" style="margin-top: 0.75rem;">
-                <input type="text" id="feedbackOtherTopicInput" class="form-input" placeholder="โปรดระบุเรื่องที่ต้องการเสนอแนะ...">
-              </div>
-            </div>
-
-            <!-- ข้อมูลรายละเอียดที่ต้องการให้มีการแก้ไข -->
-            <div class="form-group">
-              <label class="form-label" for="feedbackDetail">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">description</span> ข้อมูลรายละเอียดที่ต้องการให้มีการแก้ไข <span class="text-danger">*</span>
-              </label>
-              <textarea id="feedbackDetail" class="form-textarea" rows="4" required placeholder="อธิบายรายละเอียด ข้อเสนอแนะ สถานที่ หรือสภาพแวดล้อมที่ต้องการให้ปรับปรุง..."></textarea>
-            </div>
-
-            <!-- ช่องทางการรับรู้การประชาสัมพันธ์ -->
-            <div class="form-group">
-              <label class="form-label">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">campaign</span> ท่านรับรู้การประชาสัมพันธ์/การรณรงค์สื่อสารการดำเนินกิจกรรม Green Office ผ่านช่องทางใดบ้าง <small class="text-muted">(ตอบได้มากกว่า 1 ข้อ)</small>
-              </label>
-              <div class="channels-checkbox-grid">
-                <label class="channel-checkbox-card">
-                  <input type="checkbox" name="feedbackChannel" value="กลุ่ม Line Green Office ปข.10">
-                  <div class="channel-card-body">
-                    <span class="material-icons channel-icon">chat</span>
-                    <span>กลุ่ม Line Green Office ปข.10</span>
-                  </div>
-                </label>
-
-                <label class="channel-checkbox-card">
-                  <input type="checkbox" name="feedbackChannel" value="การประชาสัมพันธ์เสียงตามสาย">
-                  <div class="channel-card-body">
-                    <span class="material-icons channel-icon">volume_up</span>
-                    <span>การประชาสัมพันธ์เสียงตามสาย</span>
-                  </div>
-                </label>
-
-                <label class="channel-checkbox-card">
-                  <input type="checkbox" name="feedbackChannel" value="Facebook fanpage สำนักงานไปรษณีย์เขต 10">
-                  <div class="channel-card-body">
-                    <span class="material-icons channel-icon">public</span>
-                    <span>Facebook fanpage สำนักงานไปรษณีย์เขต 10</span>
-                  </div>
-                </label>
-
-                <label class="channel-checkbox-card">
-                  <input type="checkbox" name="feedbackChannel" value="บอร์ดประชาสัมพันธ์">
-                  <div class="channel-card-body">
-                    <span class="material-icons channel-icon">dashboard</span>
-                    <span>บอร์ดประชาสัมพันธ์</span>
-                  </div>
-                </label>
-
-                <label class="channel-checkbox-card">
-                  <input type="checkbox" name="feedbackChannel" value="ป้ายประชาสัมพันธ์ตามจุดต่างๆ">
-                  <div class="channel-card-body">
-                    <span class="material-icons channel-icon">signpost</span>
-                    <span>ป้ายประชาสัมพันธ์ตามจุดต่างๆ</span>
-                  </div>
-                </label>
-
-                <label class="channel-checkbox-card">
-                  <input type="checkbox" name="feedbackChannel" value="เว็บไซต์อินทราเน็ตสำนักงานไปรษณีย์เขต 10">
-                  <div class="channel-card-body">
-                    <span class="material-icons channel-icon">language</span>
-                    <span>เว็บไซต์อินทราเน็ตสำนักงานไปรษณีย์เขต 10</span>
-                  </div>
-                </label>
-              </div>
-            </div>
-
-            <!-- Footer Actions -->
-            <div class="feedback-form-actions">
-              <button type="button" class="btn btn-outline" onclick="resetFeedbackForm()">
-                <span class="material-icons">refresh</span> ล้างข้อมูล
-              </button>
-              <button type="submit" class="btn btn-primary" id="btnSubmitFeedback">
-                <span class="material-icons">send</span> ส่งข้อเสนอแนะ
-              </button>
-            </div>
-          </form>
         </div>
       </div>
     </section>
@@ -1009,6 +814,225 @@
           <div class="modal-footer" style="padding: 1.5rem 0 0;">
             <button type="button" class="btn btn-outline" onclick="closeModal('editNewsModal')">ยกเลิก</button>
             <button type="submit" class="btn btn-primary" id="btnEditNewsSubmit">บันทึกการแก้ไข</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Feedback Popup Modal -->
+  <div id="feedbackModal" class="modal-backdrop">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <h3><span class="material-icons">rate_review</span> ช่องทางรับข้อเสนอแนะ / ข้อคิดเห็นด้านสิ่งแวดล้อม</h3>
+        <button class="modal-close" onclick="closeModal('feedbackModal')">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="feedback-modal-intro">
+          <p>เพื่อนำข้อเสนอแนะมาปรับปรุงแก้ไขให้สภาพแวดล้อมภายในสำนักงานไปรษณีย์เขต 10 ดีมากยิ่งขึ้น (Green Office)</p>
+          <a href="https://forms.gle/hKKq4z6tZycfqkot7" target="_blank" rel="noopener noreferrer" class="btn-google-form" title="เปิดใน Google Forms">
+            <span>เปิดใน Google Forms</span>
+            <span class="material-icons" style="font-size: 16px;">open_in_new</span>
+          </a>
+        </div>
+
+        <!-- Success Alert Banner (Initially Hidden) -->
+        <div id="feedbackSuccessBanner" class="feedback-success-banner hidden">
+          <div class="success-banner-content">
+            <span class="material-icons success-icon">check_circle</span>
+            <div>
+              <h4>ส่งข้อเสนอแนะสำเร็จ!</h4>
+              <p>ข้อมูลของคุณถูกส่งไปยังระบบ Google Forms เรียบร้อยแล้ว ขอบคุณสำหรับการมีส่วนร่วมพัฒนาสำนักงานสีเขียว</p>
+            </div>
+          </div>
+          <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
+            <button type="button" class="btn btn-sm btn-outline" onclick="resetFeedbackFormView()">ส่งข้อเสนอแนะอีกครั้ง</button>
+            <button type="button" class="btn btn-sm btn-primary" onclick="closeModal('feedbackModal')">ปิดหน้าต่าง</button>
+          </div>
+        </div>
+
+        <!-- Hidden Iframe to capture Google Form POST response without leaving the page -->
+        <iframe name="feedbackHiddenIframe" id="feedbackHiddenIframe" style="display:none; width:0; height:0; border:none;" onload="if(window.isSubmittingFeedback) { handleFeedbackSubmissionSuccess(); }"></iframe>
+
+        <form id="feedbackForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse" method="POST" target="feedbackHiddenIframe" onsubmit="submitFeedback(event)">
+          <!-- วันที่เสนอแนะ และ ประเภทผู้แจ้ง -->
+          <div class="form-row-2">
+            <div class="form-group">
+              <label class="form-label" for="feedbackDate">
+                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">calendar_today</span> วันที่เสนอแนะ <span class="text-danger">*</span>
+              </label>
+              <input type="date" id="feedbackDate" class="form-input" required>
+            </div>
+
+            <!-- ประเภทผู้แจ้ง -->
+            <div class="form-group">
+              <label class="form-label">
+                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">badge</span> ประเภทผู้แจ้ง <span class="text-danger">*</span>
+              </label>
+              <div class="user-type-toggle">
+                <button type="button" class="user-type-btn active" id="btnUserInternal" onclick="switchFeedbackUserType('internal')">
+                  <span class="material-icons">domain</span> บุคคลภายใน ปข.10
+                </button>
+                <button type="button" class="user-type-btn" id="btnUserExternal" onclick="switchFeedbackUserType('external')">
+                  <span class="material-icons">public</span> บุคคลภายนอก
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ชื่อผู้แจ้งเสนอแนะ (สลับตามประเภท) -->
+          <div class="form-group" id="groupInternalName">
+            <label class="form-label" for="feedbackInternalName">
+              ชื่อผู้แจ้งเสนอแนะ <small class="text-muted">(บุคคลภายใน ปข.10/ปณ.วนารมย์/DB.1 ปจ.อุบลราชธานี)</small> <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="feedbackInternalName" class="form-input" placeholder="ระบุชื่อ-นามสกุล หรือหน่วยงาน/สังกัด" required>
+          </div>
+
+          <div class="form-group hidden" id="groupExternalName">
+            <label class="form-label" for="feedbackExternalName">
+              ชื่อผู้แจ้งเสนอแนะ <small class="text-muted">(บุคคลภายนอก)</small> <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="feedbackExternalName" class="form-input" placeholder="ระบุชื่อ-นามสกุล หรือช่องทางติดต่อ">
+          </div>
+
+          <!-- เรื่อง -->
+          <div class="form-group">
+            <label class="form-label">
+              <span class="material-icons" style="font-size: 18px; vertical-align: middle;">report_problem</span> เรื่องที่ต้องการเสนอแนะ <span class="text-danger">*</span>
+            </label>
+            <div class="topic-chips-grid">
+              <label class="topic-chip">
+                <input type="radio" name="feedbackTopic" value="ฝุ่นละออง" checked onchange="toggleFeedbackOtherTopic(false)">
+                <div class="topic-chip-card">
+                  <span class="topic-icon">🌫️</span>
+                  <span class="topic-title">ฝุ่นละออง</span>
+                </div>
+              </label>
+
+              <label class="topic-chip">
+                <input type="radio" name="feedbackTopic" value="เสียงรบกวน" onchange="toggleFeedbackOtherTopic(false)">
+                <div class="topic-chip-card">
+                  <span class="topic-icon">🔊</span>
+                  <span class="topic-title">เสียงรบกวน</span>
+                </div>
+              </label>
+
+              <label class="topic-chip">
+                <input type="radio" name="feedbackTopic" value="ขยะ" onchange="toggleFeedbackOtherTopic(false)">
+                <div class="topic-chip-card">
+                  <span class="topic-icon">🗑️</span>
+                  <span class="topic-title">ขยะ</span>
+                </div>
+              </label>
+
+              <label class="topic-chip">
+                <input type="radio" name="feedbackTopic" value="น้ำเสีย" onchange="toggleFeedbackOtherTopic(false)">
+                <div class="topic-chip-card">
+                  <span class="topic-icon">💧</span>
+                  <span class="topic-title">น้ำเสีย</span>
+                </div>
+              </label>
+
+              <label class="topic-chip">
+                <input type="radio" name="feedbackTopic" value="กลิ่นรบกวน" onchange="toggleFeedbackOtherTopic(false)">
+                <div class="topic-chip-card">
+                  <span class="topic-icon">👃</span>
+                  <span class="topic-title">กลิ่นรบกวน</span>
+                </div>
+              </label>
+
+              <label class="topic-chip">
+                <input type="radio" name="feedbackTopic" value="อื่นๆ" onchange="toggleFeedbackOtherTopic(true)">
+                <div class="topic-chip-card">
+                  <span class="topic-icon">✏️</span>
+                  <span class="topic-title">อื่นๆ</span>
+                </div>
+              </label>
+            </div>
+
+            <!-- Other Topic input field (hidden by default) -->
+            <div id="feedbackOtherTopicWrapper" class="form-group hidden" style="margin-top: 0.75rem;">
+              <input type="text" id="feedbackOtherTopicInput" class="form-input" placeholder="โปรดระบุเรื่องที่ต้องการเสนอแนะ...">
+            </div>
+          </div>
+
+          <!-- ข้อมูลรายละเอียดที่ต้องการให้มีการแก้ไข -->
+          <div class="form-group">
+            <label class="form-label" for="feedbackDetail">
+              <span class="material-icons" style="font-size: 18px; vertical-align: middle;">description</span> ข้อมูลรายละเอียดที่ต้องการให้มีการแก้ไข <span class="text-danger">*</span>
+            </label>
+            <textarea id="feedbackDetail" class="form-textarea" rows="4" required placeholder="อธิบายรายละเอียด ข้อเสนอแนะ สถานที่ หรือสภาพแวดล้อมที่ต้องการให้ปรับปรุง..."></textarea>
+          </div>
+
+          <!-- ช่องทางการรับรู้การประชาสัมพันธ์ -->
+          <div class="form-group">
+            <label class="form-label">
+              <span class="material-icons" style="font-size: 18px; vertical-align: middle;">campaign</span> ท่านรับรู้การประชาสัมพันธ์/การรณรงค์สื่อสารการดำเนินกิจกรรม Green Office ผ่านช่องทางใดบ้าง <small class="text-muted">(ตอบได้มากกว่า 1 ข้อ)</small>
+            </label>
+            <div class="channels-checkbox-grid">
+              <label class="channel-checkbox-card">
+                <input type="checkbox" name="feedbackChannel" value="กลุ่ม Line Green Office ปข.10">
+                <div class="channel-card-body">
+                  <span class="material-icons channel-icon">chat</span>
+                  <span>กลุ่ม Line Green Office ปข.10</span>
+                </div>
+              </label>
+
+              <label class="channel-checkbox-card">
+                <input type="checkbox" name="feedbackChannel" value="การประชาสัมพันธ์เสียงตามสาย">
+                <div class="channel-card-body">
+                  <span class="material-icons channel-icon">volume_up</span>
+                  <span>การประชาสัมพันธ์เสียงตามสาย</span>
+                </div>
+              </label>
+
+              <label class="channel-checkbox-card">
+                <input type="checkbox" name="feedbackChannel" value="Facebook fanpage สำนักงานไปรษณีย์เขต 10">
+                <div class="channel-card-body">
+                  <span class="material-icons channel-icon">public</span>
+                  <span>Facebook fanpage สำนักงานไปรษณีย์เขต 10</span>
+                </div>
+              </label>
+
+              <label class="channel-checkbox-card">
+                <input type="checkbox" name="feedbackChannel" value="บอร์ดประชาสัมพันธ์">
+                <div class="channel-card-body">
+                  <span class="material-icons channel-icon">dashboard</span>
+                  <span>บอร์ดประชาสัมพันธ์</span>
+                </div>
+              </label>
+
+              <label class="channel-checkbox-card">
+                <input type="checkbox" name="feedbackChannel" value="ป้ายประชาสัมพันธ์ตามจุดต่างๆ">
+                <div class="channel-card-body">
+                  <span class="material-icons channel-icon">signpost</span>
+                  <span>ป้ายประชาสัมพันธ์ตามจุดต่างๆ</span>
+                </div>
+              </label>
+
+              <label class="channel-checkbox-card">
+                <input type="checkbox" name="feedbackChannel" value="เว็บไซต์อินทราเน็ตสำนักงานไปรษณีย์เขต 10">
+                <div class="channel-card-body">
+                  <span class="material-icons channel-icon">language</span>
+                  <span>เว็บไซต์อินทราเน็ตสำนักงานไปรษณีย์เขต 10</span>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <!-- Footer Actions -->
+          <div class="modal-footer" style="margin-top: 1.5rem; justify-content: flex-end; gap: 1rem;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('feedbackModal')">
+              ยกเลิก
+            </button>
+            <button type="button" class="btn btn-outline" onclick="resetFeedbackForm()">
+              <span class="material-icons">refresh</span> ล้างข้อมูล
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnSubmitFeedback">
+              <span class="material-icons">send</span> ส่งข้อเสนอแนะ
+            </button>
           </div>
         </form>
       </div>

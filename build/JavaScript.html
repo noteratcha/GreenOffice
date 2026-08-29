@@ -1850,9 +1850,6 @@ function handleFeedbackSubmissionSuccess() {
   showToast('ส่งข้อเสนอแนะเรียบร้อยแล้ว ขอบคุณสำหรับการมีส่วนร่วมครับ', 'success');
   document.getElementById('feedbackForm').classList.add('hidden');
   document.getElementById('feedbackSuccessBanner').classList.remove('hidden');
-  
-  const section = document.getElementById('feedback-section');
-  if (section) section.scrollIntoView({ behavior: 'smooth' });
 }
 
 function resetFeedbackForm() {
