@@ -2279,27 +2279,150 @@ function renderResourcesChart() {
       }
     }
     
-    const datasets = dataToShow.map((item, index) => {
-      const color = colors[index % colors.length];
-      return {
-        label: 'ปี ' + item.year,
-        data: [item.total],
-        backgroundColor: color.bg,
-        borderColor: color.border,
-        borderWidth: 1,
-        borderRadius: 4,
-        barPercentage: 0.75,
-        categoryPercentage: 0.85,
-        datalabels: {
-          color: '#1a2622',
-          anchor: 'end',
-          align: 'top',
-          offset: 4,
-          font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
-          formatter: (value) => Number(value).toLocaleString()
-        }
-      };
-    });
+    let datasets = [];
+    let rangeStr = '';
+    let hasUncalculated = false;
+
+    if (dataToShow.length === 2) {
+      const comp = calculateSamePeriodComparison(itemBase, itemTarget, config.key);
+      const sumPrevCalc = comp ? comp.sumPrev : (parseFloat(itemBase.total) || 0);
+      const uncalculatedPrev = Math.max(0, (parseFloat(itemBase.total) || 0) - sumPrevCalc);
+      hasUncalculated = uncalculatedPrev > 0;
+      
+      if (comp && comp.recordedMonthsIndices && comp.recordedMonthsIndices.length > 0) {
+        const firstM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[0]];
+        const lastM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[comp.recordedMonthsIndices.length - 1]];
+        rangeStr = (firstM === lastM) ? firstM : `${firstM} - ${lastM}`;
+      }
+
+      if (hasUncalculated) {
+        // Year Base - ส่วนล่าง (ค่าที่เอาไปคำนวณเปรียบเทียบ - สีฟ้า)
+        datasets.push({
+          label: 'ปี ' + itemBase.year,
+          data: [sumPrevCalc],
+          backgroundColor: 'rgba(93, 173, 226, 0.9)',
+          borderColor: 'rgba(41, 128, 185, 1)',
+          borderWidth: 1,
+          borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 },
+          barPercentage: 0.75,
+          categoryPercentage: 0.85,
+          stack: 'baseStack',
+          isCalculatedSegment: true,
+          datalabels: {
+            color: '#ffffff',
+            anchor: 'center',
+            align: 'center',
+            font: { weight: 'bold', size: 10.5, family: "'Kanit', sans-serif" },
+            formatter: (val) => val > 0 ? Number(val).toLocaleString() : ''
+          }
+        });
+
+        // Year Base - ส่วนบนที่ซ้อนต่อกัน (ค่าที่ไม่ได้เอาไปคำนวณ - สีเหลือง)
+        datasets.push({
+          label: 'ปี ' + itemBase.year + ' (ไม่ได้นำมาคำนวณ)',
+          data: [uncalculatedPrev],
+          backgroundColor: 'rgba(244, 208, 63, 0.92)',
+          borderColor: 'rgba(212, 172, 13, 1)',
+          borderWidth: 1,
+          borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 },
+          barPercentage: 0.75,
+          categoryPercentage: 0.85,
+          stack: 'baseStack',
+          isUncalculatedSegment: true,
+          datalabels: {
+            color: '#1a2622',
+            anchor: 'end',
+            align: 'top',
+            offset: 4,
+            font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
+            formatter: () => Number(itemBase.total).toLocaleString()
+          }
+        });
+
+        // Year Target (ปีเปรียบเทียบล่าสุด - สีเขียว)
+        datasets.push({
+          label: 'ปี ' + itemTarget.year,
+          data: [itemTarget.total],
+          backgroundColor: 'rgba(82, 190, 128, 0.95)',
+          borderColor: 'rgba(39, 174, 96, 1)',
+          borderWidth: 1,
+          borderRadius: 4,
+          barPercentage: 0.75,
+          categoryPercentage: 0.85,
+          stack: 'targetStack',
+          datalabels: {
+            color: '#1a2622',
+            anchor: 'end',
+            align: 'top',
+            offset: 4,
+            font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
+            formatter: (value) => Number(value).toLocaleString()
+          }
+        });
+      } else {
+        // Standard unstacked datasets if all 12 months are recorded
+        datasets = [
+          {
+            label: 'ปี ' + itemBase.year,
+            data: [itemBase.total],
+            backgroundColor: 'rgba(93, 173, 226, 0.9)',
+            borderColor: 'rgba(41, 128, 185, 1)',
+            borderWidth: 1,
+            borderRadius: 4,
+            barPercentage: 0.75,
+            categoryPercentage: 0.85,
+            datalabels: {
+              color: '#1a2622',
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
+              formatter: (value) => Number(value).toLocaleString()
+            }
+          },
+          {
+            label: 'ปี ' + itemTarget.year,
+            data: [itemTarget.total],
+            backgroundColor: 'rgba(82, 190, 128, 0.95)',
+            borderColor: 'rgba(39, 174, 96, 1)',
+            borderWidth: 1,
+            borderRadius: 4,
+            barPercentage: 0.75,
+            categoryPercentage: 0.85,
+            datalabels: {
+              color: '#1a2622',
+              anchor: 'end',
+              align: 'top',
+              offset: 4,
+              font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
+              formatter: (value) => Number(value).toLocaleString()
+            }
+          }
+        ];
+      }
+    } else {
+      datasets = dataToShow.map((item, index) => {
+        const color = colors[index % colors.length];
+        return {
+          label: 'ปี ' + item.year,
+          data: [item.total],
+          backgroundColor: color.bg,
+          borderColor: color.border,
+          borderWidth: 1,
+          borderRadius: 4,
+          barPercentage: 0.75,
+          categoryPercentage: 0.85,
+          datalabels: {
+            color: '#1a2622',
+            anchor: 'end',
+            align: 'top',
+            offset: 4,
+            font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
+            formatter: (value) => Number(value).toLocaleString()
+          }
+        };
+      });
+    }
     
     // Calculate max value to set Y-axis max +30%
     const maxVal = Math.max(parseFloat(itemBase.total) || 0, parseFloat(itemTarget.total) || 0);
@@ -2325,18 +2448,36 @@ function renderResourcesChart() {
               boxHeight: 12,
               padding: 14,
               font: { size: 11, family: "'Kanit', sans-serif" },
-              usePointStyle: false
+              usePointStyle: false,
+              filter: function(legendItem, chartData) {
+                // Keep the bottom legend clean: show only ปี 2568 and ปี 2569
+                return !chartData.datasets[legendItem.datasetIndex]?.isUncalculatedSegment;
+              }
             }
           },
           tooltip: {
-            backgroundColor: 'rgba(26, 38, 34, 0.9)',
+            backgroundColor: 'rgba(26, 38, 34, 0.92)',
             titleFont: { size: 12, family: "'Kanit', sans-serif" },
             bodyFont: { size: 12, family: "'Kanit', sans-serif" },
             padding: 10,
             cornerRadius: 8,
             callbacks: {
               title: () => config.label,
-              label: (context) => ` ${context.dataset.label}: ${Number(context.raw).toLocaleString()}`
+              label: function(context) {
+                if (context.dataset.isCalculatedSegment) {
+                  return ` ปี ${itemBase.year} (ช่วงเทียบ ${rangeStr}): ${Number(context.raw).toLocaleString()}`;
+                }
+                if (context.dataset.isUncalculatedSegment) {
+                  return ` ปี ${itemBase.year} (ไม่ได้นำมาคำนวณ): ${Number(context.raw).toLocaleString()}`;
+                }
+                return ` ${context.dataset.label}: ${Number(context.raw).toLocaleString()}`;
+              },
+              afterBody: function(items) {
+                if (hasUncalculated) {
+                  return `--------------------\n รวมทั้งปี ${itemBase.year}: ${Number(itemBase.total).toLocaleString()}`;
+                }
+                return '';
+              }
             }
           },
           datalabels: {
@@ -2344,8 +2485,12 @@ function renderResourcesChart() {
           }
         },
         scales: {
-          x: { display: false },
+          x: {
+            stacked: true,
+            display: false
+          },
           y: {
+            stacked: true,
             beginAtZero: true,
             max: overviewYMax,
             suggestedMax: overviewYMax,
