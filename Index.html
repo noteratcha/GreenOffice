@@ -387,7 +387,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2222</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2227</p>
   </footer>
 
   <!-- ==================== MODALS ==================== -->
@@ -511,7 +511,7 @@
           </div>
           <div>
             <h3>จัดการข้อมูลสถิติทรัพยากร 6 ด้าน</h3>
-            <p class="modal-subtitle">แก้ไขและบันทึกข้อมูลรายเดือนของแต่ละปีได้โดยตรง หรือเปิด Google Sheets</p>
+            <p class="modal-subtitle">แก้ไขและบันทึกข้อมูลรายเดือนของแต่ละปีได้โดยตรง</p>
           </div>
         </div>
         <button class="modal-close" onclick="closeModal('manageResourcesModal')">
@@ -519,7 +519,7 @@
         </button>
       </div>
       <div class="modal-body">
-        <!-- Quick Action & Google Sheet Access Card -->
+        <!-- Quick Action & Edit Guide Card -->
         <div style="background: var(--color-light); border: 1px solid rgba(74, 99, 68, 0.2); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.25rem; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 1rem;">
           <div>
             <h4 style="color: var(--color-forest); font-size: 0.95rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.4rem;">
@@ -533,10 +533,7 @@
             <button type="button" class="btn btn-outline btn-sm" onclick="addNewResourceYear()" style="display: inline-flex; align-items: center; gap: 0.35rem;">
               <span class="material-icons" style="font-size: 16px;">add</span> เพิ่มแถวปีใหม่
             </button>
-            <a href="https://docs.google.com/spreadsheets/d/10ZhFi99f45BJ5epvT4bqJ0xMCl-UeMsN3pM3Dbv0Dpo/edit" target="_blank" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 0.35rem;">
-              <span class="material-icons" style="font-size: 16px;">open_in_new</span> Google Sheets
-            </a>
-            <button type="button" class="btn btn-outline btn-sm" onclick="refreshResourcesData()" title="ดึงข้อมูลล่าสุดจาก Google Sheets" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+            <button type="button" class="btn btn-outline btn-sm" onclick="refreshResourcesData()" title="ดึงข้อมูลล่าสุด" style="display: inline-flex; align-items: center; gap: 0.35rem;">
               <span class="material-icons" style="font-size: 16px;">sync</span> ดึงข้อมูลล่าสุด
             </button>
           </div>
