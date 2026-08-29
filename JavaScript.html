@@ -61,6 +61,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Drag & Drop for all upload zones
   setupDragAndDrop();
+  setupPolicyDragAndDrop();
   setupNewsDragAndDrop();
   setupEditNewsDragAndDrop();
 
@@ -490,52 +491,148 @@ function loadPolicyImages() {
   }).getPolicyImages();
 }
 
+// ============================================================
+// Policy Management & Upload
+// ============================================================
+
+function selectPolicyType(type) {
+  document.getElementById('policySelect').value = type;
+  const opt1 = document.getElementById('optPolicy1');
+  const opt2 = document.getElementById('optPolicy2');
+  if (opt1) opt1.classList.toggle('active', type === '1');
+  if (opt2) opt2.classList.toggle('active', type === '2');
+}
+
+let selectedPolicyFile = null;
+
+function setupPolicyDragAndDrop() {
+  const zone = document.getElementById('policyDropZone');
+  if (!zone) return;
+  
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+  
+  zone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+  });
+  
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processPolicyFile(e.dataTransfer.files[0]);
+    }
+  });
+}
+
+function handlePolicyFileSelect(e) {
+  if (e.target.files && e.target.files.length > 0) {
+    processPolicyFile(e.target.files[0]);
+  }
+}
+
+function processPolicyFile(file) {
+  if (!file.type.match('image.*')) {
+    showToast('กรุณาเลือกไฟล์รูปภาพเท่านั้น', 'error');
+    return;
+  }
+  if (file.size > 10 * 1024 * 1024) {
+    showToast('ขนาดไฟล์ต้องไม่เกิน 10MB', 'error');
+    return;
+  }
+  
+  selectedPolicyFile = file;
+  
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('policyPreviewImg').src = e.target.result;
+    document.getElementById('policyPreviewName').textContent = file.name;
+    document.getElementById('policyPreviewSize').textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    
+    document.getElementById('policyDropZone').classList.add('hidden');
+    document.getElementById('policyPreviewCard').classList.remove('hidden');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removePolicyFile() {
+  selectedPolicyFile = null;
+  const fileInput = document.getElementById('policyFile');
+  if (fileInput) fileInput.value = '';
+  const previewCard = document.getElementById('policyPreviewCard');
+  if (previewCard) previewCard.classList.add('hidden');
+  const dropZone = document.getElementById('policyDropZone');
+  if (dropZone) dropZone.classList.remove('hidden');
+}
+
 async function submitPolicy(e) {
   e.preventDefault();
   const policyNum = document.getElementById('policySelect').value;
-  const fileInput = document.getElementById('policyFile');
-  const btn = e.target.querySelector('button[type="submit"]');
+  const btn = document.getElementById('btnPolicySubmit');
+  const closeBtn = document.querySelector('#policyModal .modal-close');
   
-  if (fileInput.files.length === 0) {
-    showToast('กรุณาเลือกรูปภาพ', 'error');
+  if (!selectedPolicyFile) {
+    showToast('กรุณาเลือกรูปภาพนโยบาย', 'error');
     return;
   }
 
-  showToast('กำลังประมวลผลรูปภาพ...', 'info');
   btn.disabled = true;
+  if (closeBtn) closeBtn.disabled = true;
+  btn.innerHTML = '<span class="material-icons">hourglass_empty</span> กำลังบันทึก...';
+  
+  updateUploadProgress('policyProgressWrapper', 15, 'กำลังประมวลผลและปรับขนาดรูปภาพ (15%)...');
   
   try {
-    const imagesData = await processFilesToBase64(fileInput.files, 1600, 0.8);
+    const imagesData = await processFilesToBase64([selectedPolicyFile], 1600, 0.82);
     const fileData = imagesData[0];
     
-    showToast('กำลังอัปโหลด...', 'info');
+    startServerProgressSimulation('policyProgressWrapper', 45, 92, 'กำลังอัปโหลดรูปภาพนโยบายขึ้น Google Drive...');
     
     google.script.run.withSuccessHandler(function(res) {
       btn.disabled = false;
+      if (closeBtn) closeBtn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">cloud_upload</span> บันทึกรูปภาพ';
+      
       if(res.success) {
-        showToast('อัปโหลดรูปภาพนโยบายสำเร็จ', 'success');
-        closeModal('policyModal');
-        document.getElementById('policyForm').reset();
-        
-        const img = document.getElementById(`policyImg${policyNum}`);
-        img.onload = () => {
-          img.classList.remove('hidden');
-          document.getElementById(`policySkeleton${policyNum}`).classList.add('hidden');
-        };
-        img.onerror = () => {
-          img.classList.add('hidden');
-          document.getElementById(`policySkeleton${policyNum}`).classList.remove('hidden');
-        };
-        img.src = res.url;
+        finishUploadProgress('policyProgressWrapper', 'อัปโหลดรูปภาพนโยบายสำเร็จเรียบร้อย! (100%)');
+        setTimeout(() => {
+          showToast('อัปโหลดรูปภาพนโยบายสำเร็จ', 'success');
+          removePolicyFile();
+          resetUploadProgress('policyProgressWrapper');
+          closeModal('policyModal');
+          
+          const img = document.getElementById(`policyImg${policyNum}`);
+          if (img) {
+            img.onload = () => {
+              img.classList.remove('hidden');
+              document.getElementById(`policySkeleton${policyNum}`).classList.add('hidden');
+            };
+            img.onerror = () => {
+              img.classList.add('hidden');
+              document.getElementById(`policySkeleton${policyNum}`).classList.remove('hidden');
+            };
+            img.src = res.url;
+          }
+        }, 700);
       } else {
+        resetUploadProgress('policyProgressWrapper');
         showToast('เกิดข้อผิดพลาด: ' + res.error, 'error');
       }
     }).withFailureHandler(function(err) {
       btn.disabled = false;
-      showToast('เชื่อมต่อล้มเหลว', 'error');
-    }).savePolicyImage(policyNum, fileData.data, fileInput.files[0].name, fileData.mimeType);
+      if (closeBtn) closeBtn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">cloud_upload</span> บันทึกรูปภาพ';
+      resetUploadProgress('policyProgressWrapper');
+      showToast('เชื่อมต่อล้มเหลว: ' + (err.message || ''), 'error');
+    }).savePolicyImage(policyNum, fileData.data, selectedPolicyFile.name, fileData.mimeType);
   } catch(err) {
     btn.disabled = false;
+    if (closeBtn) closeBtn.disabled = false;
+    btn.innerHTML = '<span class="material-icons">cloud_upload</span> บันทึกรูปภาพ';
+    resetUploadProgress('policyProgressWrapper');
     showToast('เกิดข้อผิดพลาด: ' + err.message, 'error');
   }
 }

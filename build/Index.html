@@ -305,28 +305,100 @@
   <div id="policyModal" class="modal-backdrop">
     <div class="modal">
       <div class="modal-header">
-        <h3><span class="material-icons">policy</span> อัปโหลดรูปภาพนโยบาย</h3>
+        <div class="modal-title-wrapper">
+          <div class="modal-icon-badge">
+            <span class="material-icons">policy</span>
+          </div>
+          <div>
+            <h3>อัปโหลดรูปภาพนโยบาย</h3>
+            <p class="modal-subtitle">เปลี่ยนรูปภาพประกาศนโยบายหรือเป้าหมาย Green Office</p>
+          </div>
+        </div>
         <button class="modal-close" onclick="closeModal('policyModal')">
           <span class="material-icons">close</span>
         </button>
       </div>
       <div class="modal-body">
         <form id="policyForm" onsubmit="submitPolicy(event)">
+          <!-- Visual Policy Type Selector -->
           <div class="form-group">
-            <label class="form-label">เลือกนโยบายที่ต้องการเปลี่ยน</label>
-            <select id="policySelect" class="form-input" required>
-              <option value="1">นโยบายสิ่งแวดล้อม (ฝั่งซ้าย)</option>
-              <option value="2">กำหนดเป้าหมาย (ฝั่งขวา)</option>
-            </select>
+            <label class="form-label">
+              <span class="material-icons form-label-icon">tune</span> เลือกตำแหน่งนโยบายที่ต้องการเปลี่ยน <span class="text-danger">*</span>
+            </label>
+            <div class="policy-card-selector">
+              <label class="policy-select-option active" id="optPolicy1" onclick="selectPolicyType('1')">
+                <input type="radio" name="policySelectRadio" value="1" checked class="hidden">
+                <div class="policy-option-body">
+                  <span class="material-icons policy-opt-icon">description</span>
+                  <div class="policy-opt-text">
+                    <strong>1. นโยบายสิ่งแวดล้อม</strong>
+                    <small>เอกสารประกาศ (ฝั่งซ้าย)</small>
+                  </div>
+                  <span class="material-icons policy-check-icon">check_circle</span>
+                </div>
+              </label>
+
+              <label class="policy-select-option" id="optPolicy2" onclick="selectPolicyType('2')">
+                <input type="radio" name="policySelectRadio" value="2" class="hidden">
+                <div class="policy-option-body">
+                  <span class="material-icons policy-opt-icon">track_changes</span>
+                  <div class="policy-opt-text">
+                    <strong>2. กำหนดเป้าหมาย</strong>
+                    <small>แผนงานประจำปี (ฝั่งขวา)</small>
+                  </div>
+                  <span class="material-icons policy-check-icon">check_circle</span>
+                </div>
+              </label>
+            </div>
+            <input type="hidden" id="policySelect" value="1">
           </div>
+
+          <!-- Modern Policy Dropzone -->
           <div class="form-group">
-            <label class="form-label">เลือกรูปภาพ</label>
-            <input type="file" id="policyFile" class="form-input" accept="image/*" required style="padding: 0.6rem;">
+            <label class="form-label">
+              <span class="material-icons form-label-icon">add_photo_alternate</span> เลือกรูปภาพเอกสารใหม่ <span class="text-danger">*</span>
+            </label>
+            <div id="policyDropZone" class="upload-zone" onclick="document.getElementById('policyFile').click()">
+              <span class="material-icons">add_photo_alternate</span>
+              <p><strong>คลิกเพื่อเลือกรูปภาพ</strong> หรือลากไฟล์มาวางที่นี่<br><small class="text-muted">รองรับไฟล์ภาพ .jpg, .png, .webp (ความละเอียดสูง)</small></p>
+              <input type="file" id="policyFile" class="hidden" accept="image/jpeg, image/png, image/webp" onchange="handlePolicyFileSelect(event)">
+            </div>
+            
+            <!-- Single Image Preview Card -->
+            <div id="policyPreviewCard" class="policy-preview-card hidden">
+              <div class="policy-preview-thumb">
+                <img id="policyPreviewImg" src="" alt="preview">
+              </div>
+              <div class="policy-preview-info">
+                <strong id="policyPreviewName">image.jpg</strong>
+                <span id="policyPreviewSize" class="text-muted">1.2 MB</span>
+              </div>
+              <button type="button" class="btn-remove-preview" onclick="removePolicyFile()" title="เปลี่ยนรูปภาพ">
+                <span class="material-icons">close</span>
+              </button>
+            </div>
           </div>
-          <div class="modal-footer" style="padding: 1.5rem 0 0;">
-            <button type="button" class="btn btn-outline" onclick="closeModal('policyModal')">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary">
-              <span class="material-icons">upload</span> บันทึกรูปภาพ
+
+          <!-- Modern Progress Status Component -->
+          <div class="upload-progress-wrapper hidden" id="policyProgressWrapper">
+            <div class="progress-status-header">
+              <div class="progress-status-info">
+                <span class="material-icons progress-spinner-icon">sync</span>
+                <span class="progress-status-text" id="policyProgressStatus">กำลังเตรียมข้อมูล...</span>
+              </div>
+              <span class="progress-percentage-badge" id="policyProgressPercent">0%</span>
+            </div>
+            <div class="modern-progress-track">
+              <div class="modern-progress-bar" id="policyProgressBar" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <div class="modal-footer" style="padding: 1.5rem 0 0; margin-top: 1.25rem;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('policyModal')">
+              <span class="material-icons">close</span> ยกเลิก
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnPolicySubmit">
+              <span class="material-icons">cloud_upload</span> บันทึกรูปภาพ
             </button>
           </div>
         </form>

@@ -1189,6 +1189,159 @@ body {
   100% { transform: translateX(400%); }
 }
 
+/* --- Policy Card Selector & Preview --- */
+.policy-card-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 500px) {
+  .policy-card-selector {
+    grid-template-columns: 1fr;
+  }
+}
+
+.policy-select-option {
+  cursor: pointer;
+  border: 1.5px solid #d2dcd0;
+  border-radius: var(--radius-md);
+  padding: 0.85rem 1rem;
+  background: #fdfdfd;
+  transition: var(--transition);
+  display: block;
+}
+
+.policy-select-option:hover {
+  border-color: var(--color-primary);
+  background: rgba(118, 139, 84, 0.05);
+}
+
+.policy-select-option.active {
+  border-color: var(--color-primary);
+  background: #f1f6ed;
+  box-shadow: 0 0 0 3px rgba(118, 139, 84, 0.15);
+}
+
+.policy-option-body {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  position: relative;
+}
+
+.policy-opt-icon {
+  font-size: 1.6rem;
+  color: var(--color-forest);
+  background: var(--color-sage);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.policy-opt-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.policy-opt-text strong {
+  display: block;
+  font-size: 0.92rem;
+  color: var(--color-forest);
+  line-height: 1.25;
+}
+
+.policy-opt-text small {
+  display: block;
+  font-size: 0.78rem;
+  color: #666;
+  margin-top: 0.15rem;
+}
+
+.policy-check-icon {
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  opacity: 0;
+  transform: scale(0.5);
+  transition: var(--transition);
+}
+
+.policy-select-option.active .policy-check-icon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Policy Preview Card */
+.policy-preview-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: #f4f7f2;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(118, 139, 84, 0.3);
+  margin-top: 0.75rem;
+  animation: fadeIn 0.3s ease;
+}
+
+.policy-preview-thumb {
+  width: 60px;
+  height: 60px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid #d2dcd0;
+  flex-shrink: 0;
+  background: white;
+}
+
+.policy-preview-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.policy-preview-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.policy-preview-info strong {
+  display: block;
+  font-size: 0.9rem;
+  color: var(--color-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.policy-preview-info span {
+  font-size: 0.8rem;
+}
+
+.btn-remove-preview {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-sage);
+  color: var(--color-forest);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-remove-preview:hover {
+  background: var(--color-error);
+  color: white;
+}
+
 /* --- Toast --- */
 .toast-container {
   position: fixed;
