@@ -667,8 +667,18 @@
         
         <div id="uploadPreview" class="upload-preview-grid"></div>
         
-        <div class="progress-bar" id="uploadProgress">
-          <div class="progress-bar-fill indeterminate"></div>
+        <!-- Modern Progress Status Component -->
+        <div class="upload-progress-wrapper hidden" id="uploadProgressWrapper">
+          <div class="progress-status-header">
+            <div class="progress-status-info">
+              <span class="material-icons progress-spinner-icon">sync</span>
+              <span class="progress-status-text" id="uploadProgressStatus">กำลังเตรียมข้อมูล...</span>
+            </div>
+            <span class="progress-percentage-badge" id="uploadProgressPercent">0%</span>
+          </div>
+          <div class="modern-progress-track">
+            <div class="modern-progress-bar" id="uploadProgressBar" style="width: 0%;"></div>
+          </div>
         </div>
         
         <div class="modal-footer" style="padding: 1.5rem 0 0;">
@@ -728,8 +738,18 @@
             <div id="newsPreviewGrid" class="upload-preview-grid"></div>
           </div>
           
-          <div class="progress-bar" id="newsProgress">
-            <div class="progress-bar-fill indeterminate"></div>
+          <!-- Modern Progress Status Component -->
+          <div class="upload-progress-wrapper hidden" id="newsProgressWrapper">
+            <div class="progress-status-header">
+              <div class="progress-status-info">
+                <span class="material-icons progress-spinner-icon">sync</span>
+                <span class="progress-status-text" id="newsProgressStatus">กำลังเตรียมข้อมูล...</span>
+              </div>
+              <span class="progress-percentage-badge" id="newsProgressPercent">0%</span>
+            </div>
+            <div class="modern-progress-track">
+              <div class="modern-progress-bar" id="newsProgressBar" style="width: 0%;"></div>
+            </div>
           </div>
           
           <div class="modal-footer" style="padding: 1.5rem 0 0; margin-top: 1rem;">
@@ -869,8 +889,18 @@
             <div id="editNewsPreviewGrid" class="upload-preview-grid"></div>
           </div>
           
-          <div class="progress-bar" id="editNewsProgress">
-            <div class="progress-bar-fill indeterminate"></div>
+          <!-- Modern Progress Status Component -->
+          <div class="upload-progress-wrapper hidden" id="editNewsProgressWrapper">
+            <div class="progress-status-header">
+              <div class="progress-status-info">
+                <span class="material-icons progress-spinner-icon">sync</span>
+                <span class="progress-status-text" id="editNewsProgressStatus">กำลังเตรียมข้อมูล...</span>
+              </div>
+              <span class="progress-percentage-badge" id="editNewsProgressPercent">0%</span>
+            </div>
+            <div class="modern-progress-track">
+              <div class="modern-progress-bar" id="editNewsProgressBar" style="width: 0%;"></div>
+            </div>
           </div>
           
           <div class="modal-footer" style="padding: 1.5rem 0 0; margin-top: 1rem;">
