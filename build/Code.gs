@@ -193,19 +193,43 @@ function getNews() {
       return [];
     }
 
+    // Build user map (username -> friendly name) from 'user&pass' sheet
+    const userSheet = ss.getSheetByName('user&pass');
+    const userMap = {};
+    if (userSheet) {
+      const userData = userSheet.getDataRange().getValues();
+      for (let u = 1; u < userData.length; u++) {
+        const uUser = String(userData[u][0]).trim();
+        const uName = userData[u][2] ? String(userData[u][2]).trim() : '';
+        if (uUser) {
+          userMap[uUser.toLowerCase()] = uName || uUser;
+        }
+      }
+    }
+
     const data = sheet.getDataRange().getValues();
     const news = [];
 
     for (let i = 1; i < data.length; i++) {
       if (data[i][0]) {
         const userVal = data[i][4] ? String(data[i][4]).trim() : '';
+        let displayName = userVal;
+        if (userVal) {
+          const lowerUser = userVal.toLowerCase();
+          if (userMap[lowerUser]) {
+            displayName = userMap[lowerUser];
+          } else if (lowerUser === 'admin') {
+            displayName = 'สำนักงานไปรษณีย์เขต 10';
+          }
+        }
         news.push({
           row: i + 1,
           title: String(data[i][0]),
           content: String(data[i][1]),
           date: String(data[i][2]),
           user: userVal,
-          author: userVal,
+          author: displayName,
+          name: displayName,
           imageUrls: data[i][3] 
             ? String(data[i][3]).split(',').map(id => 'https://drive.google.com/thumbnail?id=' + id.trim() + '&sz=w600')
             : [],

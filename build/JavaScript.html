@@ -852,11 +852,13 @@ function renderNews() {
       imgHtml = `<div class="news-card-image" style="display:flex;align-items:center;justify-content:center;background:var(--color-sage);"><span class="material-icons" style="font-size:3rem;color:white;">photo</span></div>`;
     }
       
+    const displayName = news.name || news.author || (news.user && news.user.toLowerCase() === 'admin' ? 'สำนักงานไปรษณีย์เขต 10' : news.user) || '';
+    
     html += `
       <div class="news-card" style="animation-delay: ${idx * 0.1}s" onclick="openNewsDetail(${globalNewsData.indexOf(news)})">
         ${imgHtml}
         <div class="news-card-body">
-          <div class="news-card-date"><span class="material-icons" style="font-size:14px;">calendar_today</span> ${formatNewsDate(news.date)}${news.user || news.author ? ' โดย ' + (news.user || news.author) : ''}</div>
+          <div class="news-card-date"><span class="material-icons" style="font-size:14px;">calendar_today</span> ${formatNewsDate(news.date)}${displayName ? ' โดย ' + displayName : ''}</div>
           <h3 class="news-card-title">${news.title}</h3>
           <p class="news-card-content">${news.content}</p>
         </div>
@@ -1217,13 +1219,15 @@ function openNewsDetail(idx) {
     imgContainer.innerHTML = '';
   }
 
-  const newsAuthor = news.user || news.author || '';
-  document.getElementById('newsDetailDate').innerHTML = `<span class="material-icons" style="font-size:16px;">calendar_today</span> <span>${formatNewsDate(news.date)}${newsAuthor ? ' โดย ' + newsAuthor : ''}</span>`;
+  const rawUser = news.user || '';
+  const displayName = news.name || news.author || (rawUser.toLowerCase() === 'admin' ? 'สำนักงานไปรษณีย์เขต 10' : rawUser) || '';
+  
+  document.getElementById('newsDetailDate').innerHTML = `<span class="material-icons" style="font-size:16px;">calendar_today</span> <span>${formatNewsDate(news.date)}${displayName ? ' โดย ' + displayName : ''}</span>`;
   document.getElementById('newsDetailTitle').textContent = news.title;
   document.getElementById('newsDetailContent').textContent = news.content;
 
   const actionBar = document.getElementById('newsDetailActionBar');
-  if (currentUser && (newsAuthor === currentUser || currentRole === 'admin')) {
+  if (currentUser && (rawUser === currentUser || currentRole === 'admin')) {
     actionBar.classList.remove('hidden');
     document.getElementById('btnEditNewsAction').onclick = () => {
       closeModal('newsDetailModal');
