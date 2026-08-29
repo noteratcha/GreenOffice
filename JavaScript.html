@@ -1722,10 +1722,13 @@ function toggleFeedbackOtherTopic(isOther) {
   }
 }
 
+let isSubmittingFeedback = false;
+let feedbackSubmitTimeout = null;
+
 function submitFeedback(e) {
-  e.preventDefault();
+  if (e) e.preventDefault();
   const btn = document.getElementById('btnSubmitFeedback');
-  const originalHtml = btn.innerHTML;
+  const originalHtml = '<span class="material-icons">send</span> ส่งข้อเสนอแนะ';
 
   const dateVal = document.getElementById('feedbackDate').value;
   const isInternal = document.getElementById('btnUserInternal').classList.contains('active');
@@ -1746,57 +1749,110 @@ function submitFeedback(e) {
 
   if (!dateVal) {
     showToast('กรุณาระบุวันที่เสนอแนะ', 'error');
-    return;
+    return false;
   }
   if (isInternal && !internalName) {
     showToast('กรุณาระบุชื่อผู้แจ้งเสนอแนะ', 'error');
-    return;
+    return false;
   }
   if (!isInternal && !externalName) {
     showToast('กรุณาระบุชื่อผู้แจ้งเสนอแนะ', 'error');
-    return;
+    return false;
   }
   if (!topicVal) {
     showToast('กรุณาเลือกเรื่องที่ต้องการเสนอแนะ', 'error');
-    return;
+    return false;
   }
   if (!detailVal) {
     showToast('กรุณาระบุข้อมูลรายละเอียดที่ต้องการให้มีการแก้ไข', 'error');
-    return;
+    return false;
   }
 
   btn.disabled = true;
   btn.innerHTML = '<span class="material-icons rotating" style="animation: spin 0.8s linear infinite;">sync</span> กำลังส่งข้อเสนอแนะ...';
+  window.isSubmittingFeedback = true;
 
-  const payload = {
-    date: dateVal,
-    internalName: internalName,
-    externalName: externalName,
-    topic: topicVal,
-    detail: detailVal,
-    channels: channels
-  };
+  // Build URLSearchParams
+  const formParams = new URLSearchParams();
+  formParams.append('entry.877086558', dateVal);
+  if (isInternal) {
+    formParams.append('entry.1498135098', internalName);
+  } else {
+    formParams.append('entry.694996660', externalName);
+  }
+  formParams.append('entry.1424661284', topicVal);
+  formParams.append('entry.2606285', detailVal);
+  channels.forEach(ch => {
+    formParams.append('entry.1166388958', ch);
+  });
 
-  google.script.run
-    .withSuccessHandler(function(res) {
-      btn.disabled = false;
-      btn.innerHTML = originalHtml;
-      if (res && res.success) {
-        showToast(res.message || 'ส่งข้อเสนอแนะเรียบร้อยแล้ว ขอบคุณสำหรับการมีส่วนร่วมครับ', 'success');
-        document.getElementById('feedbackForm').classList.add('hidden');
-        document.getElementById('feedbackSuccessBanner').classList.remove('hidden');
-        const section = document.getElementById('feedback-section');
-        if (section) section.scrollIntoView({ behavior: 'smooth' });
-      } else {
-        showToast((res && res.message) || 'เกิดข้อผิดพลาดในการส่งข้อมูล', 'error');
+  // Direct client-side fetch (no OAuth permission / UrlFetchApp needed!)
+  fetch('https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: formParams.toString()
+  })
+  .then(() => {
+    handleFeedbackSubmissionSuccess();
+  })
+  .catch((err) => {
+    // If fetch gets blocked or fails, fallback to standard form submit via hidden iframe
+    console.warn('Fetch fallback to hidden iframe:', err);
+    const form = document.getElementById('feedbackForm');
+    
+    // Configure input names
+    document.getElementById('feedbackDate').name = 'entry.877086558';
+    if (isInternal) {
+      document.getElementById('feedbackInternalName').name = 'entry.1498135098';
+      document.getElementById('feedbackExternalName').removeAttribute('name');
+    } else {
+      document.getElementById('feedbackExternalName').name = 'entry.694996660';
+      document.getElementById('feedbackInternalName').removeAttribute('name');
+    }
+    
+    const topicRadios = document.querySelectorAll('input[name="feedbackTopic"]');
+    topicRadios.forEach(r => {
+      r.name = 'entry.1424661284';
+      if (r.value === 'อื่นๆ') {
+        r.value = topicVal;
       }
-    })
-    .withFailureHandler(function(err) {
-      btn.disabled = false;
-      btn.innerHTML = originalHtml;
-      showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + (err.message || err), 'error');
-    })
-    .submitFeedbackForm(payload);
+    });
+    
+    document.getElementById('feedbackDetail').name = 'entry.2606285';
+    channelCheckboxes.forEach(cb => {
+      cb.name = 'entry.1166388958';
+    });
+
+    if (feedbackSubmitTimeout) clearTimeout(feedbackSubmitTimeout);
+    feedbackSubmitTimeout = setTimeout(() => {
+      handleFeedbackSubmissionSuccess();
+    }, 2000);
+
+    form.submit();
+  });
+
+  return false;
+}
+
+function handleFeedbackSubmissionSuccess() {
+  if (feedbackSubmitTimeout) clearTimeout(feedbackSubmitTimeout);
+  window.isSubmittingFeedback = false;
+
+  const btn = document.getElementById('btnSubmitFeedback');
+  if (btn) {
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-icons">send</span> ส่งข้อเสนอแนะ';
+  }
+
+  showToast('ส่งข้อเสนอแนะเรียบร้อยแล้ว ขอบคุณสำหรับการมีส่วนร่วมครับ', 'success');
+  document.getElementById('feedbackForm').classList.add('hidden');
+  document.getElementById('feedbackSuccessBanner').classList.remove('hidden');
+  
+  const section = document.getElementById('feedback-section');
+  if (section) section.scrollIntoView({ behavior: 'smooth' });
 }
 
 function resetFeedbackForm() {

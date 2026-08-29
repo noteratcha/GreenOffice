@@ -282,7 +282,10 @@
             <button type="button" class="btn btn-sm btn-outline" onclick="resetFeedbackFormView()">ส่งข้อเสนอแนะอีกครั้ง</button>
           </div>
 
-          <form id="feedbackForm" onsubmit="submitFeedback(event)">
+          <!-- Hidden Iframe to capture Google Form POST response without leaving the page -->
+          <iframe name="feedbackHiddenIframe" id="feedbackHiddenIframe" style="display:none; width:0; height:0; border:none;" onload="if(window.isSubmittingFeedback) { handleFeedbackSubmissionSuccess(); }"></iframe>
+
+          <form id="feedbackForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse" method="POST" target="feedbackHiddenIframe" onsubmit="submitFeedback(event)">
             <!-- วันที่เสนอแนะ และ ประเภทผู้แจ้ง -->
             <div class="form-row-2">
               <div class="form-group">
