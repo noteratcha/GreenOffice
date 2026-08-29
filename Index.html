@@ -270,12 +270,22 @@
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
   <div class="fab-container hidden" id="fabContainer">
-    <button class="fab fab-secondary hidden" id="fabUpload" onclick="openModal('uploadModal')" title="อัปโหลดรูปภาพหลัก">
-      <span class="material-icons">add_a_photo</span>
-    </button>
-    <button class="fab fab-secondary hidden" id="fabManagePhotos" onclick="openManagePhotos()" title="จัดการรูปภาพหลัก">
-      <span class="material-icons">edit</span>
-    </button>
+    
+    <!-- Group: รูปภาพหลัก (Main Photos Group) -->
+    <div class="fab-photos-group" id="fabPhotosGroup">
+      <div class="fab-sub-menu" id="fabPhotosSubMenu">
+        <button class="fab fab-sub" id="fabUpload" onclick="openModal('uploadModal'); closePhotosSubMenu();" title="อัปโหลดรูปภาพหลัก">
+          <span class="material-icons">add_a_photo</span>
+        </button>
+        <button class="fab fab-sub" id="fabManagePhotos" onclick="openManagePhotos(); closePhotosSubMenu();" title="จัดการรูปภาพหลัก">
+          <span class="material-icons">edit</span>
+        </button>
+      </div>
+      <button class="fab fab-secondary fab-photos-parent hidden" id="fabPhotosParent" onclick="togglePhotosSubMenu()" title="รูปภาพหลัก (คลิกเพื่อดูเมนูย่อย)">
+        <span class="material-icons" id="fabPhotosParentIcon">photo_library</span>
+      </button>
+    </div>
+
     <button class="fab fab-secondary hidden" id="fabPolicy" onclick="openModal('policyModal')" title="อัปโหลดรูปภาพนโยบาย">
       <span class="material-icons">policy</span>
     </button>
@@ -289,7 +299,7 @@
     <button class="fab fab-secondary hidden" id="fabResources" onclick="openManageResourcesModal()" title="การใช้ทรัพยากร พลังงาน และการจัดการของเสีย">
       <span class="material-icons">analytics</span>
     </button>
-<button class="fab fab-secondary hidden" id="fabEditCategories" onclick="openEditCategoriesModal()" title="แก้ไขลิงก์หมวดหมู่">
+    <button class="fab fab-secondary hidden" id="fabEditCategories" onclick="openEditCategoriesModal()" title="แก้ไขลิงก์หมวดหมู่">
       <span class="material-icons">link</span>
     </button>
   </div>

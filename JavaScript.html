@@ -72,11 +72,35 @@ document.addEventListener('DOMContentLoaded', () => {
       loader.classList.add('hidden');
     }
   }, 3000);
+
+  // Close Photos FAB sub-menu when clicking outside
+  document.addEventListener('click', (e) => {
+    const group = document.getElementById('fabPhotosGroup');
+    if (group && !group.contains(e.target)) {
+      closePhotosSubMenu();
+    }
+  });
 });
 
 // ============================================================
-// Authentication
+// Authentication & FAB Group Controls
 // ============================================================
+
+function togglePhotosSubMenu() {
+  const subMenu = document.getElementById('fabPhotosSubMenu');
+  const parentBtn = document.getElementById('fabPhotosParent');
+  if (subMenu && parentBtn) {
+    const isOpen = subMenu.classList.toggle('open');
+    parentBtn.classList.toggle('active', isOpen);
+  }
+}
+
+function closePhotosSubMenu() {
+  const subMenu = document.getElementById('fabPhotosSubMenu');
+  const parentBtn = document.getElementById('fabPhotosParent');
+  if (subMenu) subMenu.classList.remove('open');
+  if (parentBtn) parentBtn.classList.remove('active');
+}
 
 function handleLogin(e) {
   e.preventDefault();
@@ -129,19 +153,18 @@ function setUserSession(username, role, name = null) {
   
   document.getElementById('fabContainer').classList.remove('hidden');
   document.getElementById('fabAddNews').classList.remove('hidden');
+  closePhotosSubMenu();
   
   if (role === 'admin' || username.toLowerCase() === 'admin') {
     document.getElementById('fabPolicy').classList.remove('hidden');
     document.getElementById('fabAddEvent').classList.remove('hidden');
-    document.getElementById('fabUpload').classList.remove('hidden');
-    document.getElementById('fabManagePhotos').classList.remove('hidden');
+    document.getElementById('fabPhotosParent').classList.remove('hidden');
     document.getElementById('fabEditCategories').classList.remove('hidden');
     document.getElementById('fabResources').classList.remove('hidden');
   } else {
     document.getElementById('fabPolicy').classList.add('hidden');
     document.getElementById('fabAddEvent').classList.add('hidden');
-    document.getElementById('fabUpload').classList.add('hidden');
-    document.getElementById('fabManagePhotos').classList.add('hidden');
+    document.getElementById('fabPhotosParent').classList.add('hidden');
     document.getElementById('fabEditCategories').classList.add('hidden');
     document.getElementById('fabResources').classList.add('hidden');
   }
@@ -157,6 +180,7 @@ function logout() {
   document.getElementById('btnNavLogin').classList.remove('hidden');
   document.getElementById('navUserInfo').classList.add('hidden');
   document.getElementById('fabContainer').classList.add('hidden');
+  closePhotosSubMenu();
   
   showToast('ออกจากระบบแล้ว', 'success');
 }

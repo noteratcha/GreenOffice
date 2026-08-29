@@ -1631,6 +1631,63 @@ body {
   font-size: 1.15rem;
 }
 
+/* --- FAB Sub-menu for Main Photos Group --- */
+.fab-photos-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.65rem;
+  position: relative;
+}
+
+.fab-sub-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.65rem;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: translateY(12px) scale(0.92);
+}
+
+.fab-sub-menu.open {
+  max-height: 220px;
+  opacity: 1;
+  overflow: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.fab-sub {
+  width: 46px;
+  height: 46px;
+  font-size: 1.25rem;
+  background: var(--color-forest);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: var(--transition);
+}
+
+.fab-sub:hover {
+  background: var(--color-dark);
+  transform: scale(1.1);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.fab-photos-parent {
+  position: relative;
+  transition: var(--transition);
+}
+
+.fab-photos-parent.active {
+  background: var(--color-forest);
+  transform: scale(1.05);
+  box-shadow: 0 0 0 3px rgba(118, 139, 84, 0.4), 0 8px 25px rgba(0, 0, 0, 0.35);
+}
+
 /* --- Footer --- */
 .footer {
   background: linear-gradient(135deg, var(--color-dark) 0%, #0f1a15 100%);
