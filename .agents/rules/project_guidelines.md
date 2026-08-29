@@ -191,8 +191,8 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Main page cards automatically display ONLY the 2 most recent years in chronological order.
   - **แท่งปีก่อนหน้า (Base Year เช่น 2568) แสดงแบบ 2 ส่วนซ้อนต่อกัน (Stacked Segments)** เมื่อปีเปรียบเทียบยังบันทึกข้อมูลไม่ครบ 12 เดือน:
     - **ส่วนล่าง (สีฟ้า `#5dade2`)**: ปริมาณการใช้เฉพาะช่วงเดือนที่นำไปคำนวณเปรียบเทียบ (เช่น 11,750 ในช่วง ม.ค. - ส.ค.) พร้อมตัวเลขสีขาวตรงกลางแท่ง
-    - **ส่วนบนที่ซ้อนต่อกัน (สีเหลือง `#f4d03f`)**: ปริมาณการใช้ในเดือนที่ไม่ได้นำไปคำนวณ (เช่น 6,300 ในช่วง ก.ย. - ธ.ค.)
-    - **ยอดรวมทั้งปี (เช่น 18,050)** แสดงบนหัวแท่งด้านบนสุดอย่างชัดเจน
+    - **ส่วนบนที่ซ้อนต่อกัน (สีเหลือง `#f4d03f`)**: ปริมาณการใช้ในเดือนที่ไม่ได้นำไปคำนวณ (เช่น 6,300 ในช่วง ก.ย. - ธ.ค.) พร้อมตัวเลขสีทองเข้มตรงกลางแท่งสีเหลือง
+    - **ยอดรวมทั้งปี (เช่น 18,050)** แสดงบนหัวแท่งด้านบนสุดอย่างชัดเจนผ่าน `overviewTopTotalPlugin`
   - **แท่งปีล่าสุด (Target Year เช่น 2569)**: แสดงแท่งสีเขียว (`#52be80`) ด้านขวาเทียบกับส่วนสีฟ้าอย่างตรงไปตรงมา
   - No year filter toolbar on the main page to keep the overview clean and uncluttered.
 - **Modal Dynamic Year Range Selection Toolbar (`.modal-year-filter-bar`)**:
