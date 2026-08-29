@@ -218,3 +218,10 @@ This file contains the accumulated rules, skills, workflow, architectural patter
     - Both labels render in semi-opaque white badge pills with matching pastel border tints, providing complete readability and zero overlapping numbers.
 - **Y-Axis Dynamic +30% Headroom**:
   - Scales `scales.y.max` & `suggestedMax` are set dynamically to $1.30 \times \text{maxVal}$ (30% above the highest data point) across both monthly detail charts and overview charts to ensure datalabels and tall bars have ample headroom and never clip or touch chart legends.
+- **Uncalculated Months Highlight in Yellow/Amber**:
+  - For months where the base year has data ($v_{prev} > 0$) but the target year has no recorded data ($v_{curr} = 0$), these months are excluded from the same-period percentage calculation.
+  - To make this visually clear to users:
+    - **Bar Background & Border**: Rendered in Golden Yellow/Amber (`rgba(244, 208, 63, 0.88)` / border `rgba(212, 172, 13, 1)`).
+    - **Datalabel Badge**: Warm yellow pill background (`rgba(254, 249, 231, 0.96)`) with dark amber font (`#7d6608`) and amber border (`#f5b041`).
+    - **Table Row Indicator**: Base year value in amber (`#b7950b`) and `%` column badge shows `<span class="...">ไม่ได้คำนวณ</span>`.
+    - **Modal Info Banner**: `#monthlyModalUncalculatedNote` appears automatically when uncalculated months exist in the current selection.

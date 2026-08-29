@@ -512,7 +512,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2325</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2328</p>
   </footer>
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
@@ -816,8 +816,14 @@
         </div>
 
         <!-- Overlapping Monthly Bar Chart Canvas -->
-        <div style="background: #ffffff; border: 1px solid #e0e5df; border-radius: var(--radius-md); padding: 1.25rem 1rem; margin-bottom: 1.25rem; height: 380px; position: relative;">
+        <div style="background: #ffffff; border: 1px solid #e0e5df; border-radius: var(--radius-md); padding: 1.25rem 1rem; margin-bottom: 0.75rem; height: 380px; position: relative;">
           <canvas id="monthlyDetailCanvas"></canvas>
+        </div>
+        
+        <!-- Uncalculated Months Info Banner -->
+        <div id="monthlyModalUncalculatedNote" style="font-size: 0.8rem; color: #9a7d0a; margin-bottom: 1.1rem; display: none; align-items: center; gap: 0.35rem; background: #fefde8; padding: 0.45rem 0.85rem; border-radius: var(--radius-sm); border: 1px solid #f9e79f;">
+          <span class="material-icons" style="font-size: 16px; color: #b7950b;">info</span>
+          <span><strong>แถบ/ตัวเลขสีเหลือง</strong> = ข้อมูลของเดือนที่ยังไม่ได้นำมาคำนวณเปรียบเทียบเปอร์เซ็นต์ (เนื่องจากปีเปรียบเทียบยังไม่มีข้อมูล)</span>
         </div>
 
         <!-- Monthly Breakdown Table -->
