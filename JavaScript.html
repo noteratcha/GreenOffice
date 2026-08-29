@@ -1698,6 +1698,18 @@ function saveEditCategories() {
 
 
 
+function selectEventColor(color, modalType = 'event') {
+  const hiddenInput = document.getElementById(modalType === 'event' ? 'eventColor' : 'editEventColor');
+  const palette = document.getElementById(modalType === 'event' ? 'eventColorPalette' : 'editEventColorPalette');
+  if (hiddenInput) hiddenInput.value = color;
+  
+  if (palette) {
+    palette.querySelectorAll('.color-chip-option').forEach(chip => {
+      chip.classList.toggle('active', chip.dataset.color === color);
+    });
+  }
+}
+
 function handleAddEvent(e) {
   e.preventDefault();
   const btn = document.getElementById('btnEventSubmit');
@@ -1706,7 +1718,7 @@ function handleAddEvent(e) {
   btn.disabled = true;
 
   const eventData = {
-    title: document.getElementById('eventTitle').value,
+    title: document.getElementById('eventTitle').value.trim(),
     date: document.getElementById('eventDate').value,
     time: document.getElementById('eventTime').value,
     color: document.getElementById('eventColor').value,
@@ -1719,6 +1731,7 @@ function handleAddEvent(e) {
     if (res.success) {
       closeModal('eventModal');
       document.getElementById('eventForm').reset();
+      selectEventColor('#4a6344', 'event');
       if(calendar) calendar.refetchEvents();
       showToast('บันทึกกิจกรรมเรียบร้อยแล้ว', 'success');
     } else {
@@ -1761,11 +1774,12 @@ function deleteEventAction() {
 
 function openEditEventModal() {
   const btn = document.getElementById('btnEditEventAction');
+  const color = btn.dataset.eventColor || '#4a6344';
   document.getElementById('editEventId').value = btn.dataset.eventId || '';
   document.getElementById('editEventTitle').value = btn.dataset.eventTitle || '';
   document.getElementById('editEventDate').value = btn.dataset.eventDate || '';
   document.getElementById('editEventTime').value = btn.dataset.eventTime || '';
-  document.getElementById('editEventColor').value = btn.dataset.eventColor || '#27ae60';
+  selectEventColor(color, 'editEvent');
   
   closeModal('eventDetailModal');
   openModal('editEventModal');
@@ -1780,7 +1794,7 @@ function submitEditEvent(e) {
 
   const eventData = {
     id: document.getElementById('editEventId').value,
-    title: document.getElementById('editEventTitle').value,
+    title: document.getElementById('editEventTitle').value.trim(),
     date: document.getElementById('editEventDate').value,
     time: document.getElementById('editEventTime').value,
     color: document.getElementById('editEventColor').value
