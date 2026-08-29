@@ -253,3 +253,40 @@ This file contains the accumulated rules, skills, workflow, architectural patter
     - **Datalabel Badge**: Warm yellow pill background (`rgba(254, 249, 231, 0.96)`) with dark amber font (`#7d6608`) and amber border (`#f5b041`).
     - **Table Row Indicator**: Base year value in amber (`#b7950b`) and `%` column badge shows `<span class="...">ไม่ได้คำนวณ</span>`.
     - **Modal Info Banner**: `#monthlyModalUncalculatedNote` appears automatically when uncalculated months exist in the current selection.
+
+## 15. Intelligent ScrollSpy & Viewport Section Auto-Highlighting
+- **Active Navigation on Scroll**:
+  - As the user scrolls through the webpage, the system automatically detects which section occupies the largest visible area within the active viewport and sets that menu tab to active (`.nav-link.active`).
+  - **Monitored Sections**: `#home` (หน้าแรก), `#policy` (นโยบาย), `#news` (ข่าวสารกิจกรรม), `#calendar-section` (ปฏิทินกิจกรรม), `#resources-section` (สถิติเปรียบเทียบ), `#categories` (7 หมวด Green Office), and `#feedback-section` (ข้อเสนอแนะ).
+  - **Precision & Edge Handling**:
+    - **Top of Page ($ScrollY < 80\text{px}$)**: Activates `#home`.
+    - **Bottom of Page ($ScrollY \ge MaxScrollY - 80\text{px}$)**: Activates `#feedback-section`.
+    - **Viewport Overlap Calculation**: Computes the exact vertical overlap height: $\max(0, \min(\text{rect.bottom}, \text{viewportBottom}) - \max(\text{rect.top}, \text{viewportTop}))$.
+  - **High Performance**: Bound via passive listener and throttled with `requestAnimationFrame` for buttery-smooth 60fps responsiveness.
+  - **Programmatic Scroll Synchronization**: During `scrollToSection(id)`, `isManualScrolling` lock is enabled for 750ms to suppress listener triggers until smooth scrolling settles.
+
+## 16. Chronological Ascending Sorting & Chart Legend Architecture
+- **Ascending Dataset & Legend Order (จากน้อยไปมาก)**:
+  - All chart datasets, table columns, and legend badges are strictly sorted in ascending chronological order (e.g. `2564 -> 2565 -> 2566 -> 2567 -> 2568 -> 2569`).
+  - **Chart.js Legend Sort Callback**:
+    ```javascript
+    plugins: {
+      legend: {
+        labels: {
+          sort: (a, b) => {
+            const extractYear = t => parseInt(String(t).match(/\d+/)?.[0] || '0', 10);
+            return extractYear(a.text) - extractYear(b.text);
+          }
+        }
+      }
+    }
+    ```
+  - **Dynamic Role-Based Plugin Finding**:
+    - `overlap30Plugin` locates datasets by `d.datasetRole === 'baseBar'` and `d.datasetRole === 'targetBar'` rather than static array index positions. This allows datasets to be freely sorted chronologically while preserving exact 30% horizontal bar overlap rendering and layering (`order: 1` for front target bar, `order: 2` for back base bar).
+- **Tooltip Color Box Indicators**:
+  - In overview charts, set `displayColors: false` and render emoji indicator squares directly in callback labels:
+    - 🟦 `🟦 ปี 2568 (ช่วงเทียบ ม.ค. - ส.ค.): [value]` (Calculated Segment)
+    - 🟨 `🟨 ปี 2568 (ไม่ได้นำมาคำนวณ): [value]` (Uncalculated Segment)
+    - 📋 `📋 รวมทั้งปี 2568: [value]` (Annual Total)
+    - 🟩 `🟩 ปี 2569: [value]` (Target Year)
+
