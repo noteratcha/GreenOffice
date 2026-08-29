@@ -198,8 +198,12 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Compares the sum of recorded months in the target year ($Sum_{curr}$) with the exact same months in the base year ($Sum_{prev}$).
   - Percentage Change formula: $\% = \frac{Sum_{curr} - Sum_{prev}}{Sum_{prev}} \times 100$.
   - **Color Coding**:
-    - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: บ่งบอกถึงค่าใช้จ่ายหรือปริมาณการใช้ที่สูงขึ้น $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.X%`.
-    - 📉 **ค่าลดลง ($p < 0$)**: บ่งบอกถึงค่าใช้จ่ายหรือปริมาณการใช้ที่ประหยัดลง $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.X%`.
+    - **ทรัพยากรทั่วไป (ไฟฟ้า, น้ำ, น้ำมัน, กระดาษ, GHG)**:
+      - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: ค่าใช้จ่ายสูงขึ้น $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.X%`.
+      - 📉 **ค่าลดลง ($p < 0$)**: ประหยัดลง $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.X%`.
+    - **นำของเสียกลับมาใช้ (recycledWaste)**:
+      - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: นำของเสียกลับมาใช้ได้มากขึ้น (ผลดี) $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.X%`.
+      - 📉 **ค่าลดลง ($p < 0$)**: นำของเสียกลับมาใช้ได้น้อยลง (ผลลบ) $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.X%`.
     - ➖ **เท่าเดิม ($p = 0$)**: แสดงเป็นสีเทา Neutral.
 - **30% Overlapping Monthly Bar Chart Modal (`#resourceMonthlyDetailModal`)**:
   - Clicking any resource card opens a 12-month detailed breakdown modal with custom Chart.js plugin (`overlap30Plugin`).

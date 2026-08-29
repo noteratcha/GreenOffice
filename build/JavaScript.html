@@ -2248,17 +2248,20 @@ function renderResourcesChart() {
           const isIncrease = p > 0;
           const isDecrease = p < 0;
           
+          let isGood = isDecrease;
+          if (config.key === 'recycledWaste') {
+            isGood = isIncrease;
+          }
+          
           if (p === 0) {
             badgeEl.className = 'chart-percent-badge neutral';
             badgeEl.innerHTML = `<span>0.0%</span>`;
-          } else if (isIncrease) {
-            // ค่าเพิ่มขึ้น = ค่าใช้จ่ายสูงขึ้น -> สีแดงส้ม
-            badgeEl.className = 'chart-percent-badge warn';
-            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">trending_up</span> เพิ่มขึ้น ${pFormatted}`;
-          } else {
-            // ค่าลดลง = ค่าใช้จ่ายน้อยลง -> สีเขียว
+          } else if (isGood) {
             badgeEl.className = 'chart-percent-badge good';
-            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">trending_down</span> ลดลง ${pFormatted}`;
+            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}`;
+          } else {
+            badgeEl.className = 'chart-percent-badge warn';
+            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}`;
           }
           badgeEl.title = `เทียบช่วงเวลาเดียวกัน (${itemBase.year} vs ${itemTarget.year})`;
           badgeEl.style.display = 'inline-flex';
@@ -2409,6 +2412,10 @@ function renderMonthlyModalContent(metricKey) {
     const p = comp ? comp.percentDiff : 0;
     const isIncrease = p > 0;
     const isDecrease = p < 0;
+    let isGood = isDecrease;
+    if (metricKey === 'recycledWaste') {
+      isGood = isIncrease;
+    }
     const pFormatted = Math.abs(p).toFixed(1) + '%';
     
     let periodText = '';
@@ -2427,25 +2434,25 @@ function renderMonthlyModalContent(metricKey) {
       `;
     } else {
       let diffCardHtml = '';
-      if (isIncrease) {
-        // ค่าเพิ่มขึ้น = ค่าใช้จ่ายสูงขึ้น -> สีแดงส้ม
-        diffCardHtml = `
-          <div style="background: #fef5f1; border: 1px solid #fadbd8; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;">
-            <div style="font-size: 0.8rem; color: #c0392b; font-weight: 500; margin-bottom: 0.2rem;">ผลต่างเทียบช่วงเดียวกัน</div>
-            <div style="font-size: 1.35rem; color: #a93226; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.3rem;">
-              <span class="material-icons" style="font-size: 1.3rem;">trending_up</span>
-              เพิ่มขึ้น ${pFormatted}
-            </div>
-          </div>
-        `;
-      } else if (isDecrease) {
-        // ค่าลดลง = ค่าใช้จ่ายน้อยลง -> สีเขียว
+      if (isGood && (isIncrease || isDecrease)) {
+        // ผลเชิงบวก (ประหยัดขึ้น หรือ นำของเสียกลับมาใช้มากขึ้น) -> สีเขียว
         diffCardHtml = `
           <div style="background: #eafaf1; border: 1px solid #abebc6; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;">
             <div style="font-size: 0.8rem; color: #1e8449; font-weight: 500; margin-bottom: 0.2rem;">ผลต่างเทียบช่วงเดียวกัน</div>
             <div style="font-size: 1.35rem; color: #196f3d; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.3rem;">
-              <span class="material-icons" style="font-size: 1.3rem;">trending_down</span>
-              ลดลง ${pFormatted}
+              <span class="material-icons" style="font-size: 1.3rem;">${isIncrease ? 'trending_up' : 'trending_down'}</span>
+              ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}
+            </div>
+          </div>
+        `;
+      } else if (!isGood && (isIncrease || isDecrease)) {
+        // ผลเชิงลบ (ใช้จ่ายมากขึ้น หรือ นำของเสียกลับมาใช้น้อยลง) -> สีแดงส้ม
+        diffCardHtml = `
+          <div style="background: #fef5f1; border: 1px solid #fadbd8; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;">
+            <div style="font-size: 0.8rem; color: #c0392b; font-weight: 500; margin-bottom: 0.2rem;">ผลต่างเทียบช่วงเดียวกัน</div>
+            <div style="font-size: 1.35rem; color: #a93226; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.3rem;">
+              <span class="material-icons" style="font-size: 1.3rem;">${isIncrease ? 'trending_up' : 'trending_down'}</span>
+              ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}
             </div>
           </div>
         `;
@@ -2684,9 +2691,12 @@ function renderMonthlyModalContent(metricKey) {
         const pctVal = ((diff / vPrev) * 100).toFixed(1);
         const isInc = diff > 0;
         const isDec = diff < 0;
-        const color = isInc ? '#c0392b' : (isDec ? '#1e8449' : '#566573');
-        const bg = isInc ? '#fef5f1' : (isDec ? '#eafaf1' : '#f2f3f4');
-        const border = isInc ? '#fadbd8' : (isDec ? '#abebc6' : '#d5d8dc');
+        let isG = isDec;
+        if (metricKey === 'recycledWaste') isG = isInc;
+
+        const color = isG ? '#1e8449' : (diff === 0 ? '#566573' : '#c0392b');
+        const bg = isG ? '#eafaf1' : (diff === 0 ? '#f2f3f4' : '#fef5f1');
+        const border = isG ? '#abebc6' : (diff === 0 ? '#d5d8dc' : '#fadbd8');
         pctHtml = `<span style="display: inline-block; padding: 0.15rem 0.5rem; border-radius: 12px; font-weight: 600; font-size: 0.78rem; background: ${bg}; color: ${color}; border: 1px solid ${border};">${diff > 0 ? '+' : ''}${pctVal}%</span>`;
       }
       
