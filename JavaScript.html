@@ -2544,8 +2544,8 @@ function renderMonthlyModalContent(metricKey) {
             
             // 30% overlap: Distance between centers = 70% of bar width
             const shift = (barW * 0.7) / 2;
-            b0.x = center + shift; // Back bar shifted slightly right
-            b1.x = center - shift; // Front bar shifted slightly left (overlaps 30% of back bar)
+            b0.x = center - shift; // Back bar (ปีก่อนหน้า เช่น 2568) shifted LEFT
+            b1.x = center + shift; // Front bar (ปีเปรียบเทียบ เช่น 2569) shifted RIGHT (overlaps 30% in front)
           }
         }
       }

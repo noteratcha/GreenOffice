@@ -199,8 +199,8 @@ This file contains the accumulated rules, skills, workflow, architectural patter
 - **30% Overlapping Monthly Bar Chart Modal (`#resourceMonthlyDetailModal`)**:
   - Clicking any resource card opens a 12-month detailed breakdown modal with custom Chart.js plugin (`overlap30Plugin`).
   - Chart.js overlapping rendering:
-    - **Base Year (ปีก่อนหน้า - ด้านหลัง)**: Sky Blue (`rgba(93, 173, 226, 0.78)`), shifted slightly right.
-    - **Target Year (ปีเปรียบเทียบ - ด้านหน้า ซ้อนทับ 30%)**: Leaf Green (`rgba(82, 190, 128, 0.95)`), shifted slightly left with 30% horizontal width overlap.
+    - **Base Year (ปีก่อนหน้า - ด้านหลัง)**: Sky Blue (`rgba(93, 173, 226, 0.78)`), shifted slightly left (`b0.x = center - shift`).
+    - **Target Year (ปีเปรียบเทียบ - ด้านหน้า ซ้อนทับ 30%)**: Leaf Green (`rgba(82, 190, 128, 0.95)`), shifted slightly right (`b1.x = center + shift`) overlapping 30% on top of the left base bar.
   - Includes summary stat comparison cards and a 12-month table with month-by-month differences and percentage indicators.
 - **Y-Axis Dynamic +30% Headroom**:
   - Scales `scales.y.max` & `suggestedMax` are set dynamically to $1.30 \times \text{maxVal}$ (30% above the highest data point) across both monthly detail charts and overview charts to ensure datalabels and tall bars have ample headroom and never clip or touch chart legends.
