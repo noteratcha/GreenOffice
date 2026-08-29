@@ -2730,6 +2730,21 @@ function renderMonthlyModalContent(metricKey) {
   
   const isSingleYear = String(prevItem.year) === String(currItem.year);
   
+  // Line datasets for other historical/additional years (e.g. 2566, 2567)
+  const otherItems = (!isSingleYear) ? rawItems.filter(r => 
+    String(r.year) !== String(prevItem.year) && 
+    String(r.year) !== String(currItem.year)
+  ).sort((a, b) => (parseInt(a.year, 10) || 0) - (parseInt(b.year, 10) || 0)) : [];
+
+  const OTHER_YEAR_LINE_PALETTES = [
+    { border: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.08)', point: '#7c3aed' }, // Purple
+    { border: '#f97316', bg: 'rgba(249, 115, 22, 0.08)', point: '#ea580c' }, // Orange
+    { border: '#06b6d4', bg: 'rgba(6, 182, 212, 0.08)', point: '#0891b2' },  // Cyan
+    { border: '#ec4899', bg: 'rgba(236, 72, 153, 0.08)', point: '#db2777' }, // Pink
+    { border: '#6366f1', bg: 'rgba(99, 102, 241, 0.08)', point: '#4f46e5' }, // Indigo
+    { border: '#14b8a6', bg: 'rgba(20, 184, 166, 0.08)', point: '#0d9488' }  // Teal
+  ];
+
   if (modalTitle) {
     modalTitle.textContent = `สถิติเปรียบเทียบรายเดือน: ${metricName}`;
   }
@@ -2843,20 +2858,6 @@ function renderMonthlyModalContent(metricKey) {
     }
     
     const datasets = [];
-    // 1. Line datasets for other historical/additional years (e.g. 2566, 2567)
-    const otherItems = (!isSingleYear) ? rawItems.filter(r => 
-      String(r.year) !== String(prevItem.year) && 
-      String(r.year) !== String(currItem.year)
-    ).sort((a, b) => (parseInt(a.year, 10) || 0) - (parseInt(b.year, 10) || 0)) : [];
-
-    const OTHER_YEAR_LINE_PALETTES = [
-      { border: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.08)', point: '#7c3aed' }, // Purple
-      { border: '#f97316', bg: 'rgba(249, 115, 22, 0.08)', point: '#ea580c' }, // Orange
-      { border: '#06b6d4', bg: 'rgba(6, 182, 212, 0.08)', point: '#0891b2' },  // Cyan
-      { border: '#ec4899', bg: 'rgba(236, 72, 153, 0.08)', point: '#db2777' }, // Pink
-      { border: '#6366f1', bg: 'rgba(99, 102, 241, 0.08)', point: '#4f46e5' }, // Indigo
-      { border: '#14b8a6', bg: 'rgba(20, 184, 166, 0.08)', point: '#0d9488' }  // Teal
-    ];
 
     if (!isSingleYear) {
       // Determine colors for Base Year: calculated months = blue, uncalculated months = yellow/amber
