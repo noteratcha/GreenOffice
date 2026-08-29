@@ -186,16 +186,19 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Floating top datalabels with formatted comma separators (`Number(value).toLocaleString()`).
   - Interactive Admin Modal with metric tabs, live auto-calculated row totals, and inline year sorting (ปีมากไปน้อย).
 
-## 14. 2-Year Filter, Same-Period Percentage Comparison & 30% Overlapping Monthly Chart
-- **2-Year Latest Filter (`.slice(-2)`)**:
-  - Main resource cards display ONLY the 2 most recent years in chronological order (earlier year on left in Blue `#5dade2`, latest year on right in Green `#52be80`).
+## 14. Dynamic Year Range Selection, Same-Period Percentage Comparison & 30% Overlapping Monthly Chart
+- **Dynamic Year Range Selection Toolbar (`#resourceYearFilterBar`)**:
+  - Available both on the main page above the 6 chart cards and inside the `#resourceMonthlyDetailModal`.
+  - Dropdown 1: **ปีก่อนหน้า / Base Year** (Blue `#5dade2` dot).
+  - Dropdown 2: **ปีเปรียบเทียบ / Target Year** (Green `#52be80` dot).
+  - Defaults automatically to the 2 latest available years, and dynamically updates all 6 overview charts, badges, and modal charts whenever changed.
 - **Same-Period Percentage Calculation**:
-  - Compares the sum of recorded months in the latest year ($Sum_{curr}$) with the exact same months in the previous year ($Sum_{prev}$).
+  - Compares the sum of recorded months in the target year ($Sum_{curr}$) with the exact same months in the base year ($Sum_{prev}$).
   - Percentage Change formula: $\% = \frac{Sum_{curr} - Sum_{prev}}{Sum_{prev}} \times 100$.
   - Displays dynamic badges: Green (`good`) for reduction in consumption/GHG and for increase in waste recycling; Amber/Rose (`warn`) for increase in consumption.
 - **30% Overlapping Monthly Bar Chart Modal (`#resourceMonthlyDetailModal`)**:
-  - Clicking any resource card opens a 12-month detailed breakdown modal.
+  - Clicking any resource card opens a 12-month detailed breakdown modal with custom Chart.js plugin (`overlap30Plugin`).
   - Chart.js overlapping rendering:
-    - **Previous Year (ปีก่อนหน้า - ด้านหลัง)**: `barPercentage: 0.90`, Sky Blue (`rgba(93, 173, 226, 0.75)`), `order: 2`.
-    - **Latest Year (ปีล่าสุด - ด้านหน้า ซ้อนทับ 30%)**: `barPercentage: 0.63` (70% width of back bar, giving 30% visible depth overlap), Leaf Green (`rgba(82, 190, 128, 0.92)`), `order: 1`.
+    - **Base Year (ปีก่อนหน้า - ด้านหลัง)**: Sky Blue (`rgba(93, 173, 226, 0.78)`), shifted slightly right.
+    - **Target Year (ปีเปรียบเทียบ - ด้านหน้า ซ้อนทับ 30%)**: Leaf Green (`rgba(82, 190, 128, 0.95)`), shifted slightly left with 30% horizontal width overlap.
   - Includes summary stat comparison cards and a 12-month table with month-by-month differences and percentage indicators.
