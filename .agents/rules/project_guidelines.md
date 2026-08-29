@@ -139,3 +139,5 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - **Color Palette Chips** (`.event-color-palette`, `.color-chip-option`): Visual category chips with colored dots, active rings, and checkmarks for calendar events.
 - **Compact Form Grids**:
   - Use 2-column CSS Grid (`grid-template-columns: 1fr 1fr; gap: 0.85rem;`) for related fields like Date and Time to prevent unnecessary modal scrolling.
+- **Category Links Manager (`.cat-link-card`)**:
+  - Encapsulate each link item in an independent card container with a category number badge (`.cat-badge-num`), dedicated Material Icon, title, URL input with leading icon, and an interactive **"ทดสอบ" (Test Link ↗)** button that tests opening the Google Drive link in a new browser tab.
