@@ -209,15 +209,16 @@ This file contains the accumulated rules, skills, workflow, architectural patter
 - **Same-Period Percentage Calculation & Color Coding**:
   - Compares the sum of recorded months in the target year ($Sum_{curr}$) with the exact same months in the base year ($Sum_{prev}$).
   - Percentage Change formula: $\% = \frac{Sum_{curr} - Sum_{prev}}{Sum_{prev}} \times 100$.
-  - **Badge Month Range**: Overview card percentage badges display the exact compared month range in parentheses (e.g. `เพิ่มขึ้น 20.9% (ม.ค. - ส.ค.)`) so users clearly know which months are included in the same-period calculation.
+  - **ทศนิยมเปอร์เซ็นต์ (2 Decimal Places)**: แสดงผลค่าเปอร์เซ็นต์ทั้งหมดเป็นทศนิยม 2 ตำแหน่งเสมอ เช่น `20.90%`, `8.90%`, `0.00%` ทั้งบนการ์ดภาพรวม ป้ายสถิติในโมดอล และตารางแจกแจงรายเดือน
+  - **Badge Month Range**: Overview card percentage badges display the exact compared month range in parentheses (e.g. `เพิ่มขึ้น 20.90% (ม.ค. - ส.ค.)`) so users clearly know which months are included in the same-period calculation.
   - **Color Coding**:
     - **ทรัพยากรทั่วไป (ไฟฟ้า, น้ำ, น้ำมัน, กระดาษ, GHG)**:
-      - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: ค่าใช้จ่ายสูงขึ้น $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.X%`.
-      - 📉 **ค่าลดลง ($p < 0$)**: ประหยัดลง $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.X%`.
+      - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: ค่าใช้จ่ายสูงขึ้น $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.XX%`.
+      - 📉 **ค่าลดลง ($p < 0$)**: ประหยัดลง $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.XX%`.
     - **นำของเสียกลับมาใช้ (recycledWaste)**:
-      - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: นำของเสียกลับมาใช้ได้มากขึ้น (ผลดี) $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.X%`.
-      - 📉 **ค่าลดลง ($p < 0$)**: นำของเสียกลับมาใช้ได้น้อยลง (ผลลบ) $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.X%`.
-    - ➖ **เท่าเดิม ($p = 0$)**: แสดงเป็นสีเทา Neutral.
+      - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: นำของเสียกลับมาใช้ได้มากขึ้น (ผลดี) $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.XX%`.
+      - 📉 **ค่าลดลง ($p < 0$)**: นำของเสียกลับมาใช้ได้น้อยลง (ผลลบ) $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.XX%`.
+    - ➖ **เท่าเดิม ($p = 0$)**: แสดงเป็นสีเทา Neutral `0.00%`.
 - **30% Overlapping Monthly Bar Chart Modal (`#resourceMonthlyDetailModal`)**:
   - Clicking any resource card opens a 12-month detailed breakdown modal with custom Chart.js plugin (`overlap30Plugin`).
   - Chart.js overlapping rendering:
