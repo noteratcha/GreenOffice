@@ -2571,18 +2571,18 @@ function renderResourcesChart() {
               bodyFont: { size: 12, family: "'Kanit', sans-serif" },
               padding: 12,
               cornerRadius: 10,
-              boxPadding: 4,
+              displayColors: false,
               callbacks: {
                 title: () => config.label,
                 label: function(context) {
                   if (context.raw === null || context.raw === undefined || context.raw === 0) return '';
                   if (context.dataset.isCalculatedSegment) {
-                    return ` ปี ${itemBase.year} (ช่วงเทียบ ${rangeStr}): ${Number(context.raw).toLocaleString()}`;
+                    return `🟦 ปี ${itemBase.year} (ช่วงเทียบ ${rangeStr}): ${Number(context.raw).toLocaleString()}`;
                   }
                   if (context.dataset.isUncalculatedSegment) {
-                    return ` ปี ${itemBase.year} (ไม่ได้นำมาคำนวณ): ${Number(context.raw).toLocaleString()}`;
+                    return `🟨 ปี ${itemBase.year} (ไม่ได้นำมาคำนวณ): ${Number(context.raw).toLocaleString()}`;
                   }
-                  return ` ${context.dataset.label}: ${Number(context.raw).toLocaleString()}`;
+                  return `🟩 ${context.dataset.label}: ${Number(context.raw).toLocaleString()}`;
                 },
                 afterBody: function(items) {
                   if (hasUncalculated && items.length > 0) {
@@ -2594,11 +2594,11 @@ function renderResourcesChart() {
                       if (uncalculatedPrev > 0) {
                         const isAlreadyShowingUncalc = items.some(it => it.datasetIndex === 1);
                         if (!isAlreadyShowingUncalc) {
-                          lines.push(` ปี ${itemBase.year} (ไม่ได้นำมาคำนวณ): ${uncalcStr}`);
+                          lines.push(`🟨 ปี ${itemBase.year} (ไม่ได้นำมาคำนวณ): ${uncalcStr}`);
                         }
                       }
                       lines.push(`--------------------`);
-                      lines.push(` รวมทั้งปี ${itemBase.year}: ${totalStr}`);
+                      lines.push(`📋 รวมทั้งปี ${itemBase.year}: ${totalStr}`);
                       return lines.join('\n');
                     }
                   }
