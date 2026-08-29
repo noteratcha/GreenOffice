@@ -2334,7 +2334,17 @@ function renderResourcesChart() {
             anchor: 'center',
             align: 'center',
             font: { weight: 'bold', size: 10.5, family: "'Kanit', sans-serif" },
-            formatter: (val) => val > 0 ? Number(val).toLocaleString() : ''
+            formatter: function(val, context) {
+              if (!val || val <= 0) return '';
+              const chart = context.chart;
+              const meta0 = chart.getDatasetMeta(0);
+              const meta1 = chart.getDatasetMeta(1);
+              if (meta0 && meta1 && meta0.data[0] && meta1.data[0]) {
+                const segH = Math.abs(meta0.data[0].y - meta1.data[0].y);
+                if (segH < 22) return ''; // จะแสดงด้วยเส้นชี้โยง (Callout Line) แทนเพื่อไม่ให้ทับซ้อน
+              }
+              return Number(val).toLocaleString();
+            }
           }
         });
 
@@ -2423,23 +2433,91 @@ function renderResourcesChart() {
       });
     }
     
-    // Custom plugin to draw total year label above the stacked bar
-    const overviewTopTotalPlugin = {
-      id: 'overviewTopTotalPlugin',
+    // Custom plugin: draws direct year labels under each bar, total on top, and callout line for thin segments
+    const overviewBarLabelsPlugin = {
+      id: 'overviewBarLabelsPlugin',
       afterDatasetsDraw(chart) {
-        if (!hasUncalculated) return;
-        const metaTop = chart.getDatasetMeta(1); // Yellow dataset
-        if (!metaTop || !metaTop.data || !metaTop.data[0]) return;
-        const bar = metaTop.data[0];
         const ctx = chart.ctx;
-        ctx.save();
-        ctx.font = "bold 12px 'Kanit', sans-serif";
-        ctx.fillStyle = '#1a2622';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'bottom';
-        const totalText = Number(itemBase.total).toLocaleString();
-        ctx.fillText(totalText, bar.x, bar.y - 4);
-        ctx.restore();
+        const yBottom = chart.scales.y.bottom;
+        const meta0 = chart.getDatasetMeta(0);
+        const metaTarget = chart.getDatasetMeta(hasUncalculated ? 2 : 1);
+
+        // 1. Direct Year labels under each bar on X-axis
+        if (meta0 && meta0.data && meta0.data[0]) {
+          const bar0 = meta0.data[0];
+          ctx.save();
+          ctx.font = "bold 12px 'Kanit', sans-serif";
+          ctx.fillStyle = '#2471a3';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText('ปี ' + itemBase.year, bar0.x, yBottom + 7);
+          ctx.restore();
+        }
+
+        if (dataToShow.length > 1 && metaTarget && metaTarget.data && metaTarget.data[0]) {
+          const barT = metaTarget.data[0];
+          ctx.save();
+          ctx.font = "bold 12px 'Kanit', sans-serif";
+          ctx.fillStyle = '#1e8449';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'top';
+          ctx.fillText('ปี ' + itemTarget.year, barT.x, yBottom + 7);
+          ctx.restore();
+        }
+
+        // 2. Stacked Base Year total & Callout line
+        if (hasUncalculated) {
+          const metaTop = chart.getDatasetMeta(1); // Yellow dataset
+          if (metaTop && metaTop.data && metaTop.data[0] && meta0 && meta0.data && meta0.data[0]) {
+            const barYellow = metaTop.data[0];
+            const barBlue = meta0.data[0];
+            const segH = Math.abs(barBlue.y - barYellow.y);
+
+            // Draw Total on top of the stacked bar
+            ctx.save();
+            ctx.font = "bold 12px 'Kanit', sans-serif";
+            ctx.fillStyle = '#1a2622';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            const totalText = Number(itemBase.total).toLocaleString();
+            ctx.fillText(totalText, barYellow.x, barYellow.y - 4);
+            ctx.restore();
+
+            // Draw Callout pointer line when yellow segment is thin (< 22px)
+            if (segH < 22 && uncalculatedPrev > 0) {
+              const xStart = barYellow.x - (barYellow.width / 2);
+              const yMid = (barYellow.y + barBlue.y) / 2;
+              const xBend = xStart - 8;
+              const yBend = yMid - 6;
+              const xEnd = xStart - 18;
+
+              ctx.save();
+              // Dot on yellow slice edge
+              ctx.beginPath();
+              ctx.arc(xStart + 1, yMid, 2.5, 0, 2 * Math.PI);
+              ctx.fillStyle = '#d4ac0d';
+              ctx.fill();
+
+              // Pointer line
+              ctx.beginPath();
+              ctx.moveTo(xStart, yMid);
+              ctx.lineTo(xBend, yBend);
+              ctx.lineTo(xEnd, yBend);
+              ctx.strokeStyle = '#b7950b';
+              ctx.lineWidth = 1.2;
+              ctx.stroke();
+
+              // Callout text badge
+              const uncalcText = Number(uncalculatedPrev).toLocaleString();
+              ctx.font = "bold 10.5px 'Kanit', sans-serif";
+              ctx.fillStyle = '#7d6608';
+              ctx.textAlign = 'right';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(uncalcText, xEnd - 2, yBend);
+              ctx.restore();
+            }
+          }
+        }
       }
     };
 
@@ -2449,7 +2527,7 @@ function renderResourcesChart() {
 
     resourcesChartInstances[config.id] = new Chart(ctx, {
       type: 'bar',
-      plugins: [overviewTopTotalPlugin],
+      plugins: [overviewBarLabelsPlugin],
       data: {
         labels: [''],
         datasets: datasets
@@ -2458,22 +2536,11 @@ function renderResourcesChart() {
         responsive: true,
         maintainAspectRatio: false,
         layout: {
-          padding: { top: 28, bottom: 5, left: 10, right: 10 }
+          padding: { top: 28, bottom: 24, left: 24, right: 10 }
         },
         plugins: {
           legend: {
-            position: 'bottom',
-            labels: {
-              boxWidth: 12,
-              boxHeight: 12,
-              padding: 14,
-              font: { size: 11, family: "'Kanit', sans-serif" },
-              usePointStyle: false,
-              filter: function(legendItem, chartData) {
-                // Keep the bottom legend clean: show only ปี 2568 and ปี 2569
-                return !chartData.datasets[legendItem.datasetIndex]?.isUncalculatedSegment;
-              }
-            }
+            display: false
           },
           tooltip: {
             backgroundColor: 'rgba(26, 38, 34, 0.92)',
