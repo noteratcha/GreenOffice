@@ -194,10 +194,13 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Dropdown 1: **ปีก่อนหน้า / Base Year** (Blue `#5dade2` dot) - Strictly restricted to years `< Target Year` (cannot select $\ge \text{Target Year}$).
   - Dropdown 2: **ปีเปรียบเทียบ / Target Year** (Green `#52be80` dot).
   - Defaults automatically to the 2 latest available years when opening modal, and allows dynamic exploration inside the popup. Base Year options are dynamically filtered to ensure $\text{Base Year} < \text{Target Year}$ at all times.
-- **Same-Period Percentage Calculation**:
+- **Same-Period Percentage Calculation & Color Coding**:
   - Compares the sum of recorded months in the target year ($Sum_{curr}$) with the exact same months in the base year ($Sum_{prev}$).
   - Percentage Change formula: $\% = \frac{Sum_{curr} - Sum_{prev}}{Sum_{prev}} \times 100$.
-  - Displays dynamic badges: Green (`good`) for reduction in consumption/GHG and for increase in waste recycling; Amber/Rose (`warn`) for increase in consumption.
+  - **Color Coding**:
+    - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: บ่งบอกถึงค่าใช้จ่ายหรือปริมาณการใช้ที่สูงขึ้น $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.X%`.
+    - 📉 **ค่าลดลง ($p < 0$)**: บ่งบอกถึงค่าใช้จ่ายหรือปริมาณการใช้ที่ประหยัดลง $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.X%`.
+    - ➖ **เท่าเดิม ($p = 0$)**: แสดงเป็นสีเทา Neutral.
 - **30% Overlapping Monthly Bar Chart Modal (`#resourceMonthlyDetailModal`)**:
   - Clicking any resource card opens a 12-month detailed breakdown modal with custom Chart.js plugin (`overlap30Plugin`).
   - Chart.js overlapping rendering:
