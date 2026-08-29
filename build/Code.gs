@@ -792,6 +792,17 @@ const MONTH_HEADERS = ['ปี', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.
 function getResourcesData() {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    
+    // Auto-clean old unused 'resources' sheet if it exists
+    try {
+      const oldSheet = ss.getSheetByName('resources');
+      if (oldSheet) {
+        ss.deleteSheet(oldSheet);
+      }
+    } catch (errClean) {
+      Logger.log('Old sheet clean warning: ' + errClean.message);
+    }
+
     const result = {};
 
     for (const key in RESOURCE_SHEETS) {
