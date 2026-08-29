@@ -2304,20 +2304,18 @@ function openResourceMonthlyDetailModal(metricKey) {
       monthlyDetailChartInstance.destroy();
     }
     
-    // Datasets with 30% overlap:
-    // Year 1 (ปีก่อนหน้า - Back): barPercentage: 0.90, Sky Blue
-    // Year 2 (ปีล่าสุด - Front): barPercentage: 0.63, Leaf Green (70% width of back bar -> 30% overlap depth visible)
+    // Datasets configured for 30% physical overlap:
+    // Year 1 (ปีก่อนหน้า - Back): Sky Blue
+    // Year 2 (ปีล่าสุด - Front): Leaf Green (Layered on top in front)
     const datasets = [];
     if (dataToShow.length === 2) {
       datasets.push({
         label: 'ปี ' + prevItem.year + ' (ปีก่อนหน้า - ด้านหลัง)',
         data: prevItem.months || [],
-        backgroundColor: 'rgba(93, 173, 226, 0.75)',
+        backgroundColor: 'rgba(93, 173, 226, 0.78)',
         borderColor: 'rgba(41, 128, 185, 1)',
         borderWidth: 1.5,
         borderRadius: 4,
-        categoryPercentage: 0.82,
-        barPercentage: 0.90, // Wider bar in the background
         order: 2, // Layered behind
         datalabels: {
           anchor: 'end',
@@ -2333,12 +2331,10 @@ function openResourceMonthlyDetailModal(metricKey) {
     datasets.push({
       label: 'ปี ' + currItem.year + ' (ปีล่าสุด - ด้านหน้า ซ้อนทับ 30%)',
       data: currItem.months || [],
-      backgroundColor: 'rgba(82, 190, 128, 0.92)',
+      backgroundColor: 'rgba(82, 190, 128, 0.95)',
       borderColor: 'rgba(39, 174, 96, 1)',
       borderWidth: 1.5,
       borderRadius: 4,
-      categoryPercentage: 0.82,
-      barPercentage: 0.63, // 70% width of the background bar (30% overlapping visible)
       order: 1, // Layered in front
       datalabels: {
         anchor: 'end',
@@ -2350,8 +2346,37 @@ function openResourceMonthlyDetailModal(metricKey) {
       }
     });
     
+    // Custom Chart.js Plugin for exact 30% horizontal bar overlapping
+    const overlap30Plugin = {
+      id: 'overlap30Plugin',
+      beforeDatasetsDraw(chart) {
+        if (chart.data.datasets.length < 2) return;
+        const meta0 = chart.getDatasetMeta(0); // 2568 (Back - Blue)
+        const meta1 = chart.getDatasetMeta(1); // 2569 (Front - Green)
+        if (!meta0 || !meta1 || !meta0.data || !meta1.data) return;
+        
+        const len = Math.min(meta0.data.length, meta1.data.length);
+        for (let i = 0; i < len; i++) {
+          const b0 = meta0.data[i];
+          const b1 = meta1.data[i];
+          if (b0 && b1) {
+            const center = chart.scales.x.getPixelForTick(i);
+            const barW = Math.min(Math.max(chart.width / 32, 18), 30);
+            b0.width = barW;
+            b1.width = barW;
+            
+            // 30% overlap: Distance between centers = 70% of bar width
+            const shift = (barW * 0.7) / 2;
+            b0.x = center + shift; // Back bar shifted slightly right
+            b1.x = center - shift; // Front bar shifted slightly left (overlaps 30% of back bar)
+          }
+        }
+      }
+    };
+    
     monthlyDetailChartInstance = new Chart(ctx, {
       type: 'bar',
+      plugins: [overlap30Plugin],
       data: {
         labels: MONTH_SHORT_LABELS,
         datasets: datasets
@@ -2359,6 +2384,12 @@ function openResourceMonthlyDetailModal(metricKey) {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        grouped: false,
+        datasets: {
+          bar: {
+            grouped: false
+          }
+        },
         layout: {
           padding: { top: 25, bottom: 5, left: 10, right: 10 }
         },
