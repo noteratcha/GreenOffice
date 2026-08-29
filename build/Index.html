@@ -606,7 +606,15 @@
   <div id="loginModal" class="modal-backdrop">
     <div class="modal">
       <div class="modal-header">
-        <h3><span class="material-icons">login</span> เข้าสู่ระบบ</h3>
+        <div class="modal-title-wrapper">
+          <div class="modal-icon-badge">
+            <span class="material-icons">lock</span>
+          </div>
+          <div>
+            <h3>เข้าสู่ระบบ</h3>
+            <p class="modal-subtitle">สำหรับผู้ดูแลระบบ Green Office ปข.10</p>
+          </div>
+        </div>
         <button class="modal-close" onclick="closeModal('loginModal')">
           <span class="material-icons">close</span>
         </button>
@@ -637,7 +645,15 @@
   <div id="uploadModal" class="modal-backdrop">
     <div class="modal modal-lg">
       <div class="modal-header">
-        <h3><span class="material-icons">cloud_upload</span> อัปโหลดรูปภาพกิจกรรม</h3>
+        <div class="modal-title-wrapper">
+          <div class="modal-icon-badge">
+            <span class="material-icons">cloud_upload</span>
+          </div>
+          <div>
+            <h3>อัปโหลดรูปภาพกิจกรรม</h3>
+            <p class="modal-subtitle">เพิ่มรูปภาพในแกลเลอรีสไลด์หลัก</p>
+          </div>
+        </div>
         <button class="modal-close" onclick="closeModal('uploadModal')">
           <span class="material-icons">close</span>
         </button>
@@ -669,7 +685,15 @@
   <div id="newsModal" class="modal-backdrop">
     <div class="modal modal-lg">
       <div class="modal-header">
-        <h3><span class="material-icons">campaign</span> เพิ่มข่าวสารกิจกรรม</h3>
+        <div class="modal-title-wrapper">
+          <div class="modal-icon-badge">
+            <span class="material-icons">campaign</span>
+          </div>
+          <div>
+            <h3>เพิ่มข่าวสารกิจกรรม</h3>
+            <p class="modal-subtitle">กรอกข้อมูลและรูปภาพเพื่อเผยแพร่กิจกรรมสำนักงานสีเขียว</p>
+          </div>
+        </div>
         <button class="modal-close" onclick="closeModal('newsModal')">
           <span class="material-icons">close</span>
         </button>
@@ -677,25 +701,44 @@
       <div class="modal-body">
         <form id="newsForm" onsubmit="submitNews(event)">
           <div class="form-group">
-            <label class="form-label">หัวข้อข่าว</label>
-            <input type="text" id="newsTitle" class="form-input" required placeholder="ระบุหัวข้อข่าวสาร">
+            <label class="form-label" for="newsTitle">
+              <span class="material-icons form-label-icon">title</span> หัวข้อข่าวสาร <span class="text-danger">*</span>
+            </label>
+            <input type="text" id="newsTitle" class="form-input" required placeholder="ระบุหัวข้อข่าวสารหรือชื่อกิจกรรม...">
           </div>
           <div class="form-group">
-            <label class="form-label">เนื้อหา</label>
-            <textarea id="newsContent" class="form-textarea" required placeholder="ระบุรายละเอียด..."></textarea>
+            <label class="form-label" for="newsContent">
+              <span class="material-icons form-label-icon">notes</span> รายละเอียดข่าวสาร <span class="text-danger">*</span>
+            </label>
+            <textarea id="newsContent" class="form-textarea" rows="4" required placeholder="ระบุเนื้อหา รายละเอียด หรือผลการดำเนินกิจกรรม..."></textarea>
           </div>
+          
+          <!-- Modern Image Dropzone -->
           <div class="form-group">
-          <label>รูปภาพประกอบ (ถ้ามี)</label>
-          <input type="file" id="newsImage" class="form-control" accept="image/jpeg, image/png, image/webp" multiple>
-        </div>
+            <label class="form-label">
+              <span class="material-icons form-label-icon">photo_library</span> รูปภาพประกอบกิจกรรม <small class="text-muted">(เลือกได้หลายรูป .jpg, .png, .webp)</small>
+            </label>
+            <div id="newsUploadZone" class="upload-zone" onclick="document.getElementById('newsImage').click()">
+              <span class="material-icons">add_photo_alternate</span>
+              <p><strong>คลิกเพื่อเลือกรูปภาพ</strong> หรือลากไฟล์มาวางที่นี่<br><small class="text-muted">รองรับหลายไฟล์ .jpg, .png, .webp</small></p>
+              <input type="file" id="newsImage" class="hidden" accept="image/jpeg, image/png, image/webp" multiple onchange="handleNewsFileSelect(event)">
+            </div>
+            
+            <!-- Live Preview Grid of Selected Images -->
+            <div id="newsPreviewGrid" class="upload-preview-grid"></div>
+          </div>
           
           <div class="progress-bar" id="newsProgress">
             <div class="progress-bar-fill indeterminate"></div>
           </div>
           
-          <div class="modal-footer" style="padding: 1.5rem 0 0;">
-            <button type="button" class="btn btn-outline" onclick="closeModal('newsModal')">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" id="btnNewsSubmit">บันทึกข่าวสาร</button>
+          <div class="modal-footer" style="padding: 1.5rem 0 0; margin-top: 1rem;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('newsModal')">
+              <span class="material-icons">close</span> ยกเลิก
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnNewsSubmit">
+              <span class="material-icons">send</span> เผยแพร่ข่าวสาร
+            </button>
           </div>
         </form>
       </div>
@@ -782,7 +825,15 @@
   <div id="editNewsModal" class="modal-backdrop">
     <div class="modal modal-lg">
       <div class="modal-header">
-        <h3><span class="material-icons">edit</span> แก้ไขข่าวสารกิจกรรม</h3>
+        <div class="modal-title-wrapper">
+          <div class="modal-icon-badge">
+            <span class="material-icons">edit_note</span>
+          </div>
+          <div>
+            <h3>แก้ไขข่าวสารกิจกรรม</h3>
+            <p class="modal-subtitle">ปรับปรุงหัวข้อ เนื้อหา หรือเพิ่มรูปภาพประกอบ</p>
+          </div>
+        </div>
         <button class="modal-close" onclick="closeModal('editNewsModal')">
           <span class="material-icons">close</span>
         </button>
@@ -791,25 +842,44 @@
         <form id="editNewsForm" onsubmit="submitEditNews(event)">
           <input type="hidden" id="editNewsRow">
           <div class="form-group">
-            <label class="form-label">หัวข้อข่าว</label>
+            <label class="form-label" for="editNewsTitle">
+              <span class="material-icons form-label-icon">title</span> หัวข้อข่าวสาร <span class="text-danger">*</span>
+            </label>
             <input type="text" id="editNewsTitle" class="form-input" required placeholder="ระบุหัวข้อข่าวสาร">
           </div>
           <div class="form-group">
-            <label class="form-label">เนื้อหา</label>
-            <textarea id="editNewsContent" class="form-textarea" required placeholder="ระบุรายละเอียด..."></textarea>
+            <label class="form-label" for="editNewsContent">
+              <span class="material-icons form-label-icon">notes</span> รายละเอียดข่าวสาร <span class="text-danger">*</span>
+            </label>
+            <textarea id="editNewsContent" class="form-textarea" rows="4" required placeholder="ระบุรายละเอียด..."></textarea>
           </div>
+          
+          <!-- Modern Image Dropzone for Edit -->
           <div class="form-group">
-            <label>อัปโหลดรูปภาพใหม่ (หากไม่ต้องการเปลี่ยนให้เว้นว่างไว้)</label>
-            <input type="file" id="editNewsImage" class="form-control" accept="image/jpeg, image/png, image/webp" multiple>
+            <label class="form-label">
+              <span class="material-icons form-label-icon">add_photo_alternate</span> อัปโหลดรูปภาพใหม่ <small class="text-muted">(หากไม่ต้องการเปลี่ยนให้เว้นว่างไว้)</small>
+            </label>
+            <div id="editNewsUploadZone" class="upload-zone" onclick="document.getElementById('editNewsImage').click()">
+              <span class="material-icons">add_photo_alternate</span>
+              <p><strong>คลิกเพื่อเลือกรูปภาพใหม่</strong> หรือลากไฟล์มาวางที่นี่<br><small class="text-muted">รองรับหลายไฟล์ .jpg, .png, .webp</small></p>
+              <input type="file" id="editNewsImage" class="hidden" accept="image/jpeg, image/png, image/webp" multiple onchange="handleEditNewsFileSelect(event)">
+            </div>
+            
+            <!-- Live Preview Grid of Selected Images -->
+            <div id="editNewsPreviewGrid" class="upload-preview-grid"></div>
           </div>
           
           <div class="progress-bar" id="editNewsProgress">
             <div class="progress-bar-fill indeterminate"></div>
           </div>
           
-          <div class="modal-footer" style="padding: 1.5rem 0 0;">
-            <button type="button" class="btn btn-outline" onclick="closeModal('editNewsModal')">ยกเลิก</button>
-            <button type="submit" class="btn btn-primary" id="btnEditNewsSubmit">บันทึกการแก้ไข</button>
+          <div class="modal-footer" style="padding: 1.5rem 0 0; margin-top: 1rem;">
+            <button type="button" class="btn btn-outline" onclick="closeModal('editNewsModal')">
+              <span class="material-icons">close</span> ยกเลิก
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnEditNewsSubmit">
+              <span class="material-icons">save</span> บันทึกการแก้ไข
+            </button>
           </div>
         </form>
       </div>
@@ -820,7 +890,15 @@
   <div id="feedbackModal" class="modal-backdrop">
     <div class="modal modal-lg">
       <div class="modal-header">
-        <h3><span class="material-icons">rate_review</span> ช่องทางรับข้อเสนอแนะ / ข้อคิดเห็นด้านสิ่งแวดล้อม</h3>
+        <div class="modal-title-wrapper">
+          <div class="modal-icon-badge">
+            <span class="material-icons">rate_review</span>
+          </div>
+          <div>
+            <h3>ช่องทางรับข้อเสนอแนะ</h3>
+            <p class="modal-subtitle">ร่วมแสดงความคิดเห็นด้านสิ่งแวดล้อม Green Office</p>
+          </div>
+        </div>
         <button class="modal-close" onclick="closeModal('feedbackModal')">
           <span class="material-icons">close</span>
         </button>

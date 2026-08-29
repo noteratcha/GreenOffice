@@ -57,10 +57,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initImageZoom();
   
   initCalendar();
-  initFeedbackForm();
-  
-  // Drag & Drop
+  // Drag & Drop for all upload zones
   setupDragAndDrop();
+  setupNewsDragAndDrop();
+  setupEditNewsDragAndDrop();
 });
 
 // ============================================================
@@ -848,24 +848,108 @@ function processFilesToBase64(files, maxDimension = 1280, quality = 0.75) {
   return Promise.all(promises);
 }
 
+// ============================================================
+// News Upload & Live Preview Management
+// ============================================================
+
+let newsUploadFiles = [];
+
+function setupNewsDragAndDrop() {
+  const zone = document.getElementById('newsUploadZone');
+  if (!zone) return;
+  
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+  
+  zone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+  });
+  
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processNewsFiles(e.dataTransfer.files);
+    }
+  });
+}
+
+function handleNewsFileSelect(e) {
+  if (e.target.files && e.target.files.length > 0) {
+    processNewsFiles(e.target.files);
+  }
+}
+
+function processNewsFiles(files) {
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    if (!file.type.match('image.*')) {
+      showToast('กรุณาเลือกไฟล์รูปภาพเท่านั้น', 'error');
+      continue;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      showToast(`ไฟล์ ${file.name} มีขนาดใหญ่เกินไป (สูงสุด 8MB)`, 'error');
+      continue;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      newsUploadFiles.push({
+        file: file,
+        dataUrl: e.target.result
+      });
+      renderNewsUploadPreview();
+    };
+    reader.readAsDataURL(file);
+  }
+}
+
+function renderNewsUploadPreview() {
+  const container = document.getElementById('newsPreviewGrid');
+  if (!container) return;
+  if (newsUploadFiles.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  let html = '';
+  newsUploadFiles.forEach((item, index) => {
+    html += `
+      <div class="upload-preview-item">
+        <img src="${item.dataUrl}" alt="preview">
+        <button type="button" class="upload-preview-remove" onclick="removeNewsUploadFile(${index})" title="ลบรูปนี้">
+          <span class="material-icons" style="font-size: 14px;">close</span>
+        </button>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function removeNewsUploadFile(index) {
+  newsUploadFiles.splice(index, 1);
+  renderNewsUploadPreview();
+}
+
 async function submitNews(e) {
   e.preventDefault();
   
   const title = document.getElementById('newsTitle').value;
   const content = document.getElementById('newsContent').value;
-  const fileInput = document.getElementById('newsImage');
   const btn = document.getElementById('btnNewsSubmit');
   const progress = document.getElementById('newsProgress');
   
   if (!title || !content) return;
   
   btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons">hourglass_empty</span> กำลังบันทึก...';
   progress.classList.add('show');
   
   let imagesData = [];
-  if (fileInput.files && fileInput.files.length > 0) {
+  if (newsUploadFiles.length > 0) {
     try {
-      imagesData = await processFilesToBase64(fileInput.files);
+      imagesData = await processFilesToBase64(newsUploadFiles.map(x => x.file));
     } catch(err) {
       console.error('Error processing images:', err);
     }
@@ -874,11 +958,14 @@ async function submitNews(e) {
   google.script.run
     .withSuccessHandler((res) => {
       btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">send</span> เผยแพร่ข่าวสาร';
       progress.classList.remove('show');
       
       if (res.success) {
         showToast(res.message || 'เพิ่มข่าวสารสำเร็จ', 'success');
         document.getElementById('newsForm').reset();
+        newsUploadFiles = [];
+        renderNewsUploadPreview();
         closeModal('newsModal');
         loadNews();
       } else {
@@ -887,6 +974,7 @@ async function submitNews(e) {
     })
     .withFailureHandler((err) => {
       btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">send</span> เผยแพร่ข่าวสาร';
       progress.classList.remove('show');
       showToast('การเชื่อมต่อล้มเหลว: ' + (err.message || ''), 'error');
     })
@@ -990,23 +1078,89 @@ function formatNewsDate(dateVal) {
   return String(dateVal).split(' ')[0];
 }
 
-let editNewsImagesBase64 = [];
-document.getElementById('editNewsImage').addEventListener('change', function(e) {
-  editNewsImagesBase64 = [];
-  const files = e.target.files;
-  if (!files || files.length === 0) return;
-  for(let i = 0; i < files.length; i++) {
+// ============================================================
+// Edit News Upload & Live Preview Management
+// ============================================================
+
+let editNewsUploadFiles = [];
+
+function setupEditNewsDragAndDrop() {
+  const zone = document.getElementById('editNewsUploadZone');
+  if (!zone) return;
+  
+  zone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    zone.classList.add('dragover');
+  });
+  
+  zone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+  });
+  
+  zone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processEditNewsFiles(e.dataTransfer.files);
+    }
+  });
+}
+
+function handleEditNewsFileSelect(e) {
+  if (e.target.files && e.target.files.length > 0) {
+    processEditNewsFiles(e.target.files);
+  }
+}
+
+function processEditNewsFiles(files) {
+  for (let i = 0; i < files.length; i++) {
     const file = files[i];
+    if (!file.type.match('image.*')) {
+      showToast('กรุณาเลือกไฟล์รูปภาพเท่านั้น', 'error');
+      continue;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      showToast(`ไฟล์ ${file.name} มีขนาดใหญ่เกินไป (สูงสุด 8MB)`, 'error');
+      continue;
+    }
     const reader = new FileReader();
-    reader.onload = (ev) => {
-      editNewsImagesBase64.push({
-        data: ev.target.result.split(',')[1],
-        mimeType: file.type
+    reader.onload = (e) => {
+      editNewsUploadFiles.push({
+        file: file,
+        dataUrl: e.target.result
       });
+      renderEditNewsUploadPreview();
     };
     reader.readAsDataURL(file);
   }
-});
+}
+
+function renderEditNewsUploadPreview() {
+  const container = document.getElementById('editNewsPreviewGrid');
+  if (!container) return;
+  if (editNewsUploadFiles.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  let html = '';
+  editNewsUploadFiles.forEach((item, index) => {
+    html += `
+      <div class="upload-preview-item">
+        <img src="${item.dataUrl}" alt="preview">
+        <button type="button" class="upload-preview-remove" onclick="removeEditNewsUploadFile(${index})" title="ลบรูปนี้">
+          <span class="material-icons" style="font-size: 14px;">close</span>
+        </button>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function removeEditNewsUploadFile(index) {
+  editNewsUploadFiles.splice(index, 1);
+  renderEditNewsUploadPreview();
+}
 
 function openEditNews(idx) {
   const news = globalNewsData[idx];
@@ -1016,7 +1170,8 @@ function openEditNews(idx) {
   document.getElementById('editNewsTitle').value = news.title;
   document.getElementById('editNewsContent').value = news.content;
   document.getElementById('editNewsImage').value = '';
-  editNewsImagesBase64 = [];
+  editNewsUploadFiles = [];
+  renderEditNewsUploadPreview();
 
   openModal('editNewsModal');
 }
@@ -1026,17 +1181,17 @@ async function submitEditNews(e) {
   const row = parseInt(document.getElementById('editNewsRow').value);
   const title = document.getElementById('editNewsTitle').value;
   const content = document.getElementById('editNewsContent').value;
-  const fileInput = document.getElementById('editNewsImage');
   const btn = document.getElementById('btnEditNewsSubmit');
   const progress = document.getElementById('editNewsProgress');
 
   btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons">hourglass_empty</span> กำลังบันทึก...';
   progress.classList.add('show');
 
   let imagesData = [];
-  if (fileInput.files && fileInput.files.length > 0) {
+  if (editNewsUploadFiles.length > 0) {
     try {
-      imagesData = await processFilesToBase64(fileInput.files);
+      imagesData = await processFilesToBase64(editNewsUploadFiles.map(x => x.file));
     } catch(err) {
       console.error('Error processing images for edit:', err);
     }
@@ -1045,9 +1200,12 @@ async function submitEditNews(e) {
   google.script.run
     .withSuccessHandler((res) => {
       btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">save</span> บันทึกการแก้ไข';
       progress.classList.remove('show');
       if (res.success) {
         showToast('แก้ไขข่าวสารสำเร็จ', 'success');
+        editNewsUploadFiles = [];
+        renderEditNewsUploadPreview();
         closeModal('editNewsModal');
         loadNews();
       } else {
@@ -1056,10 +1214,11 @@ async function submitEditNews(e) {
     })
     .withFailureHandler((err) => {
       btn.disabled = false;
+      btn.innerHTML = '<span class="material-icons">save</span> บันทึกการแก้ไข';
       progress.classList.remove('show');
       showToast('การเชื่อมต่อล้มเหลว: ' + (err.message || ''), 'error');
     })
-    .editNews(row, title, content, imagesData);
+    .editNews(row, title, content, imagesData, currentUser);
 }
 
 function deleteNewsItem(idx) {
