@@ -217,7 +217,8 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Chart.js overlapping rendering:
     - **Base Year (ปีก่อนหน้า - ด้านหลัง)**: Sky Blue (`rgba(93, 173, 226, 0.78)`), shifted slightly left (`b0.x = center - shift`).
     - **Target Year (ปีเปรียบเทียบ - ด้านหน้า ซ้อนทับ 30%)**: Leaf Green (`rgba(82, 190, 128, 0.95)`), shifted slightly right (`b1.x = center + shift`) overlapping 30% on top of the left base bar.
-  - Includes summary stat comparison cards and a 12-month table with month-by-month differences and percentage indicators.
+  - **Modal Stat Pill Cards**: Displays both the calculated portion and the full year total in the format `ค่าที่เอาไปคำนวณ / ค่าทั้งหมด` (e.g. `11,750 / 18,050`).
+  - Includes summary stat comparison cards and a 12-month table with month-by-month differences, uncalculated badges, and sticky summary total rows (`รวม (ช่วงเทียบ)` and `รวมทั้งปี (12 ด.)`).
 - **Anti-Collision Staggered Datalabels**:
   - To prevent datalabel text collision when two overlapping bars have equal or nearly equal values ($|v_0 - v_1| / \max < 0.25$):
     - The **Back bar (Blue - ปีก่อนหน้า)** dynamically staggers its datalabel higher (`offset: 20`) above the front bar label.

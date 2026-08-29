@@ -2640,14 +2640,24 @@ function renderMonthlyModalContent(metricKey) {
         `;
       }
 
+      const hasUncalculatedPrev = comp && (parseFloat(prevItem.total) > parseFloat(comp.sumPrev));
+      const prevValDisplay = hasUncalculatedPrev 
+        ? `${Number(comp.sumPrev).toLocaleString()} <span style="font-size: 0.95rem; color: #5d6d7e; font-weight: 500;">/ ${Number(prevItem.total).toLocaleString()}</span>`
+        : Number(comp ? comp.sumPrev : prevItem.total).toLocaleString();
+
+      const hasUncalculatedCurr = comp && (parseFloat(currItem.total) > parseFloat(comp.sumCurr));
+      const currValDisplay = hasUncalculatedCurr 
+        ? `${Number(comp.sumCurr).toLocaleString()} <span style="font-size: 0.95rem; color: #5d6d7e; font-weight: 500;">/ ${Number(currItem.total).toLocaleString()}</span>`
+        : Number(comp ? comp.sumCurr : currItem.total).toLocaleString();
+
       statPillsEl.innerHTML = `
-        <div style="background: #ebf5fb; border: 1px solid #d4e6f1; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;">
-          <div style="font-size: 0.8rem; color: #2874a6; font-weight: 500; margin-bottom: 0.2rem;">ปี ${prevItem.year} ${periodText}</div>
-          <div style="font-size: 1.35rem; color: #1b4f72; font-weight: 700;">${Number(comp ? comp.sumPrev : prevItem.total).toLocaleString()}</div>
+        <div style="background: #ebf5fb; border: 1px solid #d4e6f1; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;" title="ค่าที่นำมาคำนวณ: ${Number(comp ? comp.sumPrev : prevItem.total).toLocaleString()} | ยอดรวมทั้งปี: ${Number(prevItem.total).toLocaleString()}">
+          <div style="font-size: 0.8rem; color: #2874a6; font-weight: 500; margin-bottom: 0.2rem;">ปี ${prevItem.year} ${periodText} ${hasUncalculatedPrev ? '<span style="font-size: 0.72rem; color: #7f8c8d;">(ช่วงเทียบ / ทั้งปี)</span>' : ''}</div>
+          <div style="font-size: 1.35rem; color: #1b4f72; font-weight: 700;">${prevValDisplay}</div>
         </div>
-        <div style="background: #e8f8f5; border: 1px solid #d1f2eb; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;">
+        <div style="background: #e8f8f5; border: 1px solid #d1f2eb; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;" title="ค่าที่นำมาคำนวณ: ${Number(comp ? comp.sumCurr : currItem.total).toLocaleString()} | ยอดรวมทั้งปี: ${Number(currItem.total).toLocaleString()}">
           <div style="font-size: 0.8rem; color: #117864; font-weight: 500; margin-bottom: 0.2rem;">ปี ${currItem.year} ${periodText}</div>
-          <div style="font-size: 1.35rem; color: #0e6251; font-weight: 700;">${Number(comp ? comp.sumCurr : currItem.total).toLocaleString()}</div>
+          <div style="font-size: 1.35rem; color: #0e6251; font-weight: 700;">${currValDisplay}</div>
         </div>
         ${diffCardHtml}
       `;
@@ -2930,6 +2940,54 @@ function renderMonthlyModalContent(metricKey) {
         <td style="padding: 0.55rem 0.75rem; text-align: center;">${pctHtml}</td>
       `;
       tbody.appendChild(tr);
+    }
+
+    // Summary / Total Rows in table
+    if (!isSingleYear && comp) {
+      const diffCalc = comp.sumCurr - comp.sumPrev;
+      const pCalc = comp.percentDiff;
+      const pCalcFormatted = Math.abs(pCalc).toFixed(1) + '%';
+      const isInc = pCalc > 0;
+      const isDec = pCalc < 0;
+      let isG = isDec;
+      if (metricKey === 'recycledWaste') isG = isInc;
+      const color = isG ? '#1e8449' : (pCalc === 0 ? '#566573' : '#c0392b');
+      const bg = isG ? '#eafaf1' : (pCalc === 0 ? '#f2f3f4' : '#fef5f1');
+      const border = isG ? '#abebc6' : (pCalc === 0 ? '#d5d8dc' : '#fadbd8');
+
+      // Row 1: รวมช่วงเทียบ
+      const trCalc = document.createElement('tr');
+      trCalc.style.background = '#f9fbf9';
+      trCalc.style.borderTop = '2px solid #d2dcd0';
+      trCalc.style.fontWeight = 'bold';
+      trCalc.innerHTML = `
+        <td style="padding: 0.6rem 0.75rem; text-align: center; color: #2c3e50;">รวม (ช่วงเทียบ)</td>
+        <td style="padding: 0.6rem 0.75rem; text-align: right; color: #2471a3;">${Number(comp.sumPrev).toLocaleString()}</td>
+        <td style="padding: 0.6rem 0.75rem; text-align: right; color: #1e8449;">${Number(comp.sumCurr).toLocaleString()}</td>
+        <td style="padding: 0.6rem 0.75rem; text-align: right;">${diffCalc > 0 ? '+' : ''}${Number(diffCalc).toLocaleString()}</td>
+        <td style="padding: 0.6rem 0.75rem; text-align: center;">
+          <span style="display: inline-block; padding: 0.15rem 0.5rem; border-radius: 12px; font-weight: 700; font-size: 0.8rem; background: ${bg}; color: ${color}; border: 1px solid ${border};">${pCalc > 0 ? '+' : ''}${pCalcFormatted}</span>
+        </td>
+      `;
+      tbody.appendChild(trCalc);
+
+      // Row 2: รวมทั้งปี (ถ้ามีเดือนที่ไม่ได้คำนวณ)
+      const hasUncalculatedPrev = comp && (parseFloat(prevItem.total) > parseFloat(comp.sumPrev));
+      const hasUncalculatedCurr = comp && (parseFloat(currItem.total) > parseFloat(comp.sumCurr));
+      if (hasUncalculatedPrev || hasUncalculatedCurr) {
+        const trTotal = document.createElement('tr');
+        trTotal.style.background = '#f4f6f6';
+        trTotal.style.borderTop = '1px dashed #d5dbdb';
+        trTotal.style.fontWeight = '600';
+        trTotal.innerHTML = `
+          <td style="padding: 0.55rem 0.75rem; text-align: center; color: #7f8c8d;">รวมทั้งปี (12 ด.)</td>
+          <td style="padding: 0.55rem 0.75rem; text-align: right; color: #5d6d7e;">${Number(prevItem.total).toLocaleString()}</td>
+          <td style="padding: 0.55rem 0.75rem; text-align: right; color: #5d6d7e;">${Number(currItem.total).toLocaleString()}</td>
+          <td style="padding: 0.55rem 0.75rem; text-align: right; color: #7f8c8d;">-</td>
+          <td style="padding: 0.55rem 0.75rem; text-align: center; color: #7f8c8d; font-size: 0.75rem;">(ยอดรวมทั้งปี)</td>
+        `;
+        tbody.appendChild(trTotal);
+      }
     }
   }
 }
