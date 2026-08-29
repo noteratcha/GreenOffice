@@ -2730,11 +2730,11 @@ function renderMonthlyModalContent(metricKey) {
   
   const isSingleYear = String(prevItem.year) === String(currItem.year);
   
-  // Line datasets for other historical/additional years (e.g. 2566, 2567)
+  // Line datasets for other historical/additional years (แสดงไม่เกิน 3 เส้นล่าสุด)
   const otherItems = (!isSingleYear) ? rawItems.filter(r => 
     String(r.year) !== String(prevItem.year) && 
     String(r.year) !== String(currItem.year)
-  ).sort((a, b) => (parseInt(a.year, 10) || 0) - (parseInt(b.year, 10) || 0)) : [];
+  ).sort((a, b) => (parseInt(a.year, 10) || 0) - (parseInt(b.year, 10) || 0)).slice(-3) : [];
 
   const OTHER_YEAR_LINE_PALETTES = [
     { border: '#8b5cf6', bg: 'rgba(139, 92, 246, 0.08)', point: '#7c3aed' }, // Purple
