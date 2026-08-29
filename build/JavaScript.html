@@ -1956,6 +1956,19 @@ let resourceData = {
 };
 let currentResourceTab = 'electricity';
 let resourcesChartInstances = {};
+let monthlyDetailChartInstance = null;
+
+const MONTH_SHORT_LABELS = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+const MONTH_FULL_NAMES = ['มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+
+const RESOURCE_METRIC_ICONS = {
+  electricity: 'bolt',
+  water: 'water_drop',
+  fuel: 'local_gas_station',
+  paper: 'description',
+  ghg: 'eco',
+  recycledWaste: 'recycling'
+};
 
 function loadResourcesData() {
   google.script.run.withSuccessHandler(function(data) {
@@ -1982,6 +1995,52 @@ function refreshResourcesData() {
   }).getResourcesData();
 }
 
+function calculateSamePeriodComparison(prevItem, currItem, metricKey) {
+  if (!prevItem || !currItem) return null;
+  
+  const prevMonths = prevItem.months || [];
+  const currMonths = currItem.months || [];
+  
+  let sumPrev = 0;
+  let sumCurr = 0;
+  let recordedMonthsIndices = [];
+  
+  for (let m = 0; m < 12; m++) {
+    const currVal = parseFloat(currMonths[m]) || 0;
+    const prevVal = parseFloat(prevMonths[m]) || 0;
+    
+    // If current year has recorded data in month m (> 0)
+    if (currVal > 0) {
+      sumCurr += currVal;
+      sumPrev += prevVal;
+      recordedMonthsIndices.push(m);
+    }
+  }
+  
+  // If current year has no data yet, fallback to comparing all 12 months
+  if (recordedMonthsIndices.length === 0) {
+    for (let m = 0; m < 12; m++) {
+      sumCurr += (parseFloat(currMonths[m]) || 0);
+      sumPrev += (parseFloat(prevMonths[m]) || 0);
+      recordedMonthsIndices.push(m);
+    }
+  }
+  
+  let percentDiff = 0;
+  if (sumPrev > 0) {
+    percentDiff = ((sumCurr - sumPrev) / sumPrev) * 100;
+  }
+  
+  return {
+    prevYear: prevItem.year,
+    currYear: currItem.year,
+    sumPrev: sumPrev,
+    sumCurr: sumCurr,
+    percentDiff: percentDiff,
+    recordedMonthsIndices: recordedMonthsIndices
+  };
+}
+
 function renderResourcesChart() {
   const container = document.getElementById('resourcesChartContainer');
   const emptyState = document.getElementById('resourcesEmpty');
@@ -1999,14 +2058,12 @@ function renderResourcesChart() {
   if (container) container.style.display = 'block';
   if (emptyState) emptyState.classList.add('hidden');
   
-  // Vibrant, harmonious colors matching screenshot:
-  // Year 1 (Earlier year): Clean sky-blue (#5dade2)
-  // Year 2 (Later year): Fresh leaf-green (#52be80)
+  // Vibrant, harmonious colors:
+  // Year 1 (Earlier year): Sky-blue (#5dade2)
+  // Year 2 (Latest year): Leaf-green (#52be80)
   const colors = [
-    { bg: '#5dade2', border: '#3498db' }, // Blue
-    { bg: '#52be80', border: '#27ae60' }, // Green
-    { bg: '#f5b041', border: '#d68910' }, // Orange
-    { bg: '#af7ac5', border: '#884ea0' }  // Purple
+    { bg: '#5dade2', border: '#3498db' }, // Blue (Older)
+    { bg: '#52be80', border: '#27ae60' }  // Green (Newer)
   ];
   
   const chartsConfig = [
@@ -2032,15 +2089,51 @@ function renderResourcesChart() {
     }
     
     const rawItems = resourceData[config.key] || [];
-    // Sort chronological ascending (e.g. 2568, 2569) so older year is on the left and newer on the right in bar charts
-    const items = [...rawItems].sort((a, b) => {
+    // Sort chronological ascending (e.g. 2567, 2568, 2569)
+    const sortedAsc = [...rawItems].sort((a, b) => {
       const numA = parseInt(a.year, 10);
       const numB = parseInt(b.year, 10);
       if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
       return String(a.year || '').localeCompare(String(b.year || ''));
     });
     
-    const datasets = items.map((item, index) => {
+    // TAKE ONLY THE 2 LATEST YEARS for display!
+    const dataToShow = sortedAsc.slice(-2);
+    
+    // Calculate same-period percentage comparison
+    const badgeEl = document.getElementById(`percent_${config.key}`);
+    if (badgeEl) {
+      if (dataToShow.length === 2) {
+        const comp = calculateSamePeriodComparison(dataToShow[0], dataToShow[1], config.key);
+        if (comp) {
+          const p = comp.percentDiff;
+          const pFormatted = Math.abs(p).toFixed(1) + '%';
+          const isReduction = p < 0;
+          
+          let isGood = isReduction;
+          if (config.key === 'recycledWaste') {
+            isGood = !isReduction;
+          }
+          
+          if (p === 0) {
+            badgeEl.className = 'chart-percent-badge neutral';
+            badgeEl.innerHTML = `<span>0.0%</span>`;
+          } else if (isGood) {
+            badgeEl.className = 'chart-percent-badge good';
+            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isReduction ? 'trending_down' : 'trending_up'}</span> ${isReduction ? 'ลดลง' : 'เพิ่มขึ้น'} ${pFormatted}`;
+          } else {
+            badgeEl.className = 'chart-percent-badge warn';
+            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isReduction ? 'trending_down' : 'trending_up'}</span> ${isReduction ? 'ลดลง' : 'เพิ่มขึ้น'} ${pFormatted}`;
+          }
+          badgeEl.title = `เทียบช่วงเวลาเดียวกันที่มีข้อมูล (${comp.prevYear} vs ${comp.currYear})`;
+          badgeEl.style.display = 'inline-flex';
+        }
+      } else {
+        badgeEl.style.display = 'none';
+      }
+    }
+    
+    const datasets = dataToShow.map((item, index) => {
       const color = colors[index % colors.length];
       return {
         label: 'ปี ' + item.year,
@@ -2117,6 +2210,256 @@ function renderResourcesChart() {
       }
     });
   });
+}
+
+function openResourceMonthlyDetailModal(metricKey) {
+  const metricLabel = RESOURCE_METRIC_LABELS[metricKey] || 'สถิติทรัพยากร';
+  const metricIcon = RESOURCE_METRIC_ICONS[metricKey] || 'analytics';
+  
+  // Set modal header
+  const titleEl = document.getElementById('monthlyModalTitle');
+  if (titleEl) titleEl.textContent = `สถิติเปรียบเทียบรายเดือน: ${metricLabel}`;
+  
+  const iconBadge = document.getElementById('monthlyModalIconBadge');
+  if (iconBadge) iconBadge.innerHTML = `<span class="material-icons">${metricIcon}</span>`;
+  
+  const rawItems = (resourceData && resourceData[metricKey]) ? resourceData[metricKey] : [];
+  // Sort ascending chronological (e.g. 2568, 2569)
+  const sortedAsc = [...rawItems].sort((a, b) => {
+    const numA = parseInt(a.year, 10);
+    const numB = parseInt(b.year, 10);
+    if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+    return String(a.year || '').localeCompare(String(b.year || ''));
+  });
+  
+  // Take 2 latest years
+  const dataToShow = sortedAsc.slice(-2);
+  
+  if (dataToShow.length === 0) {
+    showToast('ยังไม่มีข้อมูลสถิติสำหรับด้านนี้', 'info');
+    return;
+  }
+  
+  const prevItem = dataToShow.length === 2 ? dataToShow[0] : { year: '-', months: Array(12).fill(0), total: 0 };
+  const currItem = dataToShow.length === 2 ? dataToShow[1] : dataToShow[0];
+  
+  const comp = calculateSamePeriodComparison(prevItem, currItem, metricKey);
+  
+  // Update Subtitle
+  const subtitleEl = document.getElementById('monthlyModalSubtitle');
+  if (subtitleEl) {
+    if (dataToShow.length === 2) {
+      subtitleEl.textContent = `เปรียบเทียบข้อมูลรายเดือน (ม.ค. - ธ.ค.) ระหว่างปี ${prevItem.year} (ด้านหลัง) และปี ${currItem.year} (ด้านหน้า ซ้อนทับ 30%)`;
+    } else {
+      subtitleEl.textContent = `ข้อมูลรายเดือน (ม.ค. - ธ.ค.) ปี ${currItem.year}`;
+    }
+  }
+  
+  // Update Table headers
+  const thPrev = document.getElementById('thPrevYear');
+  const thCurr = document.getElementById('thCurrYear');
+  if (thPrev) thPrev.textContent = `ปี ${prevItem.year}`;
+  if (thCurr) thCurr.textContent = `ปี ${currItem.year}`;
+  
+  // Render Stat Pills
+  const statPillsEl = document.getElementById('monthlyModalStatPills');
+  if (statPillsEl) {
+    const p = comp ? comp.percentDiff : 0;
+    const isReduction = p < 0;
+    let isGood = isReduction;
+    if (metricKey === 'recycledWaste') isGood = !isReduction;
+    const pFormatted = Math.abs(p).toFixed(1) + '%';
+    
+    let periodText = '';
+    if (comp && comp.recordedMonthsIndices.length < 12 && comp.recordedMonthsIndices.length > 0) {
+      const firstM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[0]];
+      const lastM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[comp.recordedMonthsIndices.length - 1]];
+      periodText = `<span style="font-size: 0.75rem; color: var(--color-text-light); font-weight: normal;">(ช่วง ${firstM} - ${lastM})</span>`;
+    }
+    
+    statPillsEl.innerHTML = `
+      <div style="background: #ebf5fb; border: 1px solid #d4e6f1; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;">
+        <div style="font-size: 0.8rem; color: #2874a6; font-weight: 500; margin-bottom: 0.2rem;">ปี ${prevItem.year} ${periodText}</div>
+        <div style="font-size: 1.35rem; color: #1b4f72; font-weight: 700;">${Number(comp ? comp.sumPrev : prevItem.total).toLocaleString()}</div>
+      </div>
+      <div style="background: #e8f8f5; border: 1px solid #d1f2eb; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;">
+        <div style="font-size: 0.8rem; color: #117864; font-weight: 500; margin-bottom: 0.2rem;">ปี ${currItem.year} ${periodText}</div>
+        <div style="font-size: 1.35rem; color: #0e6251; font-weight: 700;">${Number(comp ? comp.sumCurr : currItem.total).toLocaleString()}</div>
+      </div>
+      <div style="background: ${isGood ? '#eafaf1' : '#fdf2e9'}; border: 1px solid ${isGood ? '#abebc6' : '#fad7a0'}; border-radius: var(--radius-md); padding: 0.85rem 1.15rem; text-align: center;">
+        <div style="font-size: 0.8rem; color: ${isGood ? '#1e8449' : '#ba4a00'}; font-weight: 500; margin-bottom: 0.2rem;">ผลต่างเทียบช่วงเดียวกัน</div>
+        <div style="font-size: 1.35rem; color: ${isGood ? '#196f3d' : '#935116'}; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 0.3rem;">
+          <span class="material-icons" style="font-size: 1.3rem;">${isReduction ? 'trending_down' : 'trending_up'}</span>
+          ${isReduction ? 'ลดลง' : 'เพิ่มขึ้น'} ${pFormatted}
+        </div>
+      </div>
+    `;
+  }
+  
+  // Render Overlapping 30% Bar Chart
+  const canvas = document.getElementById('monthlyDetailCanvas');
+  if (canvas) {
+    const ctx = canvas.getContext('2d');
+    if (monthlyDetailChartInstance) {
+      monthlyDetailChartInstance.destroy();
+    }
+    
+    // Datasets with 30% overlap:
+    // Year 1 (ปีก่อนหน้า - Back): barPercentage: 0.90, Sky Blue
+    // Year 2 (ปีล่าสุด - Front): barPercentage: 0.63, Leaf Green (70% width of back bar -> 30% overlap depth visible)
+    const datasets = [];
+    if (dataToShow.length === 2) {
+      datasets.push({
+        label: 'ปี ' + prevItem.year + ' (ปีก่อนหน้า - ด้านหลัง)',
+        data: prevItem.months || [],
+        backgroundColor: 'rgba(93, 173, 226, 0.75)',
+        borderColor: 'rgba(41, 128, 185, 1)',
+        borderWidth: 1.5,
+        borderRadius: 4,
+        categoryPercentage: 0.82,
+        barPercentage: 0.90, // Wider bar in the background
+        order: 2, // Layered behind
+        datalabels: {
+          anchor: 'end',
+          align: 'top',
+          offset: 2,
+          color: '#2471a3',
+          font: { size: 10, weight: 'bold', family: "'Kanit', sans-serif" },
+          formatter: (v) => v > 0 ? Number(v).toLocaleString() : ''
+        }
+      });
+    }
+    
+    datasets.push({
+      label: 'ปี ' + currItem.year + ' (ปีล่าสุด - ด้านหน้า ซ้อนทับ 30%)',
+      data: currItem.months || [],
+      backgroundColor: 'rgba(82, 190, 128, 0.92)',
+      borderColor: 'rgba(39, 174, 96, 1)',
+      borderWidth: 1.5,
+      borderRadius: 4,
+      categoryPercentage: 0.82,
+      barPercentage: 0.63, // 70% width of the background bar (30% overlapping visible)
+      order: 1, // Layered in front
+      datalabels: {
+        anchor: 'end',
+        align: 'top',
+        offset: 2,
+        color: '#145a32',
+        font: { size: 11, weight: 'bold', family: "'Kanit', sans-serif" },
+        formatter: (v) => v > 0 ? Number(v).toLocaleString() : ''
+      }
+    });
+    
+    monthlyDetailChartInstance = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: MONTH_SHORT_LABELS,
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+          padding: { top: 25, bottom: 5, left: 10, right: 10 }
+        },
+        interaction: {
+          mode: 'index',
+          intersect: false
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: {
+              boxWidth: 14,
+              boxHeight: 14,
+              font: { size: 12, family: "'Kanit', sans-serif" },
+              padding: 14
+            }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(26, 38, 34, 0.92)',
+            padding: 12,
+            cornerRadius: 8,
+            titleFont: { size: 13, family: "'Kanit', sans-serif" },
+            bodyFont: { size: 12, family: "'Kanit', sans-serif" },
+            callbacks: {
+              label: function(ctx) {
+                return ` ${ctx.dataset.label}: ${Number(ctx.raw || 0).toLocaleString()}`;
+              },
+              afterBody: function(items) {
+                if (items.length === 2) {
+                  const vPrev = items[0].raw || 0;
+                  const vCurr = items[1].raw || 0;
+                  if (vPrev > 0) {
+                    const diff = vCurr - vPrev;
+                    const pct = ((diff / vPrev) * 100).toFixed(1);
+                    return `--------------------\n ผลต่าง: ${diff > 0 ? '+' : ''}${Number(diff).toLocaleString()} (${diff > 0 ? '+' : ''}${pct}%)`;
+                  }
+                }
+                return '';
+              }
+            }
+          },
+          datalabels: {
+            display: true
+          }
+        },
+        scales: {
+          x: {
+            stacked: false,
+            grid: { display: false },
+            ticks: { font: { size: 12, family: "'Kanit', sans-serif" } }
+          },
+          y: {
+            beginAtZero: true,
+            grid: {
+              color: 'rgba(0, 0, 0, 0.06)',
+              drawBorder: false
+            },
+            ticks: {
+              font: { size: 11, family: "'Kanit', sans-serif" },
+              callback: (v) => Number(v).toLocaleString()
+            }
+          }
+        }
+      }
+    });
+  }
+  
+  // Render Breakdown Table Body
+  const tbody = document.getElementById('monthlyModalTableBody');
+  if (tbody) {
+    tbody.innerHTML = '';
+    for (let m = 0; m < 12; m++) {
+      const vPrev = prevItem.months ? (prevItem.months[m] || 0) : 0;
+      const vCurr = currItem.months ? (currItem.months[m] || 0) : 0;
+      const diff = vCurr - vPrev;
+      let pctHtml = '<span style="color: #888;">-</span>';
+      
+      if (vPrev > 0 && vCurr > 0) {
+        const pctVal = ((diff / vPrev) * 100).toFixed(1);
+        const isRed = diff < 0;
+        let isG = isRed;
+        if (metricKey === 'recycledWaste') isG = !isRed;
+        const color = isG ? '#1e8449' : '#ba4a00';
+        const bg = isG ? '#eafaf1' : '#fdf2e9';
+        pctHtml = `<span style="display: inline-block; padding: 0.15rem 0.45rem; border-radius: 12px; font-weight: 600; font-size: 0.78rem; background: ${bg}; color: ${color};">${diff > 0 ? '+' : ''}${pctVal}%</span>`;
+      }
+      
+      const tr = document.createElement('tr');
+      tr.style.borderBottom = '1px solid #eef2ed';
+      tr.innerHTML = `
+        <td style="padding: 0.55rem 0.75rem; text-align: center; font-weight: 600;">${MONTH_SHORT_LABELS[m]}</td>
+        <td style="padding: 0.55rem 0.75rem; text-align: right; color: #2471a3;">${vPrev > 0 ? Number(vPrev).toLocaleString() : '-'}</td>
+        <td style="padding: 0.55rem 0.75rem; text-align: right; color: #1e8449; font-weight: 600;">${vCurr > 0 ? Number(vCurr).toLocaleString() : '-'}</td>
+        <td style="padding: 0.55rem 0.75rem; text-align: right;">${(vPrev > 0 || vCurr > 0) ? `${diff > 0 ? '+' : ''}${Number(diff).toLocaleString()}` : '-'}</td>
+        <td style="padding: 0.55rem 0.75rem; text-align: center;">${pctHtml}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+  
+  openModal('resourceMonthlyDetailModal');
 }
 
 const RESOURCE_METRIC_LABELS = {

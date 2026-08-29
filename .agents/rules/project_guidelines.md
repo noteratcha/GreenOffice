@@ -184,4 +184,18 @@ This file contains the accumulated rules, skills, workflow, architectural patter
 - **Visual Chart Rendering (Chart.js + DataLabels)**:
   - Chart bars are grouped by year (e.g. Blue `#5dade2` for Year 1, Green `#52be80` for Year 2).
   - Floating top datalabels with formatted comma separators (`Number(value).toLocaleString()`).
-  - Interactive Admin Modal with metric tabs and direct "เปิด Google Sheets ↗" deep-link.
+  - Interactive Admin Modal with metric tabs, live auto-calculated row totals, and inline year sorting (ปีมากไปน้อย).
+
+## 14. 2-Year Filter, Same-Period Percentage Comparison & 30% Overlapping Monthly Chart
+- **2-Year Latest Filter (`.slice(-2)`)**:
+  - Main resource cards display ONLY the 2 most recent years in chronological order (earlier year on left in Blue `#5dade2`, latest year on right in Green `#52be80`).
+- **Same-Period Percentage Calculation**:
+  - Compares the sum of recorded months in the latest year ($Sum_{curr}$) with the exact same months in the previous year ($Sum_{prev}$).
+  - Percentage Change formula: $\% = \frac{Sum_{curr} - Sum_{prev}}{Sum_{prev}} \times 100$.
+  - Displays dynamic badges: Green (`good`) for reduction in consumption/GHG and for increase in waste recycling; Amber/Rose (`warn`) for increase in consumption.
+- **30% Overlapping Monthly Bar Chart Modal (`#resourceMonthlyDetailModal`)**:
+  - Clicking any resource card opens a 12-month detailed breakdown modal.
+  - Chart.js overlapping rendering:
+    - **Previous Year (ปีก่อนหน้า - ด้านหลัง)**: `barPercentage: 0.90`, Sky Blue (`rgba(93, 173, 226, 0.75)`), `order: 2`.
+    - **Latest Year (ปีล่าสุด - ด้านหน้า ซ้อนทับ 30%)**: `barPercentage: 0.63` (70% width of back bar, giving 30% visible depth overlap), Leaf Green (`rgba(82, 190, 128, 0.92)`), `order: 1`.
+  - Includes summary stat comparison cards and a 12-month table with month-by-month differences and percentage indicators.
