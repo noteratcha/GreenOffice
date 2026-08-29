@@ -189,9 +189,9 @@ This file contains the accumulated rules, skills, workflow, architectural patter
 ## 14. Dynamic Year Range Selection, Same-Period Percentage Comparison & 30% Overlapping Monthly Chart
 - **Dynamic Year Range Selection Toolbar (`#resourceYearFilterBar`)**:
   - Available both on the main page above the 6 chart cards and inside the `#resourceMonthlyDetailModal`.
-  - Dropdown 1: **ปีก่อนหน้า / Base Year** (Blue `#5dade2` dot).
+  - Dropdown 1: **ปีก่อนหน้า / Base Year** (Blue `#5dade2` dot) - Strictly restricted to years `< Target Year` (cannot select $\ge \text{Target Year}$).
   - Dropdown 2: **ปีเปรียบเทียบ / Target Year** (Green `#52be80` dot).
-  - Defaults automatically to the 2 latest available years, and dynamically updates all 6 overview charts, badges, and modal charts whenever changed.
+  - Defaults automatically to the 2 latest available years, and dynamically updates all 6 overview charts, badges, and modal charts whenever changed. Base Year options are dynamically filtered to ensure $\text{Base Year} < \text{Target Year}$ at all times.
 - **Same-Period Percentage Calculation**:
   - Compares the sum of recorded months in the target year ($Sum_{curr}$) with the exact same months in the base year ($Sum_{prev}$).
   - Percentage Change formula: $\% = \frac{Sum_{curr} - Sum_{prev}}{Sum_{prev}} \times 100$.

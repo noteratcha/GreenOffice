@@ -2032,62 +2032,133 @@ function populateYearSelectors() {
   
   filterBar.style.display = 'flex';
   
-  // Set default selection if not set or invalid
+  // 1. Ensure Target Year (ปีเปรียบเทียบ) is valid
   if (!selectedTargetYear || !years.includes(selectedTargetYear)) {
     selectedTargetYear = years[years.length - 1]; // Latest year (e.g. 2569)
   }
-  if (!selectedBaseYear || !years.includes(selectedBaseYear)) {
-    selectedBaseYear = years.length >= 2 ? years[years.length - 2] : years[0]; // 2nd latest year (e.g. 2568)
+  
+  // 2. Base year MUST be strictly less than Target year (< selectedTargetYear)
+  const availableBaseYears = years.filter(y => {
+    const numY = parseInt(y, 10);
+    const numTarget = parseInt(selectedTargetYear, 10);
+    if (!isNaN(numY) && !isNaN(numTarget)) return numY < numTarget;
+    return String(y).localeCompare(String(selectedTargetYear)) < 0;
+  });
+  
+  // If current base year is not strictly less than target year, auto-pick the largest valid base year
+  if (!selectedBaseYear || !availableBaseYears.includes(selectedBaseYear)) {
+    selectedBaseYear = availableBaseYears.length > 0 ? availableBaseYears[availableBaseYears.length - 1] : years[0];
   }
   
-  const populateSelect = (selectId, activeVal) => {
+  // Target year options (all years except the minimum year when multiple years exist)
+  const availableTargetYears = years.length > 1 ? years.slice(1) : years;
+  
+  // Populate Target Year selects
+  const populateTargetSelect = (selectId) => {
     const el = document.getElementById(selectId);
     if (!el) return;
-    const currentVal = activeVal || el.value;
     el.innerHTML = '';
-    years.forEach(y => {
+    availableTargetYears.forEach(y => {
       const opt = document.createElement('option');
       opt.value = y;
       opt.textContent = 'ปี ' + y;
-      if (y === currentVal) opt.selected = true;
+      if (y === selectedTargetYear) opt.selected = true;
       el.appendChild(opt);
     });
-    el.value = currentVal;
+    el.value = selectedTargetYear;
   };
   
-  populateSelect('selectResourceBaseYear', selectedBaseYear);
-  populateSelect('selectResourceTargetYear', selectedTargetYear);
-  populateSelect('modalSelectBaseYear', selectedBaseYear);
-  populateSelect('modalSelectTargetYear', selectedTargetYear);
+  // Populate Base Year selects (strictly < selectedTargetYear)
+  const populateBaseSelect = (selectId) => {
+    const el = document.getElementById(selectId);
+    if (!el) return;
+    el.innerHTML = '';
+    const baseList = availableBaseYears.length > 0 ? availableBaseYears : [years[0]];
+    baseList.forEach(y => {
+      const opt = document.createElement('option');
+      opt.value = y;
+      opt.textContent = 'ปี ' + y;
+      if (y === selectedBaseYear) opt.selected = true;
+      el.appendChild(opt);
+    });
+    el.value = selectedBaseYear;
+  };
+  
+  populateTargetSelect('selectResourceTargetYear');
+  populateTargetSelect('modalSelectTargetYear');
+  
+  populateBaseSelect('selectResourceBaseYear');
+  populateBaseSelect('modalSelectBaseYear');
 }
 
-function onResourceYearFilterChange() {
+function onResourceYearFilterChange(changedField) {
   const baseEl = document.getElementById('selectResourceBaseYear');
   const targetEl = document.getElementById('selectResourceTargetYear');
-  if (baseEl) selectedBaseYear = baseEl.value;
-  if (targetEl) selectedTargetYear = targetEl.value;
   
-  // Sync modal selects
-  const modalBase = document.getElementById('modalSelectBaseYear');
-  const modalTarget = document.getElementById('modalSelectTargetYear');
-  if (modalBase) modalBase.value = selectedBaseYear;
-  if (modalTarget) modalTarget.value = selectedTargetYear;
+  const newBase = baseEl ? baseEl.value : selectedBaseYear;
+  const newTarget = targetEl ? targetEl.value : selectedTargetYear;
   
+  const numBase = parseInt(newBase, 10);
+  const numTarget = parseInt(newTarget, 10);
+  
+  if (changedField === 'target') {
+    selectedTargetYear = newTarget;
+    if (numBase >= numTarget) {
+      // Find largest year < newTarget
+      const years = getAllAvailableYears();
+      const validBases = years.filter(y => parseInt(y, 10) < numTarget);
+      selectedBaseYear = validBases.length > 0 ? validBases[validBases.length - 1] : years[0];
+    } else {
+      selectedBaseYear = newBase;
+    }
+  } else {
+    // Base changed
+    selectedBaseYear = newBase;
+    if (numBase >= numTarget) {
+      // Auto adjust target to smallest year > newBase
+      const years = getAllAvailableYears();
+      const validTargets = years.filter(y => parseInt(y, 10) > numBase);
+      selectedTargetYear = validTargets.length > 0 ? validTargets[0] : years[years.length - 1];
+    } else {
+      selectedTargetYear = newTarget;
+    }
+  }
+  
+  populateYearSelectors();
   renderResourcesChart();
 }
 
-function onModalYearChange() {
+function onModalYearChange(changedField) {
   const modalBase = document.getElementById('modalSelectBaseYear');
   const modalTarget = document.getElementById('modalSelectTargetYear');
-  if (modalBase) selectedBaseYear = modalBase.value;
-  if (modalTarget) selectedTargetYear = modalTarget.value;
   
-  // Sync main page selects
-  const baseEl = document.getElementById('selectResourceBaseYear');
-  const targetEl = document.getElementById('selectResourceTargetYear');
-  if (baseEl) baseEl.value = selectedBaseYear;
-  if (targetEl) targetEl.value = selectedTargetYear;
+  const newBase = modalBase ? modalBase.value : selectedBaseYear;
+  const newTarget = modalTarget ? modalTarget.value : selectedTargetYear;
   
+  const numBase = parseInt(newBase, 10);
+  const numTarget = parseInt(newTarget, 10);
+  
+  if (changedField === 'target') {
+    selectedTargetYear = newTarget;
+    if (numBase >= numTarget) {
+      const years = getAllAvailableYears();
+      const validBases = years.filter(y => parseInt(y, 10) < numTarget);
+      selectedBaseYear = validBases.length > 0 ? validBases[validBases.length - 1] : years[0];
+    } else {
+      selectedBaseYear = newBase;
+    }
+  } else {
+    selectedBaseYear = newBase;
+    if (numBase >= numTarget) {
+      const years = getAllAvailableYears();
+      const validTargets = years.filter(y => parseInt(y, 10) > numBase);
+      selectedTargetYear = validTargets.length > 0 ? validTargets[0] : years[years.length - 1];
+    } else {
+      selectedTargetYear = newTarget;
+    }
+  }
+  
+  populateYearSelectors();
   renderResourcesChart();
   renderMonthlyModalContent(currentMonthlyModalMetric);
 }
