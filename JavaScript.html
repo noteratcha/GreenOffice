@@ -1696,6 +1696,15 @@ function saveEditCategories() {
     .saveCategoryLinks(links);
 }
 
+function testCategoryLink(num) {
+  const input = document.getElementById('editCatLink' + num);
+  if (input && input.value.trim()) {
+    window.open(input.value.trim(), '_blank');
+  } else {
+    showToast('กรุณาระบุ URL สำหรับหมวดที่ ' + num, 'error');
+  }
+}
+
 
 
 function selectEventColor(color, modalType = 'event') {
