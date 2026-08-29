@@ -2634,10 +2634,70 @@ function openResourceMonthlyDetailModal(metricKey) {
   openModal('resourceMonthlyDetailModal');
 }
 
+const RESOURCE_METRIC_CONFIG = {
+  electricity: {
+    icon: 'bolt',
+    label: 'การใช้ไฟฟ้า (kWh)',
+    name: 'การใช้ไฟฟ้า',
+    bg: '#fef3c7',
+    color: '#d97706'
+  },
+  water: {
+    icon: 'water_drop',
+    label: 'การใช้น้ำ (m³)',
+    name: 'การใช้น้ำ',
+    bg: '#e0f2fe',
+    color: '#0284c7'
+  },
+  fuel: {
+    icon: 'local_gas_station',
+    label: 'น้ำมันเชื้อเพลิง (L)',
+    name: 'น้ำมันเชื้อเพลิง',
+    bg: '#ffedd5',
+    color: '#ea580c'
+  },
+  paper: {
+    icon: 'description',
+    label: 'การใช้กระดาษ (Ream)',
+    name: 'การใช้กระดาษ',
+    bg: '#f3e8ff',
+    color: '#9333ea'
+  },
+  ghg: {
+    icon: 'eco',
+    label: 'ก๊าซเรือนกระจก (kgCO2e)',
+    name: 'ก๊าซเรือนกระจก',
+    bg: '#ecfdf5',
+    color: '#059669'
+  },
+  recycledWaste: {
+    icon: 'recycling',
+    label: 'นำของเสียกลับมาใช้ (kg)',
+    name: 'นำของเสียกลับมาใช้',
+    bg: '#f0fdf4',
+    color: '#16a34a'
+  }
+};
+
 function renderMonthlyModalContent(metricKey) {
   const modalTitle = document.getElementById('monthlyModalTitle');
   const modalSubtitle = document.getElementById('monthlyModalSubtitle');
-  const metricName = RESOURCE_METRIC_LABELS[metricKey] || 'การใช้ทรัพยากร';
+  const iconBadgeEl = document.getElementById('monthlyModalIconBadge');
+  
+  const metricCfg = RESOURCE_METRIC_CONFIG[metricKey] || {
+    icon: 'analytics',
+    label: 'การใช้ทรัพยากร',
+    name: 'การใช้ทรัพยากร',
+    bg: '#eef2ed',
+    color: 'var(--color-primary)'
+  };
+  const metricName = metricCfg.name;
+  
+  if (iconBadgeEl) {
+    iconBadgeEl.style.background = metricCfg.bg;
+    iconBadgeEl.style.color = metricCfg.color;
+    iconBadgeEl.innerHTML = `<span class="material-icons">${metricCfg.icon}</span>`;
+  }
   
   const rawItems = (resourceData && resourceData[metricKey]) ? resourceData[metricKey] : [];
   
@@ -2661,7 +2721,7 @@ function renderMonthlyModalContent(metricKey) {
   }
   if (modalSubtitle) {
     if (isSingleYear) {
-      modalSubtitle.textContent = `ข้อมูลรายเดือน (ม.ค. - ธ.ค.) ปี ${currItem.year}`;
+      modalSubtitle.textContent = `ข้อมูลรายเดือน (ม.ค. - ธ.ค.) ของ${metricCfg.label} ปี ${currItem.year}`;
     } else {
       modalSubtitle.textContent = `เปรียบเทียบข้อมูลรายเดือน (ม.ค. - ธ.ค.) ระหว่างปี ${prevItem.year} และปี ${currItem.year}`;
     }

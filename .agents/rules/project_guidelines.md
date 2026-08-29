@@ -221,6 +221,14 @@ This file contains the accumulated rules, skills, workflow, architectural patter
     - ➖ **เท่าเดิม ($p = 0$)**: แสดงเป็นสีเทา Neutral `0.00%`.
 - **30% Overlapping Monthly Bar Chart Modal (`#resourceMonthlyDetailModal`)**:
   - Clicking any resource card opens a 12-month detailed breakdown modal with custom Chart.js plugin (`overlap30Plugin`).
+  - **Dynamic Modal Header Icon & Color Theme (`#monthlyModalIconBadge`)**:
+    - ไอคอนและสีพื้นหลังตรงหัวหน้าต่างป๊อปอัปจะปรับเปลี่ยนตามประเภททรัพยากรที่เปิดดูโดยอัตโนมัติ:
+      - ⚡ ไฟฟ้า: `bolt` (bg: `#fef3c7`, color: `#d97706`)
+      - 💧 น้ำประปา: `water_drop` (bg: `#e0f2fe`, color: `#0284c7`)
+      - ⛽ น้ำมันเชื้อเพลิง: `local_gas_station` (bg: `#ffedd5`, color: `#ea580c`)
+      - 📄 กระดาษ: `description` (bg: `#f3e8ff`, color: `#9333ea`)
+      - 🌱 ก๊าซเรือนกระจก: `eco` (bg: `#ecfdf5`, color: `#059669`)
+      - ♻️ นำของเสียกลับมาใช้: `recycling` (bg: `#f0fdf4`, color: `#16a34a`)
   - Chart.js overlapping rendering:
     - **Base Year (ปีก่อนหน้า - ด้านหลัง)**: Sky Blue (`rgba(93, 173, 226, 0.78)`), shifted slightly left (`b0.x = center - shift`).
     - **Target Year (ปีเปรียบเทียบ - ด้านหน้า ซ้อนทับ 30%)**: Leaf Green (`rgba(82, 190, 128, 0.95)`), shifted slightly right (`b1.x = center + shift`) overlapping 30% on top of the left base bar.
