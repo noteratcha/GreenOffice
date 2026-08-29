@@ -2321,10 +2321,10 @@ function renderResourcesChart() {
             stack: 'stackBase',
             isCalculatedSegment: true,
             datalabels: {
-              color: '#ffffff',
+              color: '#0b5394',
               anchor: 'center',
               align: 'center',
-              font: { weight: 'bold', size: 11, family: "'Kanit', sans-serif" },
+              font: { weight: 'bold', size: 11.5, family: "'Kanit', sans-serif" },
               formatter: (val) => val > 0 ? Number(val).toLocaleString() : ''
             }
           });
@@ -2585,8 +2585,22 @@ function renderResourcesChart() {
                   return ` ${context.dataset.label}: ${Number(context.raw).toLocaleString()}`;
                 },
                 afterBody: function(items) {
-                  if (hasUncalculated) {
-                    return `--------------------\n รวมทั้งปี ${itemBase.year}: ${Number(itemBase.total).toLocaleString()}`;
+                  if (hasUncalculated && items.length > 0) {
+                    const isBase = items.some(it => it.datasetIndex === 0 || it.datasetIndex === 1);
+                    if (isBase) {
+                      const uncalcStr = Number(uncalculatedPrev).toLocaleString();
+                      const totalStr = Number(itemBase.total).toLocaleString();
+                      let lines = [];
+                      if (uncalculatedPrev > 0) {
+                        const isAlreadyShowingUncalc = items.some(it => it.datasetIndex === 1);
+                        if (!isAlreadyShowingUncalc) {
+                          lines.push(` ปี ${itemBase.year} (ไม่ได้นำมาคำนวณ): ${uncalcStr}`);
+                        }
+                      }
+                      lines.push(`--------------------`);
+                      lines.push(` รวมทั้งปี ${itemBase.year}: ${totalStr}`);
+                      return lines.join('\n');
+                    }
                   }
                   return '';
                 }
