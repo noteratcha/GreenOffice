@@ -207,5 +207,10 @@ This file contains the accumulated rules, skills, workflow, architectural patter
     - **Base Year (ปีก่อนหน้า - ด้านหลัง)**: Sky Blue (`rgba(93, 173, 226, 0.78)`), shifted slightly left (`b0.x = center - shift`).
     - **Target Year (ปีเปรียบเทียบ - ด้านหน้า ซ้อนทับ 30%)**: Leaf Green (`rgba(82, 190, 128, 0.95)`), shifted slightly right (`b1.x = center + shift`) overlapping 30% on top of the left base bar.
   - Includes summary stat comparison cards and a 12-month table with month-by-month differences and percentage indicators.
+- **Anti-Collision Staggered Datalabels**:
+  - To prevent datalabel text collision when two overlapping bars have equal or nearly equal values ($|v_0 - v_1| / \max < 0.25$):
+    - The **Back bar (Blue - ปีก่อนหน้า)** dynamically staggers its datalabel higher (`offset: 20`) above the front bar label.
+    - The **Front bar (Green - ปีเปรียบเทียบ)** maintains standard top offset (`offset: 3`).
+    - Both labels render in semi-opaque white badge pills with matching pastel border tints, providing complete readability and zero overlapping numbers.
 - **Y-Axis Dynamic +30% Headroom**:
   - Scales `scales.y.max` & `suggestedMax` are set dynamically to $1.30 \times \text{maxVal}$ (30% above the highest data point) across both monthly detail charts and overview charts to ensure datalabels and tall bars have ample headroom and never clip or touch chart legends.
