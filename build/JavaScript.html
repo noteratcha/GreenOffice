@@ -23,22 +23,19 @@ document.addEventListener('DOMContentLoaded', () => {
     navCenter.classList.toggle('open');
   });
 
-  // Fix native anchor links inside iframe
+  // Fix native anchor links inside iframe / Google Sites
   document.querySelectorAll('.nav-link').forEach(link => {
     link.addEventListener('click', function(e) {
       const targetId = this.getAttribute('href');
       if (targetId && targetId.startsWith('#')) {
         e.preventDefault();
-        const targetElement = document.querySelector(targetId);
-        if (targetElement) {
-          targetElement.scrollIntoView({ behavior: 'smooth' });
-          document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
-          this.classList.add('active');
-          
-          // Close mobile menu if open
-          hamburger.classList.remove('active');
-          navCenter.classList.remove('open');
-        }
+        scrollToSection(targetId);
+        document.querySelectorAll('.nav-link').forEach(nav => nav.classList.remove('active'));
+        this.classList.add('active');
+        
+        // Close mobile menu if open
+        hamburger.classList.remove('active');
+        navCenter.classList.remove('open');
       }
     });
   });
@@ -805,7 +802,7 @@ function renderNewsPagination(totalPages) {
 function changeNewsPage(newPage) {
   currentNewsPage = newPage;
   renderNews();
-  document.getElementById('news').scrollIntoView({ behavior: 'smooth' });
+  scrollToSection('#news');
 }
 
 function processFilesToBase64(files, maxDimension = 1280, quality = 0.75) {
@@ -1088,6 +1085,23 @@ function deleteNewsItem(idx) {
 // ============================================================
 // UI Utils
 // ============================================================
+
+function scrollToSection(targetId) {
+  const targetElement = document.querySelector(targetId);
+  if (!targetElement) return;
+
+  const navbar = document.querySelector('.navbar');
+  const navHeight = navbar ? navbar.offsetHeight : 64;
+  
+  const rect = targetElement.getBoundingClientRect();
+  const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+  const targetY = rect.top + scrollTop - navHeight;
+
+  window.scrollTo({
+    top: Math.max(0, targetY),
+    behavior: 'smooth'
+  });
+}
 
 function openModal(id) {
   document.getElementById(id).classList.add('show');
