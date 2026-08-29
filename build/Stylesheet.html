@@ -1645,7 +1645,7 @@ body {
   top: 50%;
   transform: translateY(-50%) translateX(15px) scale(0.9);
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   align-items: center;
   gap: 0.85rem;
   padding-right: 1.25rem;
@@ -1662,18 +1662,19 @@ body {
   transform: translateY(-50%) translateX(0) scale(1);
 }
 
-/* Connecting Line (เส้นโยงระหว่าง FAB หลัก กับ FAB ย่อย) */
+/* Connecting Line (เส้นโยงระหว่าง FAB หลัก กับ FAB ย่อย อยู่ด้านหลังปุ่ม) */
 .fab-sub-menu::before {
   content: '';
   position: absolute;
   top: 50%;
-  right: -0.25rem;
-  width: calc(100% - 20px);
+  right: -1.25rem;
+  left: 20px;
   height: 2px;
   background: var(--color-forest);
   border-top: 2px dashed rgba(74, 99, 68, 0.85);
   transform: translateY(-50%);
-  z-index: 0;
+  z-index: 1;
+  pointer-events: none;
 }
 
 .fab-sub {
@@ -1687,7 +1688,7 @@ body {
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
   transition: var(--transition);
   position: relative;
-  z-index: 1;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1703,7 +1704,7 @@ body {
 .fab-photos-parent {
   position: relative;
   transition: var(--transition);
-  z-index: 2;
+  z-index: 3;
 }
 
 .fab-photos-parent.active {
