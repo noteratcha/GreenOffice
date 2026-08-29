@@ -2253,15 +2253,23 @@ function renderResourcesChart() {
             isGood = isIncrease;
           }
           
+          let periodText = '';
+          if (comp.recordedMonthsIndices && comp.recordedMonthsIndices.length > 0) {
+            const firstM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[0]];
+            const lastM = MONTH_SHORT_LABELS[comp.recordedMonthsIndices[comp.recordedMonthsIndices.length - 1]];
+            const rangeStr = (firstM === lastM) ? firstM : `${firstM} - ${lastM}`;
+            periodText = ` <span style="font-size: 0.72rem; opacity: 0.88; font-weight: normal; margin-left: 2px;">(${rangeStr})</span>`;
+          }
+          
           if (p === 0) {
             badgeEl.className = 'chart-percent-badge neutral';
-            badgeEl.innerHTML = `<span>0.0%</span>`;
+            badgeEl.innerHTML = `<span>0.0%${periodText}</span>`;
           } else if (isGood) {
             badgeEl.className = 'chart-percent-badge good';
-            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}`;
+            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}${periodText}`;
           } else {
             badgeEl.className = 'chart-percent-badge warn';
-            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}`;
+            badgeEl.innerHTML = `<span class="material-icons" style="font-size:14px;">${isIncrease ? 'trending_up' : 'trending_down'}</span> ${isIncrease ? 'เพิ่มขึ้น' : 'ลดลง'} ${pFormatted}${periodText}`;
           }
           badgeEl.title = `เทียบช่วงเวลาเดียวกัน (${itemBase.year} vs ${itemTarget.year})`;
           badgeEl.style.display = 'inline-flex';

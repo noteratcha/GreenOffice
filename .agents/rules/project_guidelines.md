@@ -197,6 +197,7 @@ This file contains the accumulated rules, skills, workflow, architectural patter
 - **Same-Period Percentage Calculation & Color Coding**:
   - Compares the sum of recorded months in the target year ($Sum_{curr}$) with the exact same months in the base year ($Sum_{prev}$).
   - Percentage Change formula: $\% = \frac{Sum_{curr} - Sum_{prev}}{Sum_{prev}} \times 100$.
+  - **Badge Month Range**: Overview card percentage badges display the exact compared month range in parentheses (e.g. `เพิ่มขึ้น 20.9% (ม.ค. - ส.ค.)`) so users clearly know which months are included in the same-period calculation.
   - **Color Coding**:
     - **ทรัพยากรทั่วไป (ไฟฟ้า, น้ำ, น้ำมัน, กระดาษ, GHG)**:
       - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: ค่าใช้จ่ายสูงขึ้น $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.X%`.
