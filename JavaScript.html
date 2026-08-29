@@ -2290,14 +2290,12 @@ function renderResourcesChart() {
       }
       
       let datasets = [];
-      let chartLabels = [];
       let rangeStr = '';
       let hasUncalculated = false;
       let sumPrevCalc = 0;
       let uncalculatedPrev = 0;
 
       if (dataToShow.length === 2) {
-        chartLabels = ['ปี ' + itemBase.year, 'ปี ' + itemTarget.year];
         const comp = calculateSamePeriodComparison(itemBase, itemTarget, config.key);
         sumPrevCalc = comp ? comp.sumPrev : (parseFloat(itemBase.total) || 0);
         uncalculatedPrev = Math.max(0, (parseFloat(itemBase.total) || 0) - sumPrevCalc);
@@ -2313,12 +2311,12 @@ function renderResourcesChart() {
           // Dataset 0: Year Base - ส่วนล่าง (ค่าที่เอาไปคำนวณเปรียบเทียบ - สีฟ้า)
           datasets.push({
             label: 'ปี ' + itemBase.year,
-            data: [sumPrevCalc, null],
-            backgroundColor: 'rgba(93, 173, 226, 0.9)',
+            data: [sumPrevCalc],
+            backgroundColor: 'rgba(93, 173, 226, 0.92)',
             borderColor: 'rgba(41, 128, 185, 1)',
-            borderWidth: 1,
-            borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 4, bottomRight: 4 },
-            barPercentage: 0.75,
+            borderWidth: 1.5,
+            borderRadius: { topLeft: 0, topRight: 0, bottomLeft: 6, bottomRight: 6 },
+            barPercentage: 0.64,
             categoryPercentage: 0.85,
             stack: 'stackBase',
             isCalculatedSegment: true,
@@ -2326,51 +2324,51 @@ function renderResourcesChart() {
               color: '#ffffff',
               anchor: 'center',
               align: 'center',
-              font: { weight: 'bold', size: 10.5, family: "'Kanit', sans-serif" },
-              formatter: (val, ctx) => (ctx.dataIndex === 0 && val > 0) ? Number(val).toLocaleString() : ''
+              font: { weight: 'bold', size: 11, family: "'Kanit', sans-serif" },
+              formatter: (val) => val > 0 ? Number(val).toLocaleString() : ''
             }
           });
 
           // Dataset 1: Year Base - ส่วนบนที่ซ้อนต่อกัน (ค่าที่ไม่ได้เอาไปคำนวณ - สีเหลือง)
           datasets.push({
             label: 'ปี ' + itemBase.year + ' (ไม่ได้นำมาคำนวณ)',
-            data: [uncalculatedPrev, null],
-            backgroundColor: 'rgba(244, 208, 63, 0.92)',
+            data: [uncalculatedPrev],
+            backgroundColor: 'rgba(244, 208, 63, 0.95)',
             borderColor: 'rgba(212, 172, 13, 1)',
-            borderWidth: 1,
-            borderRadius: { topLeft: 4, topRight: 4, bottomLeft: 0, bottomRight: 0 },
-            barPercentage: 0.75,
+            borderWidth: 1.5,
+            borderRadius: { topLeft: 6, topRight: 6, bottomLeft: 0, bottomRight: 0 },
+            barPercentage: 0.64,
             categoryPercentage: 0.85,
             stack: 'stackBase',
             isUncalculatedSegment: true,
             datalabels: {
-              color: '#1a2622',
+              color: '#0f172a',
               anchor: 'end',
               align: 'top',
               offset: 4,
-              font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
-              formatter: (val, ctx) => (ctx.dataIndex === 0) ? Number(itemBase.total).toLocaleString() : ''
+              font: { weight: 'bold', size: 12.5, family: "'Kanit', sans-serif" },
+              formatter: () => Number(itemBase.total).toLocaleString()
             }
           });
 
           // Dataset 2: Year Target (ปีเปรียบเทียบล่าสุด - สีเขียว)
           datasets.push({
             label: 'ปี ' + itemTarget.year,
-            data: [null, itemTarget.total],
+            data: [itemTarget.total],
             backgroundColor: 'rgba(82, 190, 128, 0.95)',
             borderColor: 'rgba(39, 174, 96, 1)',
-            borderWidth: 1,
-            borderRadius: 4,
-            barPercentage: 0.75,
+            borderWidth: 1.5,
+            borderRadius: 6,
+            barPercentage: 0.64,
             categoryPercentage: 0.85,
             stack: 'stackTarget',
             datalabels: {
-              color: '#1a2622',
+              color: '#0f172a',
               anchor: 'end',
               align: 'top',
               offset: 4,
-              font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
-              formatter: (val, ctx) => (ctx.dataIndex === 1 && val > 0) ? Number(val).toLocaleString() : ''
+              font: { weight: 'bold', size: 12.5, family: "'Kanit', sans-serif" },
+              formatter: (value) => Number(value).toLocaleString()
             }
           });
         } else {
@@ -2378,129 +2376,170 @@ function renderResourcesChart() {
           datasets = [
             {
               label: 'ปี ' + itemBase.year,
-              data: [itemBase.total, null],
-              backgroundColor: 'rgba(93, 173, 226, 0.9)',
+              data: [itemBase.total],
+              backgroundColor: 'rgba(93, 173, 226, 0.92)',
               borderColor: 'rgba(41, 128, 185, 1)',
-              borderWidth: 1,
-              borderRadius: 4,
-              barPercentage: 0.75,
+              borderWidth: 1.5,
+              borderRadius: 6,
+              barPercentage: 0.64,
               categoryPercentage: 0.85,
               stack: 'stackBase',
               datalabels: {
-                color: '#1a2622',
+                color: '#0f172a',
                 anchor: 'end',
                 align: 'top',
                 offset: 4,
-                font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
-                formatter: (val, ctx) => (ctx.dataIndex === 0 && val > 0) ? Number(val).toLocaleString() : ''
+                font: { weight: 'bold', size: 12.5, family: "'Kanit', sans-serif" },
+                formatter: (value) => Number(value).toLocaleString()
               }
             },
             {
               label: 'ปี ' + itemTarget.year,
-              data: [null, itemTarget.total],
+              data: [itemTarget.total],
               backgroundColor: 'rgba(82, 190, 128, 0.95)',
               borderColor: 'rgba(39, 174, 96, 1)',
-              borderWidth: 1,
-              borderRadius: 4,
-              barPercentage: 0.75,
+              borderWidth: 1.5,
+              borderRadius: 6,
+              barPercentage: 0.64,
               categoryPercentage: 0.85,
               stack: 'stackTarget',
               datalabels: {
-                color: '#1a2622',
+                color: '#0f172a',
                 anchor: 'end',
                 align: 'top',
                 offset: 4,
-                font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
-                formatter: (val, ctx) => (ctx.dataIndex === 1 && val > 0) ? Number(val).toLocaleString() : ''
+                font: { weight: 'bold', size: 12.5, family: "'Kanit', sans-serif" },
+                formatter: (value) => Number(value).toLocaleString()
               }
             }
           ];
         }
       } else {
         // Single year fallback
-        chartLabels = ['ปี ' + itemBase.year];
         datasets = [
           {
             label: 'ปี ' + itemBase.year,
             data: [itemBase.total],
             backgroundColor: 'rgba(82, 190, 128, 0.95)',
             borderColor: 'rgba(39, 174, 96, 1)',
-            borderWidth: 1,
-            borderRadius: 4,
-            barPercentage: 0.75,
+            borderWidth: 1.5,
+            borderRadius: 6,
+            barPercentage: 0.64,
             categoryPercentage: 0.85,
             datalabels: {
-              color: '#1a2622',
+              color: '#0f172a',
               anchor: 'end',
               align: 'top',
               offset: 4,
-              font: { weight: 'bold', size: 12, family: "'Kanit', sans-serif" },
+              font: { weight: 'bold', size: 12.5, family: "'Kanit', sans-serif" },
               formatter: (value) => Number(value).toLocaleString()
             }
           }
         ];
       }
       
-      // Custom plugin: draws yellow segment value or callout line into the gap between bars
-      const yellowCalloutPlugin = {
-        id: 'yellowCalloutPlugin',
+      // Helper function to draw smooth rounded pill badge on canvas
+      function drawPillBadge(ctx, x, y, w, h, r, bg, border, textColor, text) {
+        ctx.save();
+        ctx.beginPath();
+        const left = x - w / 2;
+        const top = y;
+        ctx.moveTo(left + r, top);
+        ctx.lineTo(left + w - r, top);
+        ctx.quadraticCurveTo(left + w, top, left + w, top + r);
+        ctx.lineTo(left + w, top + h - r);
+        ctx.quadraticCurveTo(left + w, top + h, left + w - r, top + h);
+        ctx.lineTo(left + r, top + h);
+        ctx.quadraticCurveTo(left, top + h, left, top + h - r);
+        ctx.lineTo(left, top + r);
+        ctx.quadraticCurveTo(left, top, left + r, top);
+        ctx.closePath();
+        ctx.fillStyle = bg;
+        ctx.fill();
+        if (border) {
+          ctx.strokeStyle = border;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        ctx.font = "bold 11.5px 'Kanit', sans-serif";
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text, x, top + (h / 2) + 0.5);
+        ctx.restore();
+      }
+
+      // Custom Plugin: draws bottom Year Pill Badges and uncalculated Callout Chip
+      const overviewUxPlugin = {
+        id: 'overviewUxPlugin',
         afterDatasetsDraw(chart) {
-          if (!hasUncalculated || uncalculatedPrev <= 0) return;
           try {
-            const meta0 = chart.getDatasetMeta(0);
-            const meta1 = chart.getDatasetMeta(1);
-            if (!meta0 || !meta1 || !meta0.data || !meta1.data || !meta0.data[0] || !meta1.data[0]) return;
-            
-            const barBlue = meta0.data[0];
-            const barYellow = meta1.data[0];
-            if (typeof barBlue.y !== 'number' || typeof barYellow.y !== 'number') return;
-            const segH = Math.abs(barBlue.y - barYellow.y);
             const ctx = chart.ctx;
-            const uncalcText = Number(uncalculatedPrev).toLocaleString();
+            const meta0 = chart.getDatasetMeta(0);
+            const metaTarget = chart.getDatasetMeta(hasUncalculated ? 2 : 1);
+            const yBottom = chart.scales.y.bottom;
 
-            if (segH >= 22) {
-              // Thick enough -> draw centered inside yellow block
-              ctx.save();
-              ctx.font = "bold 10.5px 'Kanit', sans-serif";
-              ctx.fillStyle = '#4a3802';
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              ctx.fillText(uncalcText, barYellow.x, (barYellow.y + barBlue.y) / 2);
-              ctx.restore();
-            } else {
-              // Thin segment (< 22px) -> Draw callout line into the gap between bars
-              const xStart = barYellow.x + (barYellow.width / 2);
-              const yMid = (barYellow.y + barBlue.y) / 2;
-              const xBend = xStart + 8;
-              const yBend = yMid - 6;
-              const xEnd = xStart + 16;
+            // 1. Draw sleek Year Pill Badges under each bar
+            if (meta0 && meta0.data && meta0.data[0]) {
+              const b0 = meta0.data[0];
+              drawPillBadge(ctx, b0.x, yBottom + 7, 72, 22, 11, 'rgba(235, 245, 251, 0.95)', '#aed6f1', '#1b4f72', 'ปี ' + itemBase.year);
+            }
 
-              ctx.save();
-              // Dot on slice edge
-              ctx.beginPath();
-              ctx.arc(xStart - 1, yMid, 2.5, 0, 2 * Math.PI);
-              ctx.fillStyle = '#d4ac0d';
-              ctx.fill();
+            if (dataToShow.length > 1 && metaTarget && metaTarget.data && metaTarget.data[0]) {
+              const bT = metaTarget.data[0];
+              drawPillBadge(ctx, bT.x, yBottom + 7, 72, 22, 11, 'rgba(232, 248, 245, 0.95)', '#a3e4d7', '#0e6251', 'ปี ' + itemTarget.year);
+            }
 
-              // Line
-              ctx.beginPath();
-              ctx.moveTo(xStart, yMid);
-              ctx.lineTo(xBend, yBend);
-              ctx.lineTo(xEnd, yBend);
-              ctx.strokeStyle = '#b7950b';
-              ctx.lineWidth = 1.2;
-              ctx.stroke();
+            // 2. Yellow Segment value & Callout Chip for thin slice
+            if (hasUncalculated && uncalculatedPrev > 0) {
+              const meta1 = chart.getDatasetMeta(1);
+              if (meta1 && meta1.data && meta1.data[0] && meta0 && meta0.data && meta0.data[0]) {
+                const barBlue = meta0.data[0];
+                const barYellow = meta1.data[0];
+                const segH = Math.abs(barBlue.y - barYellow.y);
+                const uncalcText = Number(uncalculatedPrev).toLocaleString();
 
-              // Text
-              ctx.font = "bold 10px 'Kanit', sans-serif";
-              ctx.fillStyle = '#7d6608';
-              ctx.textAlign = 'left';
-              ctx.textBaseline = 'middle';
-              ctx.fillText(uncalcText, xEnd + 3, yBend);
-              ctx.restore();
+                if (segH >= 20) {
+                  // Inside Yellow segment
+                  ctx.save();
+                  ctx.font = "bold 11px 'Kanit', sans-serif";
+                  ctx.fillStyle = '#78350f';
+                  ctx.textAlign = 'center';
+                  ctx.textBaseline = 'middle';
+                  ctx.fillText(uncalcText, barYellow.x, (barYellow.y + barBlue.y) / 2);
+                  ctx.restore();
+                } else {
+                  // Thin slice (< 20px) -> Draw Callout Chip pointing to gap
+                  const xStart = barYellow.x + (barYellow.width / 2);
+                  const yMid = (barYellow.y + barBlue.y) / 2;
+                  const xBend = xStart + 8;
+                  const yBend = yMid - 7;
+                  const xEnd = xStart + 16;
+
+                  ctx.save();
+                  // Gold dot on slice edge
+                  ctx.beginPath();
+                  ctx.arc(xStart, yMid, 2.5, 0, 2 * Math.PI);
+                  ctx.fillStyle = '#d4ac0d';
+                  ctx.fill();
+
+                  // Golden pointer line
+                  ctx.beginPath();
+                  ctx.moveTo(xStart, yMid);
+                  ctx.lineTo(xBend, yBend);
+                  ctx.lineTo(xEnd, yBend);
+                  ctx.strokeStyle = '#d4ac0d';
+                  ctx.lineWidth = 1.2;
+                  ctx.stroke();
+
+                  // Floating Callout Badge Chip
+                  drawPillBadge(ctx, xEnd + 22, yBend - 9, 44, 18, 9, '#fef9e7', '#f9e79f', '#7d6608', uncalcText);
+                  ctx.restore();
+                }
+              }
             }
           } catch (e) {
-            console.warn('Callout plugin error:', e);
+            console.warn('overviewUxPlugin error:', e);
           }
         }
       };
@@ -2511,27 +2550,28 @@ function renderResourcesChart() {
 
       resourcesChartInstances[config.id] = new Chart(ctx, {
         type: 'bar',
-        plugins: [yellowCalloutPlugin],
+        plugins: [overviewUxPlugin],
         data: {
-          labels: chartLabels,
+          labels: [''],
           datasets: datasets
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           layout: {
-            padding: { top: 28, bottom: 5, left: 10, right: 10 }
+            padding: { top: 28, bottom: 32, left: 10, right: 10 }
           },
           plugins: {
             legend: {
               display: false
             },
             tooltip: {
-              backgroundColor: 'rgba(26, 38, 34, 0.92)',
-              titleFont: { size: 12, family: "'Kanit', sans-serif" },
+              backgroundColor: 'rgba(15, 23, 42, 0.94)',
+              titleFont: { size: 12.5, family: "'Kanit', sans-serif", weight: 'bold' },
               bodyFont: { size: 12, family: "'Kanit', sans-serif" },
-              padding: 10,
-              cornerRadius: 8,
+              padding: 12,
+              cornerRadius: 10,
+              boxPadding: 4,
               callbacks: {
                 title: () => config.label,
                 label: function(context) {
@@ -2559,15 +2599,7 @@ function renderResourcesChart() {
           scales: {
             x: {
               stacked: true,
-              display: true,
-              grid: { display: false },
-              ticks: {
-                font: { size: 12, family: "'Kanit', sans-serif", weight: 'bold' },
-                color: function(tickCtx) {
-                  return tickCtx.index === 0 ? '#2471a3' : '#1e8449';
-                },
-                padding: 6
-              }
+              display: false
             },
             y: {
               stacked: true,
@@ -2575,11 +2607,12 @@ function renderResourcesChart() {
               max: overviewYMax,
               suggestedMax: overviewYMax,
               grid: {
-                color: 'rgba(0, 0, 0, 0.06)',
+                color: 'rgba(0, 0, 0, 0.05)',
                 drawBorder: false
               },
               ticks: {
-                font: { size: 10, family: "'Kanit', sans-serif" },
+                font: { size: 10.5, family: "'Kanit', sans-serif" },
+                color: '#64748b',
                 callback: (val) => Number(val).toLocaleString()
               }
             }

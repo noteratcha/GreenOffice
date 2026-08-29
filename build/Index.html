@@ -174,70 +174,92 @@
 
           .chart-card {
             background: var(--color-white);
-            border-radius: var(--radius-lg);
-            padding: 1.15rem 1.15rem 0.85rem;
-            box-shadow: var(--shadow-sm);
-            height: 375px;
+            border-radius: 16px;
+            padding: 1.15rem 1.15rem 0.75rem;
+            box-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.06);
+            height: 380px;
             position: relative;
             display: flex;
             flex-direction: column;
             cursor: pointer;
-            transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-            border: 1.5px solid transparent;
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.28s ease;
+            border: 1px solid rgba(226, 232, 240, 0.85);
           }
 
           .chart-card:hover {
             transform: translateY(-4px);
-            box-shadow: var(--shadow-md);
-            border-color: rgba(118, 139, 84, 0.35);
+            box-shadow: 0 16px 32px -4px rgba(15, 23, 42, 0.12), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+            border-color: rgba(118, 139, 84, 0.45);
           }
 
           .chart-card-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.45rem;
-            gap: 0.5rem;
+            margin-bottom: 0.35rem;
+            gap: 0.45rem;
+          }
+
+          .chart-card-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            overflow: hidden;
+          }
+
+          .chart-card-icon-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+
+          .chart-card-icon-badge .material-icons {
+            font-size: 17px;
           }
 
           .chart-card-title {
-            font-size: 0.95rem;
+            font-size: 0.92rem;
             margin: 0;
-            color: var(--color-dark);
-            font-weight: 600;
+            color: #1e293b;
+            font-weight: 700;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            letter-spacing: -0.1px;
           }
 
           .chart-percent-badge {
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
-            font-size: 0.76rem;
+            font-size: 0.74rem;
             font-weight: 700;
-            padding: 0.25rem 0.55rem;
+            padding: 0.22rem 0.55rem;
             border-radius: 20px;
             white-space: nowrap;
-            letter-spacing: 0.2px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
           }
 
           .chart-percent-badge.good {
             background: #eafaf1;
-            color: #1e8449;
-            border: 1px solid #abebc6;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
           }
 
           .chart-percent-badge.warn {
-            background: #fef5f1;
-            color: #c0392b;
-            border: 1px solid #f8c4b4;
+            background: #fef2f2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
           }
 
           .chart-percent-badge.neutral {
-            background: #f2f3f4;
-            color: #5d6d7e;
-            border: 1px solid #d5d8dc;
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid #e2e8f0;
           }
 
           .chart-canvas-wrapper {
@@ -249,21 +271,27 @@
 
           .chart-card-hint {
             text-align: center;
-            font-size: 0.75rem;
+            font-size: 0.74rem;
             color: var(--color-forest);
-            margin-top: 0.4rem;
+            margin-top: 0.35rem;
+            padding: 0.28rem 0.5rem;
+            border-radius: 6px;
             opacity: 0.75;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 0.3rem;
+            gap: 0.35rem;
             font-weight: 500;
-            transition: opacity 0.2s;
+            transition: all 0.2s ease;
+            background: #fafbfa;
+            border: 1px dashed #e2e8e0;
           }
 
           .chart-card:hover .chart-card-hint {
             opacity: 1;
             color: var(--color-primary-dark);
+            background: #f0f7ee;
+            border-color: rgba(118, 139, 84, 0.4);
           }
 
           .modal-year-filter-bar {
@@ -362,51 +390,69 @@
           <div class="resources-grid">
             <div class="chart-card" onclick="openResourceMonthlyDetailModal('electricity')" title="คลิกเพื่อดูสถิติเปรียบเทียบรายเดือน">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">การใช้ไฟฟ้า (kWh)</h3>
+                <div class="chart-card-title-wrap">
+                  <div class="chart-card-icon-badge" style="background: #fef3c7; color: #d97706;"><span class="material-icons">bolt</span></div>
+                  <h3 class="chart-card-title">การใช้ไฟฟ้า (kWh)</h3>
+                </div>
                 <span class="chart-percent-badge" id="percent_electricity">-</span>
               </div>
               <div class="chart-canvas-wrapper"><canvas id="chartElec"></canvas></div>
-              <div class="chart-card-hint"><span class="material-icons" style="font-size: 13px;">touch_app</span> คลิกดูเปรียบเทียบรายเดือน</div>
+              <div class="chart-card-hint"><span class="material-icons" style="font-size: 14px;">insights</span> คลิกดูสถิติเปรียบเทียบรายเดือน <span class="material-icons" style="font-size: 13px;">arrow_forward</span></div>
             </div>
             <div class="chart-card" onclick="openResourceMonthlyDetailModal('water')" title="คลิกเพื่อดูสถิติเปรียบเทียบรายเดือน">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">การใช้น้ำ (m³)</h3>
+                <div class="chart-card-title-wrap">
+                  <div class="chart-card-icon-badge" style="background: #e0f2fe; color: #0284c7;"><span class="material-icons">water_drop</span></div>
+                  <h3 class="chart-card-title">การใช้น้ำ (m³)</h3>
+                </div>
                 <span class="chart-percent-badge" id="percent_water">-</span>
               </div>
               <div class="chart-canvas-wrapper"><canvas id="chartWater"></canvas></div>
-              <div class="chart-card-hint"><span class="material-icons" style="font-size: 13px;">touch_app</span> คลิกดูเปรียบเทียบรายเดือน</div>
+              <div class="chart-card-hint"><span class="material-icons" style="font-size: 14px;">insights</span> คลิกดูสถิติเปรียบเทียบรายเดือน <span class="material-icons" style="font-size: 13px;">arrow_forward</span></div>
             </div>
             <div class="chart-card" onclick="openResourceMonthlyDetailModal('fuel')" title="คลิกเพื่อดูสถิติเปรียบเทียบรายเดือน">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">น้ำมันเชื้อเพลิง (L)</h3>
+                <div class="chart-card-title-wrap">
+                  <div class="chart-card-icon-badge" style="background: #ffedd5; color: #ea580c;"><span class="material-icons">local_gas_station</span></div>
+                  <h3 class="chart-card-title">น้ำมันเชื้อเพลิง (L)</h3>
+                </div>
                 <span class="chart-percent-badge" id="percent_fuel">-</span>
               </div>
               <div class="chart-canvas-wrapper"><canvas id="chartFuel"></canvas></div>
-              <div class="chart-card-hint"><span class="material-icons" style="font-size: 13px;">touch_app</span> คลิกดูเปรียบเทียบรายเดือน</div>
+              <div class="chart-card-hint"><span class="material-icons" style="font-size: 14px;">insights</span> คลิกดูสถิติเปรียบเทียบรายเดือน <span class="material-icons" style="font-size: 13px;">arrow_forward</span></div>
             </div>
             <div class="chart-card" onclick="openResourceMonthlyDetailModal('paper')" title="คลิกเพื่อดูสถิติเปรียบเทียบรายเดือน">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">การใช้กระดาษ (Ream)</h3>
+                <div class="chart-card-title-wrap">
+                  <div class="chart-card-icon-badge" style="background: #f3e8ff; color: #9333ea;"><span class="material-icons">description</span></div>
+                  <h3 class="chart-card-title">การใช้กระดาษ (Ream)</h3>
+                </div>
                 <span class="chart-percent-badge" id="percent_paper">-</span>
               </div>
               <div class="chart-canvas-wrapper"><canvas id="chartPaper"></canvas></div>
-              <div class="chart-card-hint"><span class="material-icons" style="font-size: 13px;">touch_app</span> คลิกดูเปรียบเทียบรายเดือน</div>
+              <div class="chart-card-hint"><span class="material-icons" style="font-size: 14px;">insights</span> คลิกดูสถิติเปรียบเทียบรายเดือน <span class="material-icons" style="font-size: 13px;">arrow_forward</span></div>
             </div>
             <div class="chart-card" onclick="openResourceMonthlyDetailModal('ghg')" title="คลิกเพื่อดูสถิติเปรียบเทียบรายเดือน">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">ก๊าซเรือนกระจก (kgCO2e)</h3>
+                <div class="chart-card-title-wrap">
+                  <div class="chart-card-icon-badge" style="background: #ecfdf5; color: #059669;"><span class="material-icons">eco</span></div>
+                  <h3 class="chart-card-title">ก๊าซเรือนกระจก (kgCO2e)</h3>
+                </div>
                 <span class="chart-percent-badge" id="percent_ghg">-</span>
               </div>
               <div class="chart-canvas-wrapper"><canvas id="chartGhg"></canvas></div>
-              <div class="chart-card-hint"><span class="material-icons" style="font-size: 13px;">touch_app</span> คลิกดูเปรียบเทียบรายเดือน</div>
+              <div class="chart-card-hint"><span class="material-icons" style="font-size: 14px;">insights</span> คลิกดูสถิติเปรียบเทียบรายเดือน <span class="material-icons" style="font-size: 13px;">arrow_forward</span></div>
             </div>
             <div class="chart-card" onclick="openResourceMonthlyDetailModal('recycledWaste')" title="คลิกเพื่อดูสถิติเปรียบเทียบรายเดือน">
               <div class="chart-card-header">
-                <h3 class="chart-card-title">นำของเสียกลับมาใช้ (kg)</h3>
+                <div class="chart-card-title-wrap">
+                  <div class="chart-card-icon-badge" style="background: #f0fdf4; color: #16a34a;"><span class="material-icons">recycling</span></div>
+                  <h3 class="chart-card-title">นำของเสียกลับมาใช้ (kg)</h3>
+                </div>
                 <span class="chart-percent-badge" id="percent_recycledWaste">-</span>
               </div>
               <div class="chart-canvas-wrapper"><canvas id="chartWaste"></canvas></div>
-              <div class="chart-card-hint"><span class="material-icons" style="font-size: 13px;">touch_app</span> คลิกดูเปรียบเทียบรายเดือน</div>
+              <div class="chart-card-hint"><span class="material-icons" style="font-size: 14px;">insights</span> คลิกดูสถิติเปรียบเทียบรายเดือน <span class="material-icons" style="font-size: 13px;">arrow_forward</span></div>
             </div>
           </div>
         </div>
@@ -512,7 +558,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2356</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0830.0005</p>
   </footer>
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
