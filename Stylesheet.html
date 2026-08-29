@@ -1686,7 +1686,7 @@ body {
 }
 
 .feedback-container {
-  max-width: 900px;
+  max-width: 1100px;
   margin: 0 auto;
   width: 100%;
 }
@@ -1695,7 +1695,7 @@ body {
 .feedback-cta-card {
   background: var(--color-white);
   border-radius: var(--radius-xl);
-  padding: 2.5rem;
+  padding: 2rem 2.5rem;
   box-shadow: var(--shadow-md);
   border: 1px solid rgba(118, 139, 84, 0.25);
   display: flex;
@@ -1740,13 +1740,15 @@ body {
 
 .feedback-cta-content {
   flex: 1;
+  min-width: 0;
 }
 
 .feedback-cta-content h2 {
-  font-size: 1.35rem;
+  font-size: 1.25rem;
   color: var(--color-forest);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
   font-weight: 600;
+  white-space: nowrap;
 }
 
 .feedback-cta-content p {
@@ -2127,6 +2129,9 @@ body {
     text-align: center;
     padding: 2rem 1.5rem;
     gap: 1.25rem;
+  }
+  .feedback-cta-content h2 {
+    white-space: normal;
   }
   .feedback-cta-actions {
     width: 100%;
