@@ -2031,7 +2031,14 @@ function renderResourcesChart() {
       resourcesChartInstances[config.id].destroy();
     }
     
-    const items = resourceData[config.key] || [];
+    const rawItems = resourceData[config.key] || [];
+    // Sort chronological ascending (e.g. 2568, 2569) so older year is on the left and newer on the right in bar charts
+    const items = [...rawItems].sort((a, b) => {
+      const numA = parseInt(a.year, 10);
+      const numB = parseInt(b.year, 10);
+      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
+      return String(a.year || '').localeCompare(String(b.year || ''));
+    });
     
     const datasets = items.map((item, index) => {
       const color = colors[index % colors.length];
@@ -2160,12 +2167,20 @@ function renderResourceTable(metricKey) {
     return;
   }
   
-  items.forEach((item, idx) => {
+  // Sort rows descending by year (ปีมากไปน้อย 2569, 2568, 2567 จากบนลงล่าง)
+  const sortedItems = [...items].sort((a, b) => {
+    const numA = parseInt(a.year, 10);
+    const numB = parseInt(b.year, 10);
+    if (!isNaN(numA) && !isNaN(numB)) return numB - numA;
+    return String(b.year || '').localeCompare(String(a.year || ''));
+  });
+  
+  sortedItems.forEach((item, idx) => {
     addResourceRowHtml(tbody, idx, item.year, item.months || [], item.total || 0);
   });
 }
 
-function addResourceRowHtml(tbody, idx, yearVal, monthsArr, totalVal) {
+function addResourceRowHtml(tbody, idx, yearVal, monthsArr, totalVal, insertAtTop = false) {
   const tr = document.createElement('tr');
   tr.id = `resourceRow_${idx}`;
   tr.style.borderBottom = '1px solid #eef2ed';
@@ -2196,7 +2211,12 @@ function addResourceRowHtml(tbody, idx, yearVal, monthsArr, totalVal) {
       </button>
     </td>
   `;
-  tbody.appendChild(tr);
+  
+  if (insertAtTop && tbody.firstChild) {
+    tbody.insertBefore(tr, tbody.firstChild);
+  } else {
+    tbody.appendChild(tr);
+  }
 }
 
 function recalcRowTotal(idx) {
@@ -2229,7 +2249,8 @@ function addNewResourceYear() {
   });
   
   const newIdx = Date.now();
-  addResourceRowHtml(tbody, newIdx, maxYear, [], 0);
+  // Insert newly created year at the top (insertAtTop = true)
+  addResourceRowHtml(tbody, newIdx, maxYear, [], 0, true);
   
   const newYearInput = document.getElementById(`resYear_${newIdx}`);
   if (newYearInput) newYearInput.focus();
@@ -2281,6 +2302,14 @@ function saveCurrentResourceSheet() {
       months: months
     });
   }
+  
+  // Sort descending by year
+  rowsData.sort((a, b) => {
+    const numA = parseInt(a.year, 10);
+    const numB = parseInt(b.year, 10);
+    if (!isNaN(numA) && !isNaN(numB)) return numB - numA;
+    return String(b.year || '').localeCompare(String(a.year || ''));
+  });
   
   const btn = document.getElementById('btnSaveResourceSheet');
   const originalText = btn.innerHTML;

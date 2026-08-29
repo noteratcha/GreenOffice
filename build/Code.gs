@@ -844,12 +844,12 @@ function getResourcesData() {
         });
       }
 
-      // Sort years ascending (e.g. 2568, 2569) so chart bars display chronologically
+      // Sort years descending (มากไปน้อย เช่น 2569, 2568, 2567) จากบนลงล่าง
       sheetData.sort((a, b) => {
         const numA = parseInt(a.year, 10);
         const numB = parseInt(b.year, 10);
-        if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-        return a.year.localeCompare(b.year);
+        if (!isNaN(numA) && !isNaN(numB)) return numB - numA;
+        return String(b.year || '').localeCompare(String(a.year || ''));
       });
 
       result[key] = sheetData;
@@ -888,12 +888,12 @@ function saveResourceSheetData(metricKey, rows) {
       return { success: true, message: 'บันทึกข้อมูลเรียบร้อยแล้ว' };
     }
 
-    // Sort rows by year ascending
+    // Sort rows by year descending (มากไปน้อย เช่น 2569, 2568, 2567) จากบนลงล่าง
     rows.sort((a, b) => {
       const numA = parseInt(a.year, 10);
       const numB = parseInt(b.year, 10);
-      if (!isNaN(numA) && !isNaN(numB)) return numA - numB;
-      return String(a.year || '').localeCompare(String(b.year || ''));
+      if (!isNaN(numA) && !isNaN(numB)) return numB - numA;
+      return String(b.year || '').localeCompare(String(a.year || ''));
     });
 
     const valuesToWrite = [];
