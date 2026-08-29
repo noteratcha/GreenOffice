@@ -961,6 +961,73 @@ body {
   transform: scale(1.15);
 }
 
+/* --- Resource Metric Tab Buttons --- */
+.resource-tab-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.5rem 1.05rem;
+  border-radius: var(--radius-md);
+  font-size: 0.88rem;
+  font-weight: 500;
+  border: 1.5px solid #d2dcd0;
+  background: #ffffff;
+  color: var(--color-dark);
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  font-family: var(--font-family);
+}
+
+.resource-tab-btn:hover {
+  background: #f4f7f2;
+  border-color: var(--color-primary);
+  transform: translateY(-1px);
+}
+
+/* Distinctive active focus styling per metric */
+.resource-tab-btn.active {
+  color: #ffffff !important;
+  font-weight: 600;
+  transform: translateY(-2px);
+}
+
+.resource-tab-btn#tabRes_electricity.active {
+  background: linear-gradient(135deg, #2471a3, #3498db) !important;
+  border-color: #2471a3 !important;
+  box-shadow: 0 4px 14px rgba(41, 128, 185, 0.35);
+}
+
+.resource-tab-btn#tabRes_water.active {
+  background: linear-gradient(135deg, #117864, #1abc9c) !important;
+  border-color: #117864 !important;
+  box-shadow: 0 4px 14px rgba(22, 160, 133, 0.35);
+}
+
+.resource-tab-btn#tabRes_fuel.active {
+  background: linear-gradient(135deg, #ba4a00, #e67e22) !important;
+  border-color: #ba4a00 !important;
+  box-shadow: 0 4px 14px rgba(211, 84, 0, 0.35);
+}
+
+.resource-tab-btn#tabRes_paper.active {
+  background: linear-gradient(135deg, #626567, #95a5a6) !important;
+  border-color: #626567 !important;
+  box-shadow: 0 4px 14px rgba(127, 140, 141, 0.35);
+}
+
+.resource-tab-btn#tabRes_ghg.active {
+  background: linear-gradient(135deg, #6c3483, #9b59b6) !important;
+  border-color: #6c3483 !important;
+  box-shadow: 0 4px 14px rgba(142, 68, 173, 0.35);
+}
+
+.resource-tab-btn#tabRes_recycledWaste.active {
+  background: linear-gradient(135deg, #1e8449, #27ae60) !important;
+  border-color: #1e8449 !important;
+  box-shadow: 0 4px 14px rgba(39, 174, 96, 0.35);
+}
+
 .modal-header {
   display: flex;
   align-items: center;

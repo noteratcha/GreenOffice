@@ -2128,6 +2128,15 @@ const RESOURCE_METRIC_LABELS = {
   recycledWaste: 'ของเสียกลับมาใช้'
 };
 
+const RESOURCE_METRIC_COLORS = {
+  electricity: 'linear-gradient(135deg, #2471a3, #3498db)',
+  water: 'linear-gradient(135deg, #117864, #1abc9c)',
+  fuel: 'linear-gradient(135deg, #ba4a00, #e67e22)',
+  paper: 'linear-gradient(135deg, #626567, #95a5a6)',
+  ghg: 'linear-gradient(135deg, #6c3483, #9b59b6)',
+  recycledWaste: 'linear-gradient(135deg, #1e8449, #27ae60)'
+};
+
 function openManageResourcesModal() {
   renderResourceTable(currentResourceTab);
   openModal('manageResourcesModal');
@@ -2152,6 +2161,10 @@ function renderResourceTable(metricKey) {
   const btnSave = document.getElementById('btnSaveResourceSheet');
   if (btnSave) {
     btnSave.innerHTML = `<span class="material-icons">save</span> บันทึกข้อมูล ${RESOURCE_METRIC_LABELS[metricKey] || ''}`;
+    if (RESOURCE_METRIC_COLORS[metricKey]) {
+      btnSave.style.background = RESOURCE_METRIC_COLORS[metricKey];
+      btnSave.style.borderColor = 'transparent';
+    }
   }
   
   if (!tbody) return;
