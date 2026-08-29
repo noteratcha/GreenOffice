@@ -897,3 +897,46 @@ function getPolicyImages() {
     url2: id2 ? 'https://drive.google.com/thumbnail?id=' + id2 + '&sz=w1200' : null
   };
 }
+
+// ============================================================
+// Feedback Form Submission to Google Forms
+// ============================================================
+const GOOGLE_FORM_RESPONSE_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse';
+
+function submitFeedbackForm(data) {
+  try {
+    if (!data) {
+      return { success: false, message: 'ไม่พบข้อมูลที่ต้องการส่ง' };
+    }
+
+    const payload = {};
+    if (data.date) payload['entry.877086558'] = data.date;
+    if (data.internalName) payload['entry.1498135098'] = data.internalName;
+    if (data.externalName) payload['entry.694996660'] = data.externalName;
+    if (data.topic) payload['entry.1424661284'] = data.topic;
+    if (data.detail) payload['entry.2606285'] = data.detail;
+    
+    if (data.channels && data.channels.length > 0) {
+      payload['entry.1166388958'] = data.channels;
+    }
+
+    const options = {
+      method: 'post',
+      payload: payload,
+      muteHttpExceptions: true
+    };
+
+    const response = UrlFetchApp.fetch(GOOGLE_FORM_RESPONSE_URL, options);
+    const code = response.getResponseCode();
+
+    if (code >= 200 && code < 400) {
+      return { success: true, message: 'ส่งข้อเสนอแนะเรียบร้อยแล้ว ขอบคุณสำหรับการมีส่วนร่วมครับ' };
+    } else {
+      return { success: false, message: 'เกิดข้อผิดพลาดในการส่งข้อมูลไปยัง Google Forms (รหัส ' + code + ')' };
+    }
+  } catch (error) {
+    Logger.log('Feedback submission error: ' + error.toString());
+    return { success: false, message: 'เกิดข้อผิดพลาด: ' + error.message };
+  }
+}
+

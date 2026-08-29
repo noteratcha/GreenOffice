@@ -60,6 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initImageZoom();
   
   initCalendar();
+  initFeedbackForm();
   
   // Drag & Drop
   setupDragAndDrop();
@@ -1652,6 +1653,163 @@ function submitResourceForm(e) {
     btn.disabled = false;
     showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ', 'error');
   }).saveResourceData(data);
+}
+
+// ============================================================
+// Feedback & Suggestions Handling (Google Forms Integration)
+// ============================================================
+
+function initFeedbackForm() {
+  const dateInput = document.getElementById('feedbackDate');
+  if (dateInput && !dateInput.value) {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    dateInput.value = `${yyyy}-${mm}-${dd}`;
+  }
+  const savedName = localStorage.getItem('go_name') || localStorage.getItem('go_user');
+  if (savedName) {
+    const internalInput = document.getElementById('feedbackInternalName');
+    if (internalInput && !internalInput.value) {
+      internalInput.value = savedName === 'admin' ? 'สำนักงานไปรษณีย์เขต 10' : savedName;
+    }
+  }
+}
+
+function switchFeedbackUserType(type) {
+  const btnInternal = document.getElementById('btnUserInternal');
+  const btnExternal = document.getElementById('btnUserExternal');
+  const groupInternal = document.getElementById('groupInternalName');
+  const groupExternal = document.getElementById('groupExternalName');
+  const inputInternal = document.getElementById('feedbackInternalName');
+  const inputExternal = document.getElementById('feedbackExternalName');
+
+  if (!btnInternal || !btnExternal) return;
+
+  if (type === 'internal') {
+    btnInternal.classList.add('active');
+    btnExternal.classList.remove('active');
+    groupInternal.classList.remove('hidden');
+    groupExternal.classList.add('hidden');
+    inputInternal.required = true;
+    inputExternal.required = false;
+    inputExternal.value = '';
+  } else {
+    btnExternal.classList.add('active');
+    btnInternal.classList.remove('active');
+    groupExternal.classList.remove('hidden');
+    groupInternal.classList.add('hidden');
+    inputExternal.required = true;
+    inputInternal.required = false;
+    inputExternal.value = '';
+  }
+}
+
+function toggleFeedbackOtherTopic(isOther) {
+  const wrapper = document.getElementById('feedbackOtherTopicWrapper');
+  const input = document.getElementById('feedbackOtherTopicInput');
+  if (!wrapper || !input) return;
+
+  if (isOther) {
+    wrapper.classList.remove('hidden');
+    input.required = true;
+    input.focus();
+  } else {
+    wrapper.classList.add('hidden');
+    input.required = false;
+    input.value = '';
+  }
+}
+
+function submitFeedback(e) {
+  e.preventDefault();
+  const btn = document.getElementById('btnSubmitFeedback');
+  const originalHtml = btn.innerHTML;
+
+  const dateVal = document.getElementById('feedbackDate').value;
+  const isInternal = document.getElementById('btnUserInternal').classList.contains('active');
+  const internalName = isInternal ? document.getElementById('feedbackInternalName').value.trim() : '';
+  const externalName = !isInternal ? document.getElementById('feedbackExternalName').value.trim() : '';
+  
+  const selectedTopicRadio = document.querySelector('input[name="feedbackTopic"]:checked');
+  let topicVal = selectedTopicRadio ? selectedTopicRadio.value : '';
+  if (topicVal === 'อื่นๆ') {
+    const otherInput = document.getElementById('feedbackOtherTopicInput').value.trim();
+    topicVal = otherInput || 'อื่นๆ';
+  }
+
+  const detailVal = document.getElementById('feedbackDetail').value.trim();
+  
+  const channelCheckboxes = document.querySelectorAll('input[name="feedbackChannel"]:checked');
+  const channels = Array.from(channelCheckboxes).map(cb => cb.value);
+
+  if (!dateVal) {
+    showToast('กรุณาระบุวันที่เสนอแนะ', 'error');
+    return;
+  }
+  if (isInternal && !internalName) {
+    showToast('กรุณาระบุชื่อผู้แจ้งเสนอแนะ', 'error');
+    return;
+  }
+  if (!isInternal && !externalName) {
+    showToast('กรุณาระบุชื่อผู้แจ้งเสนอแนะ', 'error');
+    return;
+  }
+  if (!topicVal) {
+    showToast('กรุณาเลือกเรื่องที่ต้องการเสนอแนะ', 'error');
+    return;
+  }
+  if (!detailVal) {
+    showToast('กรุณาระบุข้อมูลรายละเอียดที่ต้องการให้มีการแก้ไข', 'error');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="material-icons rotating" style="animation: spin 0.8s linear infinite;">sync</span> กำลังส่งข้อเสนอแนะ...';
+
+  const payload = {
+    date: dateVal,
+    internalName: internalName,
+    externalName: externalName,
+    topic: topicVal,
+    detail: detailVal,
+    channels: channels
+  };
+
+  google.script.run
+    .withSuccessHandler(function(res) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+      if (res && res.success) {
+        showToast(res.message || 'ส่งข้อเสนอแนะเรียบร้อยแล้ว ขอบคุณสำหรับการมีส่วนร่วมครับ', 'success');
+        document.getElementById('feedbackForm').classList.add('hidden');
+        document.getElementById('feedbackSuccessBanner').classList.remove('hidden');
+        const section = document.getElementById('feedback-section');
+        if (section) section.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        showToast((res && res.message) || 'เกิดข้อผิดพลาดในการส่งข้อมูล', 'error');
+      }
+    })
+    .withFailureHandler(function(err) {
+      btn.disabled = false;
+      btn.innerHTML = originalHtml;
+      showToast('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + (err.message || err), 'error');
+    })
+    .submitFeedbackForm(payload);
+}
+
+function resetFeedbackForm() {
+  document.getElementById('feedbackForm').reset();
+  initFeedbackForm();
+  switchFeedbackUserType('internal');
+  toggleFeedbackOtherTopic(false);
+}
+
+function resetFeedbackFormView() {
+  document.getElementById('feedbackSuccessBanner').classList.add('hidden');
+  document.getElementById('feedbackForm').classList.remove('hidden');
+  resetFeedbackForm();
 }
 
 </script>
