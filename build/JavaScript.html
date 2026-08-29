@@ -2859,6 +2859,32 @@ function renderMonthlyModalContent(metricKey) {
     
     const datasets = [];
 
+    // Add Line Datasets for Other Years (at most 3 most recent)
+    otherItems.forEach((otherItem, idx) => {
+      const pal = OTHER_YEAR_LINE_PALETTES[idx % OTHER_YEAR_LINE_PALETTES.length];
+      datasets.push({
+        type: 'line',
+        label: 'ปี ' + otherItem.year,
+        yearValue: parseInt(otherItem.year, 10) || 0,
+        datasetRole: 'line',
+        data: otherItem.months || [],
+        borderColor: pal.border,
+        backgroundColor: pal.bg,
+        borderWidth: 2.2,
+        borderDash: [5, 4],
+        pointRadius: 4,
+        pointHoverRadius: 6.5,
+        pointBackgroundColor: pal.point,
+        pointBorderColor: '#ffffff',
+        pointBorderWidth: 2,
+        tension: 0.3,
+        order: 0, // Render in front of bars
+        datalabels: {
+          display: false
+        }
+      });
+    });
+
     if (!isSingleYear) {
       // Determine colors for Base Year: calculated months = blue, uncalculated months = yellow/amber
       const prevBarBgColors = [];
@@ -2880,6 +2906,8 @@ function renderMonthlyModalContent(metricKey) {
       datasets.push({
         type: 'bar',
         label: 'ปี ' + prevItem.year,
+        yearValue: parseInt(prevItem.year, 10) || 0,
+        datasetRole: 'baseBar',
         data: prevItem.months || [],
         backgroundColor: prevBarBgColors,
         borderColor: prevBarBorderColors,
@@ -2927,6 +2955,8 @@ function renderMonthlyModalContent(metricKey) {
     datasets.push({
       type: 'bar',
       label: 'ปี ' + currItem.year,
+      yearValue: parseInt(currItem.year, 10) || 0,
+      datasetRole: 'targetBar',
       data: currItem.months || [],
       backgroundColor: 'rgba(82, 190, 128, 0.95)',
       borderColor: 'rgba(39, 174, 96, 1)',
@@ -2948,40 +2978,19 @@ function renderMonthlyModalContent(metricKey) {
       }
     });
 
-    // Add Line Datasets for Other Years (if any)
-    otherItems.forEach((otherItem, idx) => {
-      const pal = OTHER_YEAR_LINE_PALETTES[idx % OTHER_YEAR_LINE_PALETTES.length];
-      datasets.push({
-        type: 'line',
-        label: 'ปี ' + otherItem.year,
-        data: otherItem.months || [],
-        borderColor: pal.border,
-        backgroundColor: pal.bg,
-        borderWidth: 2.2,
-        borderDash: [5, 4],
-        pointRadius: 4,
-        pointHoverRadius: 6.5,
-        pointBackgroundColor: pal.point,
-        pointBorderColor: '#ffffff',
-        pointBorderWidth: 2,
-        tension: 0.3,
-        order: 0, // Render in front of bars
-        datalabels: {
-          display: false
-        }
-      });
-    });
+    // Sort datasets strictly ascending by yearValue so dataset order & legend are from lowest to highest year
+    datasets.sort((a, b) => (a.yearValue || 0) - (b.yearValue || 0));
     
     // Custom Chart.js Plugin for exact 30% horizontal bar overlapping
     const overlap30Plugin = {
       id: 'overlap30Plugin',
       beforeDatasetsDraw(chart) {
-        const barMetas = chart.data.datasets
-          .map((ds, idx) => ({ ds, meta: chart.getDatasetMeta(idx) }))
-          .filter(d => (!d.ds.type || d.ds.type === 'bar'));
-        if (barMetas.length < 2) return;
-        const meta0 = barMetas[0].meta; // Base Bar (Blue)
-        const meta1 = barMetas[1].meta; // Target Bar (Green)
+        const dsPrev = chart.data.datasets.findIndex(d => d.datasetRole === 'baseBar' || d.label === 'ปี ' + prevItem.year);
+        const dsCurr = chart.data.datasets.findIndex(d => d.datasetRole === 'targetBar' || d.label === 'ปี ' + currItem.year);
+        if (dsPrev === -1 || dsCurr === -1) return;
+
+        const meta0 = chart.getDatasetMeta(dsPrev); // Base Bar (Blue)
+        const meta1 = chart.getDatasetMeta(dsCurr); // Target Bar (Green)
         if (!meta0 || !meta1 || !meta0.data || !meta1.data) return;
         
         const len = Math.min(meta0.data.length, meta1.data.length);
@@ -3057,7 +3066,14 @@ function renderMonthlyModalContent(metricKey) {
               boxWidth: 14,
               boxHeight: 14,
               font: { size: 12, family: "'Kanit', sans-serif" },
-              padding: 14
+              padding: 14,
+              sort: function(a, b) {
+                const parseYear = (text) => {
+                  const match = String(text || '').match(/\d+/);
+                  return match ? parseInt(match[0], 10) : 0;
+                };
+                return parseYear(a.text) - parseYear(b.text);
+              }
             }
           },
           tooltip: {
