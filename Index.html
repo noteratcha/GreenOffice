@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
   <base target="_top">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Green Office Reg.10 - สำนักงานสีเขียว</title>
-  
+
   <!-- Google Fonts: Kanit -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  
+
   <!-- Material Icons -->
   <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-  
+
   <!-- CSS Stylesheet -->
   <?!= include('Stylesheet'); ?>
   <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 </head>
+
 <body>
 
   <!-- Loading Screen -->
@@ -34,7 +36,7 @@
       <span class="nav-brand-icon">🌿</span>
       Green Office Reg.10
     </a>
-    
+
     <div class="nav-hamburger" id="navHamburger">
       <span></span>
       <span></span>
@@ -58,7 +60,7 @@
       <button id="btnNavLogin" class="btn btn-outline btn-sm" onclick="openModal('loginModal')">
         เข้าสู่ระบบ
       </button>
-      
+
       <!-- Logged In State (Hidden by default) -->
       <div id="navUserInfo" class="nav-user-info hidden">
         <div class="nav-user-avatar" id="userAvatarIcon">U</div>
@@ -70,7 +72,7 @@
 
   <!-- Main Content -->
   <main class="main-content">
-    
+
     <!-- Hero / Carousel Section -->
     <section id="home" class="carousel-section">
       <div id="carouselContainer" class="carousel-container">
@@ -80,14 +82,14 @@
           <p>กำลังโหลดรูปภาพกิจกรรม...</p>
         </div>
       </div>
-      
+
       <button class="carousel-btn carousel-btn-prev" onclick="prevSlide()">
         <span class="material-icons">chevron_left</span>
       </button>
       <button class="carousel-btn carousel-btn-next" onclick="nextSlide()">
         <span class="material-icons">chevron_right</span>
       </button>
-      
+
       <div id="carouselDots" class="carousel-dots"></div>
     </section>
 
@@ -99,17 +101,21 @@
         <p>นโยบายและเป้าหมายของ Green Office Reg.10</p>
         <div class="section-divider"></div>
       </div>
-      
+
       <div class="policy-grid">
         <div class="policy-card">
-          <h3 style="text-align: center; margin-bottom: 1rem; color: var(--color-dark); font-size: 1.1rem;">นโยบายสิ่งแวดล้อม</h3>
+          <h3 style="text-align: center; margin-bottom: 1rem; color: var(--color-dark); font-size: 1.1rem;">
+            นโยบายสิ่งแวดล้อม</h3>
           <div class="skeleton" id="policySkeleton1" style="width: 100%; height: 350px;"></div>
-          <img alt="นโยบายสิ่งแวดล้อม" class="policy-image hidden" id="policyImg1" style="cursor: zoom-in;" onclick="openPhotoPreview(this.src)">
+          <img alt="นโยบายสิ่งแวดล้อม" class="policy-image hidden" id="policyImg1" style="cursor: zoom-in;"
+            onclick="openPhotoPreview(this.src)">
         </div>
         <div class="policy-card">
-          <h3 style="text-align: center; margin-bottom: 1rem; color: var(--color-dark); font-size: 1.1rem;">กำหนดเป้าหมาย</h3>
+          <h3 style="text-align: center; margin-bottom: 1rem; color: var(--color-dark); font-size: 1.1rem;">
+            กำหนดเป้าหมาย</h3>
           <div class="skeleton" id="policySkeleton2" style="width: 100%; height: 350px;"></div>
-          <img alt="กำหนดเป้าหมาย" class="policy-image hidden" id="policyImg2" style="cursor: zoom-in;" onclick="openPhotoPreview(this.src)">
+          <img alt="กำหนดเป้าหมาย" class="policy-image hidden" id="policyImg2" style="cursor: zoom-in;"
+            onclick="openPhotoPreview(this.src)">
         </div>
       </div>
     </section>
@@ -121,7 +127,7 @@
         <p>ติดตามความเคลื่อนไหวและกิจกรรมต่างๆ ของ Green Office Reg.10</p>
         <div class="section-divider"></div>
       </div>
-      
+
       <div id="newsGrid" class="news-grid">
         <!-- News Cards will be injected here -->
         <div class="news-empty">
@@ -131,7 +137,7 @@
       </div>
     </section>
 
-    
+
     <!-- Calendar Section -->
     <section id="calendar-section" class="section">
       <div class="section-header">
@@ -139,12 +145,13 @@
         <p>ติดตามวันรณรงค์และกิจกรรมต่างๆ ของ Green Office Reg.10</p>
         <div class="section-divider"></div>
       </div>
-      <div id="fullcalendar-wrapper" style="background: var(--color-white); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm); max-width: 1000px; margin: 0 auto;">
+      <div id="fullcalendar-wrapper"
+        style="background: var(--color-white); border-radius: var(--radius-lg); padding: 2rem; box-shadow: var(--shadow-sm); max-width: 1000px; margin: 0 auto;">
         <div id="calendar"></div>
       </div>
     </section>
 
-    
+
     <!-- Resources Section -->
     <section id="resources-section" class="section">
       <div class="section-header">
@@ -152,28 +159,83 @@
         <p>เปรียบเทียบข้อมูลการใช้ทรัพยากร 6 ด้าน ระหว่างปีปัจจุบันและปีก่อนหน้า</p>
         <div class="section-divider"></div>
       </div>
-      
+
       <div class="resources-container">
         <div id="resourcesEmpty" class="news-empty hidden">
           <p>ยังไม่มีข้อมูลทรัพยากร (รอผู้ดูแลระบบเพิ่มข้อมูล)</p>
         </div>
-        
+
         <style>
-          .resources-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
-          .chart-card { background: var(--color-white); border-radius: var(--radius-lg); padding: 1rem; box-shadow: var(--shadow-sm); height: 350px; position: relative; display: flex; flex-direction: column; }
-          .chart-card h3 { text-align: center; font-size: 1rem; margin-bottom: 0.5rem; color: var(--color-text); font-weight: 500; }
-          .chart-canvas-wrapper { flex: 1; position: relative; width: 100%; height: 100%; }
-          @media (max-width: 900px) { .resources-grid { grid-template-columns: repeat(2, 1fr); } }
-          @media (max-width: 600px) { .resources-grid { grid-template-columns: 1fr; } }
+          .resources-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+          }
+
+          .chart-card {
+            background: var(--color-white);
+            border-radius: var(--radius-lg);
+            padding: 1rem;
+            box-shadow: var(--shadow-sm);
+            height: 350px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+          }
+
+          .chart-card h3 {
+            text-align: center;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-text);
+            font-weight: 500;
+          }
+
+          .chart-canvas-wrapper {
+            flex: 1;
+            position: relative;
+            width: 100%;
+            height: 100%;
+          }
+
+          @media (max-width: 900px) {
+            .resources-grid {
+              grid-template-columns: repeat(2, 1fr);
+            }
+          }
+
+          @media (max-width: 600px) {
+            .resources-grid {
+              grid-template-columns: 1fr;
+            }
+          }
         </style>
         <div id="resourcesChartContainer" style="display: none; max-width: 1200px; margin: 0 auto; width: 100%;">
           <div class="resources-grid">
-            <div class="chart-card"><h3>การใช้ไฟฟ้า (kWh)</h3><div class="chart-canvas-wrapper"><canvas id="chartElec"></canvas></div></div>
-            <div class="chart-card"><h3>การใช้น้ำ (m³)</h3><div class="chart-canvas-wrapper"><canvas id="chartWater"></canvas></div></div>
-            <div class="chart-card"><h3>น้ำมันเชื้อเพลิง (L)</h3><div class="chart-canvas-wrapper"><canvas id="chartFuel"></canvas></div></div>
-            <div class="chart-card"><h3>การใช้กระดาษ (Ream)</h3><div class="chart-canvas-wrapper"><canvas id="chartPaper"></canvas></div></div>
-            <div class="chart-card"><h3>ก๊าซเรือนกระจก (kgCO2e)</h3><div class="chart-canvas-wrapper"><canvas id="chartGhg"></canvas></div></div>
-            <div class="chart-card"><h3>นำของเสียกลับมาใช้ (kg)</h3><div class="chart-canvas-wrapper"><canvas id="chartWaste"></canvas></div></div>
+            <div class="chart-card">
+              <h3>การใช้ไฟฟ้า (kWh)</h3>
+              <div class="chart-canvas-wrapper"><canvas id="chartElec"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>การใช้น้ำ (m³)</h3>
+              <div class="chart-canvas-wrapper"><canvas id="chartWater"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>น้ำมันเชื้อเพลิง (L)</h3>
+              <div class="chart-canvas-wrapper"><canvas id="chartFuel"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>การใช้กระดาษ (Ream)</h3>
+              <div class="chart-canvas-wrapper"><canvas id="chartPaper"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>ก๊าซเรือนกระจก (kgCO2e)</h3>
+              <div class="chart-canvas-wrapper"><canvas id="chartGhg"></canvas></div>
+            </div>
+            <div class="chart-card">
+              <h3>นำของเสียกลับมาใช้ (kg)</h3>
+              <div class="chart-canvas-wrapper"><canvas id="chartWaste"></canvas></div>
+            </div>
           </div>
         </div>
       </div>
@@ -186,57 +248,64 @@
         <p>เลือกหมวดหมู่เพื่อดูรายละเอียดกิจกรรมและเอกสารประกอบ</p>
         <div class="section-divider"></div>
       </div>
-      
+
       <div class="categories-grid">
-        <a id="catLink1" href="https://drive.google.com/drive/folders/1_jUoKKCrpZcXOqCOI1YmS3YYzggkHAVs?usp=drive_link" target="_blank" class="category-card">
+        <a id="catLink1" href="https://drive.google.com/drive/folders/1_jUoKKCrpZcXOqCOI1YmS3YYzggkHAVs?usp=drive_link"
+          target="_blank" class="category-card">
           <div class="category-icon-wrapper">
             <span class="material-icons">explore</span>
           </div>
           <h3>หมวด 1</h3>
           <p>การกำหนดนโยบาย การวางแผนการดำเนินงาน และการปรับปรุงอย่างต่อเนื่อง</p>
         </a>
-        
-        <a id="catLink2" href="https://drive.google.com/drive/folders/168nIWvst4X7ESJSQy5Gn6iKU6mtV0jW2?usp=drive_link" target="_blank" class="category-card">
+
+        <a id="catLink2" href="https://drive.google.com/drive/folders/168nIWvst4X7ESJSQy5Gn6iKU6mtV0jW2?usp=drive_link"
+          target="_blank" class="category-card">
           <div class="category-icon-wrapper">
             <span class="material-icons">record_voice_over</span>
           </div>
           <h3>หมวด 2</h3>
           <p>การสื่อสารและสร้างจิตสำนึก</p>
         </a>
-        
-        <a id="catLink3" href="https://drive.google.com/drive/folders/1rCLpI-P5bCoym2Gcs_Mlao8YNdFDLhTg?usp=drive_link" target="_blank" class="category-card">
+
+        <a id="catLink3" href="https://drive.google.com/drive/folders/1rCLpI-P5bCoym2Gcs_Mlao8YNdFDLhTg?usp=drive_link"
+          target="_blank" class="category-card">
           <div class="category-icon-wrapper">
             <span class="material-icons">lightbulb</span>
           </div>
           <h3>หมวด 3</h3>
           <p>การใช้ทรัพยากรและพลังงาน</p>
         </a>
-        
-        <a id="catLink4" href="https://drive.google.com/drive/folders/1qjrL4t1Hxj5UAdjTWWpsuczFygbaHQNZ?usp=drive_link" target="_blank" class="category-card">
+
+        <a id="catLink4" href="https://drive.google.com/drive/folders/1qjrL4t1Hxj5UAdjTWWpsuczFygbaHQNZ?usp=drive_link"
+          target="_blank" class="category-card">
           <div class="category-icon-wrapper">
             <span class="material-icons">recycling</span>
           </div>
           <h3>หมวด 4</h3>
           <p>การจัดการของเสีย</p>
         </a>
-        
-        <a id="catLink5" href="https://drive.google.com/drive/folders/1gIy74CJRHxvQTcE8p30gJ1DLOAVd53GH?usp=drive_link" target="_blank" class="category-card">
+
+        <a id="catLink5" href="https://drive.google.com/drive/folders/1gIy74CJRHxvQTcE8p30gJ1DLOAVd53GH?usp=drive_link"
+          target="_blank" class="category-card">
           <div class="category-icon-wrapper">
             <span class="material-icons">security</span>
           </div>
           <h3>หมวด 5</h3>
           <p>สภาพแวดล้อมและความปลอดภัย</p>
         </a>
-        
-        <a id="catLink6" href="https://drive.google.com/drive/folders/1Xtw2h0fGS7exmfFxC9GBjJ7nYWhormMg?usp=drive_link" target="_blank" class="category-card">
+
+        <a id="catLink6" href="https://drive.google.com/drive/folders/1Xtw2h0fGS7exmfFxC9GBjJ7nYWhormMg?usp=drive_link"
+          target="_blank" class="category-card">
           <div class="category-icon-wrapper">
             <span class="material-icons">shopping_bag</span>
           </div>
           <h3>หมวด 6</h3>
           <p>การจัดซื้อจัดจ้างที่เป็นมิตรกับสิ่งแวดล้อม</p>
         </a>
-        
-        <a id="catLink7" href="https://drive.google.com/drive/folders/138ATKzL-z0U34rq-2rx5gv-o54j9mTDI?usp=drive_link" target="_blank" class="category-card">
+
+        <a id="catLink7" href="https://drive.google.com/drive/folders/138ATKzL-z0U34rq-2rx5gv-o54j9mTDI?usp=drive_link"
+          target="_blank" class="category-card">
           <div class="category-icon-wrapper">
             <span class="material-icons">autorenew</span>
           </div>
@@ -255,7 +324,8 @@
           </div>
           <div class="feedback-cta-content">
             <h2>ช่องทางรับข้อเสนอแนะ / ข้อคิดเห็นด้านสิ่งแวดล้อม</h2>
-            <p>ร่วมเป็นส่วนหนึ่งในการพัฒนาสำนักงานสีเขียว (Green Office) สำนักงานไปรษณีย์เขต 10 เพื่อสภาพแวดล้อมที่ดียิ่งขึ้น</p>
+            <p>ร่วมเป็นส่วนหนึ่งในการพัฒนาสำนักงานสีเขียว (Green Office) สำนักงานไปรษณีย์เขต 10
+              เพื่อสภาพแวดล้อมที่ดียิ่งขึ้น</p>
           </div>
           <div class="feedback-cta-actions">
             <button type="button" class="btn btn-primary btn-lg" onclick="openModal('feedbackModal')">
@@ -270,46 +340,54 @@
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
   <div class="fab-container hidden" id="fabContainer">
-    
+
     <!-- Group: รูปภาพหลัก (Main Photos Group) -->
     <div class="fab-photos-group" id="fabPhotosGroup">
       <div class="fab-sub-menu" id="fabPhotosSubMenu">
-        <button class="fab fab-sub" id="fabUpload" onclick="openModal('uploadModal'); closePhotosSubMenu();" title="อัปโหลดรูปภาพหลัก">
+        <button class="fab fab-sub" id="fabUpload" onclick="openModal('uploadModal'); closePhotosSubMenu();"
+          title="อัปโหลดรูปภาพหลัก">
           <span class="material-icons">add_a_photo</span>
         </button>
-        <button class="fab fab-sub" id="fabManagePhotos" onclick="openManagePhotos(); closePhotosSubMenu();" title="จัดการรูปภาพหลัก">
+        <button class="fab fab-sub" id="fabManagePhotos" onclick="openManagePhotos(); closePhotosSubMenu();"
+          title="จัดการรูปภาพหลัก">
           <span class="material-icons">edit</span>
         </button>
       </div>
-      <button class="fab fab-secondary fab-photos-parent hidden" id="fabPhotosParent" onclick="togglePhotosSubMenu()" title="รูปภาพหลัก (คลิกเพื่อดูเมนูย่อย)">
+      <button class="fab fab-secondary fab-photos-parent hidden" id="fabPhotosParent" onclick="togglePhotosSubMenu()"
+        title="รูปภาพหลัก (คลิกเพื่อดูเมนูย่อย)">
         <span class="material-icons" id="fabPhotosParentIcon">photo_library</span>
       </button>
     </div>
 
-    <button class="fab fab-secondary hidden" id="fabPolicy" onclick="openModal('policyModal')" title="อัปโหลดรูปภาพนโยบาย">
+    <button class="fab fab-secondary hidden" id="fabPolicy" onclick="openModal('policyModal')"
+      title="อัปโหลดรูปภาพนโยบาย">
       <span class="material-icons">policy</span>
     </button>
     <button class="fab fab-primary hidden" id="fabAddNews" onclick="openModal('newsModal')" title="เพิ่มข่าวสารกิจกรรม">
       <span class="material-icons">campaign</span>
     </button>
-    <button class="fab fab-secondary hidden" id="fabAddEvent" onclick="openModal('eventModal')" title="เพิ่มกิจกรรมในปฏิทิน">
+    <button class="fab fab-secondary hidden" id="fabAddEvent" onclick="openModal('eventModal')"
+      title="เพิ่มกิจกรรมในปฏิทิน">
       <span class="material-icons">event_note</span>
     </button>
-    
-    <button class="fab fab-secondary hidden" id="fabResources" onclick="openManageResourcesModal()" title="การใช้ทรัพยากร พลังงาน และการจัดการของเสีย">
+
+    <button class="fab fab-secondary hidden" id="fabResources" onclick="openManageResourcesModal()"
+      title="การใช้ทรัพยากร พลังงาน และการจัดการของเสีย">
       <span class="material-icons">analytics</span>
     </button>
-    <button class="fab fab-secondary hidden" id="fabEditCategories" onclick="openEditCategoriesModal()" title="แก้ไขลิงก์หมวดหมู่">
+    <button class="fab fab-secondary hidden" id="fabEditCategories" onclick="openEditCategoriesModal()"
+      title="แก้ไขลิงก์หมวดหมู่">
       <span class="material-icons">link</span>
     </button>
-    <button class="fab fab-secondary hidden" id="fabEditFeedback" onclick="openEditFeedbackModal()" title="แก้ไขลิงก์ข้อเสนอแนะ">
+    <button class="fab fab-secondary hidden" id="fabEditFeedback" onclick="openEditFeedbackModal()"
+      title="แก้ไขลิงก์ข้อเสนอแนะ">
       <span class="material-icons">rate_review</span>
     </button>
   </div>
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.1952</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0829.2040</p>
   </footer>
 
   <!-- ==================== MODALS ==================== -->
@@ -336,7 +414,8 @@
           <!-- Visual Policy Type Selector -->
           <div class="form-group">
             <label class="form-label">
-              <span class="material-icons form-label-icon">tune</span> เลือกตำแหน่งนโยบายที่ต้องการเปลี่ยน <span class="text-danger">*</span>
+              <span class="material-icons form-label-icon">tune</span> เลือกตำแหน่งนโยบายที่ต้องการเปลี่ยน <span
+                class="text-danger">*</span>
             </label>
             <div class="policy-card-selector">
               <label class="policy-select-option active" id="optPolicy1" onclick="selectPolicyType('1')">
@@ -369,14 +448,17 @@
           <!-- Modern Policy Dropzone -->
           <div class="form-group">
             <label class="form-label">
-              <span class="material-icons form-label-icon">add_photo_alternate</span> เลือกรูปภาพเอกสารใหม่ <span class="text-danger">*</span>
+              <span class="material-icons form-label-icon">add_photo_alternate</span> เลือกรูปภาพเอกสารใหม่ <span
+                class="text-danger">*</span>
             </label>
             <div id="policyDropZone" class="upload-zone" onclick="document.getElementById('policyFile').click()">
               <span class="material-icons">add_photo_alternate</span>
-              <p><strong>คลิกเพื่อเลือกรูปภาพ</strong> หรือลากไฟล์มาวางที่นี่<br><small class="text-muted">รองรับไฟล์ภาพ .jpg, .png, .webp (ความละเอียดสูง)</small></p>
-              <input type="file" id="policyFile" class="hidden" accept="image/jpeg, image/png, image/webp" onchange="handlePolicyFileSelect(event)">
+              <p><strong>คลิกเพื่อเลือกรูปภาพ</strong> หรือลากไฟล์มาวางที่นี่<br><small class="text-muted">รองรับไฟล์ภาพ
+                  .jpg, .png, .webp (ความละเอียดสูง)</small></p>
+              <input type="file" id="policyFile" class="hidden" accept="image/jpeg, image/png, image/webp"
+                onchange="handlePolicyFileSelect(event)">
             </div>
-            
+
             <!-- Single Image Preview Card -->
             <div id="policyPreviewCard" class="policy-preview-card hidden">
               <div class="policy-preview-thumb">
@@ -444,7 +526,9 @@
             </thead>
             <tbody id="resourceListBody">
               <!-- Rendered via JS -->
-              <tr><td colspan="2" style="text-align: center; padding: 1rem;">กำลังโหลดข้อมูล...</td></tr>
+              <tr>
+                <td colspan="2" style="text-align: center; padding: 1rem;">กำลังโหลดข้อมูล...</td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -466,9 +550,10 @@
           <input type="hidden" id="resourceId">
           <div class="form-group">
             <label class="form-label">ปี (พ.ศ.)</label>
-            <input type="number" id="resourceYear" class="form-input" required placeholder="เช่น 2568" min="2500" max="2600">
+            <input type="number" id="resourceYear" class="form-input" required placeholder="เช่น 2568" min="2500"
+              max="2600">
           </div>
-          
+
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
             <div class="form-group">
               <label class="form-label">การใช้ไฟฟ้า (kWh)</label>
@@ -495,7 +580,7 @@
               <input type="number" step="0.01" id="resourceRecycled" class="form-input" required>
             </div>
           </div>
-          
+
           <div class="modal-footer" style="margin-top: 1.5rem;">
             <button type="button" class="btn btn-outline" onclick="closeModal('resourceFormModal')">ยกเลิก</button>
             <button type="submit" class="btn btn-primary" id="btnResourceSubmit">
@@ -525,9 +610,9 @@
       </div>
       <div class="modal-body">
         <form id="editCategoriesForm" onsubmit="event.preventDefault(); saveEditCategories();">
-          
+
           <div class="category-links-list">
-            
+
             <!-- Category Item 1 -->
             <div class="cat-link-card">
               <div class="cat-link-header">
@@ -540,9 +625,11 @@
               <div class="cat-input-group">
                 <div class="cat-input-wrapper">
                   <span class="material-icons cat-input-icon">link</span>
-                  <input type="url" id="editCatLink1" class="cat-input" required placeholder="https://drive.google.com/drive/folders/...">
+                  <input type="url" id="editCatLink1" class="cat-input" required
+                    placeholder="https://drive.google.com/drive/folders/...">
                 </div>
-                <button type="button" class="btn-test-link" onclick="testCategoryLink(1)" title="ทดสอบเปิดลิงก์ในแท็บใหม่">
+                <button type="button" class="btn-test-link" onclick="testCategoryLink(1)"
+                  title="ทดสอบเปิดลิงก์ในแท็บใหม่">
                   <span class="material-icons">open_in_new</span>
                   <span>ทดสอบ</span>
                 </button>
@@ -561,9 +648,11 @@
               <div class="cat-input-group">
                 <div class="cat-input-wrapper">
                   <span class="material-icons cat-input-icon">link</span>
-                  <input type="url" id="editCatLink2" class="cat-input" required placeholder="https://drive.google.com/drive/folders/...">
+                  <input type="url" id="editCatLink2" class="cat-input" required
+                    placeholder="https://drive.google.com/drive/folders/...">
                 </div>
-                <button type="button" class="btn-test-link" onclick="testCategoryLink(2)" title="ทดสอบเปิดลิงก์ในแท็บใหม่">
+                <button type="button" class="btn-test-link" onclick="testCategoryLink(2)"
+                  title="ทดสอบเปิดลิงก์ในแท็บใหม่">
                   <span class="material-icons">open_in_new</span>
                   <span>ทดสอบ</span>
                 </button>
@@ -582,9 +671,11 @@
               <div class="cat-input-group">
                 <div class="cat-input-wrapper">
                   <span class="material-icons cat-input-icon">link</span>
-                  <input type="url" id="editCatLink3" class="cat-input" required placeholder="https://drive.google.com/drive/folders/...">
+                  <input type="url" id="editCatLink3" class="cat-input" required
+                    placeholder="https://drive.google.com/drive/folders/...">
                 </div>
-                <button type="button" class="btn-test-link" onclick="testCategoryLink(3)" title="ทดสอบเปิดลิงก์ในแท็บใหม่">
+                <button type="button" class="btn-test-link" onclick="testCategoryLink(3)"
+                  title="ทดสอบเปิดลิงก์ในแท็บใหม่">
                   <span class="material-icons">open_in_new</span>
                   <span>ทดสอบ</span>
                 </button>
@@ -603,9 +694,11 @@
               <div class="cat-input-group">
                 <div class="cat-input-wrapper">
                   <span class="material-icons cat-input-icon">link</span>
-                  <input type="url" id="editCatLink4" class="cat-input" required placeholder="https://drive.google.com/drive/folders/...">
+                  <input type="url" id="editCatLink4" class="cat-input" required
+                    placeholder="https://drive.google.com/drive/folders/...">
                 </div>
-                <button type="button" class="btn-test-link" onclick="testCategoryLink(4)" title="ทดสอบเปิดลิงก์ในแท็บใหม่">
+                <button type="button" class="btn-test-link" onclick="testCategoryLink(4)"
+                  title="ทดสอบเปิดลิงก์ในแท็บใหม่">
                   <span class="material-icons">open_in_new</span>
                   <span>ทดสอบ</span>
                 </button>
@@ -624,9 +717,11 @@
               <div class="cat-input-group">
                 <div class="cat-input-wrapper">
                   <span class="material-icons cat-input-icon">link</span>
-                  <input type="url" id="editCatLink5" class="cat-input" required placeholder="https://drive.google.com/drive/folders/...">
+                  <input type="url" id="editCatLink5" class="cat-input" required
+                    placeholder="https://drive.google.com/drive/folders/...">
                 </div>
-                <button type="button" class="btn-test-link" onclick="testCategoryLink(5)" title="ทดสอบเปิดลิงก์ในแท็บใหม่">
+                <button type="button" class="btn-test-link" onclick="testCategoryLink(5)"
+                  title="ทดสอบเปิดลิงก์ในแท็บใหม่">
                   <span class="material-icons">open_in_new</span>
                   <span>ทดสอบ</span>
                 </button>
@@ -645,9 +740,11 @@
               <div class="cat-input-group">
                 <div class="cat-input-wrapper">
                   <span class="material-icons cat-input-icon">link</span>
-                  <input type="url" id="editCatLink6" class="cat-input" required placeholder="https://drive.google.com/drive/folders/...">
+                  <input type="url" id="editCatLink6" class="cat-input" required
+                    placeholder="https://drive.google.com/drive/folders/...">
                 </div>
-                <button type="button" class="btn-test-link" onclick="testCategoryLink(6)" title="ทดสอบเปิดลิงก์ในแท็บใหม่">
+                <button type="button" class="btn-test-link" onclick="testCategoryLink(6)"
+                  title="ทดสอบเปิดลิงก์ในแท็บใหม่">
                   <span class="material-icons">open_in_new</span>
                   <span>ทดสอบ</span>
                 </button>
@@ -666,9 +763,11 @@
               <div class="cat-input-group">
                 <div class="cat-input-wrapper">
                   <span class="material-icons cat-input-icon">link</span>
-                  <input type="url" id="editCatLink7" class="cat-input" required placeholder="https://drive.google.com/drive/folders/...">
+                  <input type="url" id="editCatLink7" class="cat-input" required
+                    placeholder="https://drive.google.com/drive/folders/...">
                 </div>
-                <button type="button" class="btn-test-link" onclick="testCategoryLink(7)" title="ทดสอบเปิดลิงก์ในแท็บใหม่">
+                <button type="button" class="btn-test-link" onclick="testCategoryLink(7)"
+                  title="ทดสอบเปิดลิงก์ในแท็บใหม่">
                   <span class="material-icons">open_in_new</span>
                   <span>ทดสอบ</span>
                 </button>
@@ -709,7 +808,7 @@
       </div>
       <div class="modal-body">
         <form id="editFeedbackForm" onsubmit="event.preventDefault(); saveEditFeedback();">
-          
+
           <div class="form-group">
             <label for="editFeedbackLinkInput" class="form-label">
               <span class="material-icons form-label-icon">link</span> URL ปลายทาง Google Form หรือ Form Action
@@ -717,7 +816,8 @@
             <div class="cat-input-group">
               <div class="cat-input-wrapper">
                 <span class="material-icons cat-input-icon">link</span>
-                <input type="url" id="editFeedbackLinkInput" class="cat-input" required placeholder="https://docs.google.com/forms/d/e/.../formResponse">
+                <input type="url" id="editFeedbackLinkInput" class="cat-input" required
+                  placeholder="https://docs.google.com/forms/d/e/.../formResponse">
               </div>
               <button type="button" class="btn-test-link" onclick="testFeedbackLink()" title="ทดสอบเปิดลิงก์ในแท็บใหม่">
                 <span class="material-icons">open_in_new</span>
@@ -743,7 +843,7 @@
   </div>
 
 
-  
+
   <!-- Add Event Modal -->
   <div id="eventModal" class="modal-backdrop">
     <div class="modal">
@@ -765,15 +865,18 @@
         <form id="eventForm" onsubmit="handleAddEvent(event)">
           <div class="form-group">
             <label class="form-label" for="eventTitle">
-              <span class="material-icons form-label-icon">edit_calendar</span> ชื่อกิจกรรม / การประชุม <span class="text-danger">*</span>
+              <span class="material-icons form-label-icon">edit_calendar</span> ชื่อกิจกรรม / การประชุม <span
+                class="text-danger">*</span>
             </label>
-            <input type="text" id="eventTitle" class="form-input" required placeholder="เช่น ประชุมคณะทำงาน Green Office ครั้งที่ 1/2568">
+            <input type="text" id="eventTitle" class="form-input" required
+              placeholder="เช่น ประชุมคณะทำงาน Green Office ครั้งที่ 1/2568">
           </div>
-          
+
           <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 0.85rem;">
             <div class="form-group">
               <label class="form-label" for="eventDate">
-                <span class="material-icons form-label-icon">today</span> วันที่จัดกิจกรรม <span class="text-danger">*</span>
+                <span class="material-icons form-label-icon">today</span> วันที่จัดกิจกรรม <span
+                  class="text-danger">*</span>
               </label>
               <input type="date" id="eventDate" class="form-input" required>
             </div>
@@ -832,7 +935,7 @@
     </div>
   </div>
 
-  
+
   <!-- Event Detail Modal -->
   <div id="eventDetailModal" class="modal-backdrop">
     <div class="modal">
@@ -852,15 +955,17 @@
       </div>
       <div class="modal-body">
         <div style="text-align: center; margin-bottom: 1.5rem;">
-          <div id="eventDetailIcon" style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: var(--color-light); color: var(--color-primary); margin-bottom: 1rem;">
+          <div id="eventDetailIcon"
+            style="display: inline-flex; align-items: center; justify-content: center; width: 64px; height: 64px; border-radius: 50%; background: var(--color-light); color: var(--color-primary); margin-bottom: 1rem;">
             <span class="material-icons" style="font-size: 32px;">event</span>
           </div>
           <h2 id="eventDetailTitle" style="color: var(--color-text); margin-bottom: 0.5rem; font-size: 1.25rem;"></h2>
-          <p id="eventDetailTime" style="color: var(--color-text-light); display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+          <p id="eventDetailTime"
+            style="color: var(--color-text-light); display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
             <span class="material-icons" style="font-size: 16px;">schedule</span> <span id="eventDetailTimeText"></span>
           </p>
         </div>
-        
+
         <div class="modal-footer" style="padding: 1.5rem 0 0; justify-content: center; gap: 1rem;">
           <button type="button" class="btn btn-outline" onclick="closeModal('eventDetailModal')">
             <span class="material-icons">close</span> ปิดหน้าต่าง
@@ -898,7 +1003,8 @@
           <input type="hidden" id="editEventId">
           <div class="form-group">
             <label class="form-label" for="editEventTitle">
-              <span class="material-icons form-label-icon">edit_calendar</span> ชื่อกิจกรรม / การประชุม <span class="text-danger">*</span>
+              <span class="material-icons form-label-icon">edit_calendar</span> ชื่อกิจกรรม / การประชุม <span
+                class="text-danger">*</span>
             </label>
             <input type="text" id="editEventTitle" class="form-input" required placeholder="เช่น ประชุม Green Office">
           </div>
@@ -906,7 +1012,8 @@
           <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 0.85rem;">
             <div class="form-group">
               <label class="form-label" for="editEventDate">
-                <span class="material-icons form-label-icon">today</span> วันที่จัดกิจกรรม <span class="text-danger">*</span>
+                <span class="material-icons form-label-icon">today</span> วันที่จัดกิจกรรม <span
+                  class="text-danger">*</span>
               </label>
               <input type="date" id="editEventDate" class="form-input" required>
             </div>
@@ -923,7 +1030,8 @@
               <span class="material-icons form-label-icon">palette</span> สีป้ายกำกับกิจกรรม
             </label>
             <div class="event-color-palette" id="editEventColorPalette">
-              <div class="color-chip-option active" data-color="#4a6344" onclick="selectEventColor('#4a6344', 'editEvent')">
+              <div class="color-chip-option active" data-color="#4a6344"
+                onclick="selectEventColor('#4a6344', 'editEvent')">
                 <span class="color-chip-dot" style="background: #4a6344;"></span>
                 <span>ทั่วไป</span>
                 <span class="material-icons color-chip-check">check</span>
@@ -1027,9 +1135,9 @@
           <p><strong>คลิกเพื่อเลือกรูปภาพ</strong> หรือลากไฟล์มาวางที่นี่<br>(รองรับหลายไฟล์ .jpg, .png)</p>
           <input type="file" id="fileInput" multiple accept="image/*" class="hidden" onchange="handleFileSelect(event)">
         </div>
-        
+
         <div id="uploadPreview" class="upload-preview-grid"></div>
-        
+
         <!-- Modern Progress Status Component -->
         <div class="upload-progress-wrapper hidden" id="uploadProgressWrapper">
           <div class="progress-status-header">
@@ -1043,7 +1151,7 @@
             <div class="modern-progress-bar" id="uploadProgressBar" style="width: 0%;"></div>
           </div>
         </div>
-        
+
         <div class="modal-footer" style="padding: 1.5rem 0 0;">
           <button type="button" class="btn btn-outline" onclick="closeModal('uploadModal')">ยกเลิก</button>
           <button type="button" class="btn btn-primary" id="btnUploadSubmit" onclick="submitUpload()" disabled>
@@ -1053,7 +1161,7 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Add News Modal (Admin Only) -->
   <div id="newsModal" class="modal-backdrop">
     <div class="modal modal-lg">
@@ -1077,30 +1185,36 @@
             <label class="form-label" for="newsTitle">
               <span class="material-icons form-label-icon">title</span> หัวข้อข่าวสาร <span class="text-danger">*</span>
             </label>
-            <input type="text" id="newsTitle" class="form-input" required placeholder="ระบุหัวข้อข่าวสารหรือชื่อกิจกรรม...">
+            <input type="text" id="newsTitle" class="form-input" required
+              placeholder="ระบุหัวข้อข่าวสารหรือชื่อกิจกรรม...">
           </div>
           <div class="form-group">
             <label class="form-label" for="newsContent">
-              <span class="material-icons form-label-icon">notes</span> รายละเอียดข่าวสาร <span class="text-danger">*</span>
+              <span class="material-icons form-label-icon">notes</span> รายละเอียดข่าวสาร <span
+                class="text-danger">*</span>
             </label>
-            <textarea id="newsContent" class="form-textarea" rows="4" required placeholder="ระบุเนื้อหา รายละเอียด หรือผลการดำเนินกิจกรรม..."></textarea>
+            <textarea id="newsContent" class="form-textarea" rows="4" required
+              placeholder="ระบุเนื้อหา รายละเอียด หรือผลการดำเนินกิจกรรม..."></textarea>
           </div>
-          
+
           <!-- Modern Image Dropzone -->
           <div class="form-group">
             <label class="form-label">
-              <span class="material-icons form-label-icon">photo_library</span> รูปภาพประกอบกิจกรรม <small class="text-muted">(เลือกได้หลายรูป .jpg, .png, .webp)</small>
+              <span class="material-icons form-label-icon">photo_library</span> รูปภาพประกอบกิจกรรม <small
+                class="text-muted">(เลือกได้หลายรูป .jpg, .png, .webp)</small>
             </label>
             <div id="newsUploadZone" class="upload-zone" onclick="document.getElementById('newsImage').click()">
               <span class="material-icons">add_photo_alternate</span>
-              <p><strong>คลิกเพื่อเลือกรูปภาพ</strong> หรือลากไฟล์มาวางที่นี่<br><small class="text-muted">รองรับหลายไฟล์ .jpg, .png, .webp</small></p>
-              <input type="file" id="newsImage" class="hidden" accept="image/jpeg, image/png, image/webp" multiple onchange="handleNewsFileSelect(event)">
+              <p><strong>คลิกเพื่อเลือกรูปภาพ</strong> หรือลากไฟล์มาวางที่นี่<br><small
+                  class="text-muted">รองรับหลายไฟล์ .jpg, .png, .webp</small></p>
+              <input type="file" id="newsImage" class="hidden" accept="image/jpeg, image/png, image/webp" multiple
+                onchange="handleNewsFileSelect(event)">
             </div>
-            
+
             <!-- Live Preview Grid of Selected Images -->
             <div id="newsPreviewGrid" class="upload-preview-grid"></div>
           </div>
-          
+
           <!-- Modern Progress Status Component -->
           <div class="upload-progress-wrapper hidden" id="newsProgressWrapper">
             <div class="progress-status-header">
@@ -1114,7 +1228,7 @@
               <div class="modern-progress-bar" id="newsProgressBar" style="width: 0%;"></div>
             </div>
           </div>
-          
+
           <div class="modal-footer" style="padding: 1.5rem 0 0; margin-top: 1rem;">
             <button type="button" class="btn btn-outline" onclick="closeModal('newsModal')">
               <span class="material-icons">close</span> ยกเลิก
@@ -1150,21 +1264,29 @@
 
   <!-- Photo Preview Modal (Lightbox) -->
   <div id="photoPreviewModal" class="modal-backdrop" onclick="closeModal('photoPreviewModal')" style="z-index: 3000;">
-    <div class="modal" style="background: transparent; box-shadow: none; max-width: 90vw; text-align: center; display: flex; justify-content: center; align-items: center;" onclick="event.stopPropagation()">
+    <div class="modal"
+      style="background: transparent; box-shadow: none; max-width: 90vw; text-align: center; display: flex; justify-content: center; align-items: center;"
+      onclick="event.stopPropagation()">
       <div style="position: relative; display: inline-block;">
-        <button class="modal-close" style="background: rgba(0,0,0,0.5); color: white; position: absolute; right: -40px; top: 0;" onclick="closeModal('photoPreviewModal')">
+        <button class="modal-close"
+          style="background: rgba(0,0,0,0.5); color: white; position: absolute; right: -40px; top: 0;"
+          onclick="closeModal('photoPreviewModal')">
           <span class="material-icons">close</span>
         </button>
 
-        <div id="photoPreviewNumber" style="position: absolute; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.7); color: white; padding: 4px 12px; border-radius: 4px; font-size: 1.2rem; font-weight: bold; z-index: 10;">
+        <div id="photoPreviewNumber"
+          style="position: absolute; top: 10px; left: 10px; background: rgba(0, 0, 0, 0.7); color: white; padding: 4px 12px; border-radius: 4px; font-size: 1.2rem; font-weight: bold; z-index: 10;">
           1
         </div>
 
-        <button id="photoPreviewDeleteBtn" style="position: absolute; top: 10px; right: 10px; background: var(--color-error); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-md); z-index: 10; transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="ลบรูปนี้">
+        <button id="photoPreviewDeleteBtn"
+          style="position: absolute; top: 10px; right: 10px; background: var(--color-error); color: white; border: none; border-radius: 50%; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: var(--shadow-md); z-index: 10; transition: transform 0.2s;"
+          onmouseover="this.style.transform='scale(1.1)'" onmouseout="this.style.transform='scale(1)'" title="ลบรูปนี้">
           <span class="material-icons">delete</span>
         </button>
 
-        <img id="photoPreviewImg" src="" draggable="false" style="max-width: 100%; max-height: 85vh; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); display: block;">
+        <img id="photoPreviewImg" src="" draggable="false"
+          style="max-width: 100%; max-height: 85vh; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); display: block;">
       </div>
     </div>
   </div>
@@ -1193,10 +1315,12 @@
             </div>
             <h2 class="news-detail-title" id="newsDetailTitle"></h2>
             <div class="news-detail-content" id="newsDetailContent"></div>
-            
+
             <div class="news-action-bar hidden" id="newsDetailActionBar">
-              <button class="btn btn-primary btn-sm" id="btnEditNewsAction"><span class="material-icons" style="font-size:16px;">edit</span> แก้ไข</button>
-              <button class="btn btn-danger btn-sm" id="btnDeleteNewsAction"><span class="material-icons" style="font-size:16px;">delete</span> ลบข่าวสาร</button>
+              <button class="btn btn-primary btn-sm" id="btnEditNewsAction"><span class="material-icons"
+                  style="font-size:16px;">edit</span> แก้ไข</button>
+              <button class="btn btn-danger btn-sm" id="btnDeleteNewsAction"><span class="material-icons"
+                  style="font-size:16px;">delete</span> ลบข่าวสาร</button>
             </div>
           </div>
         </div>
@@ -1232,26 +1356,31 @@
           </div>
           <div class="form-group">
             <label class="form-label" for="editNewsContent">
-              <span class="material-icons form-label-icon">notes</span> รายละเอียดข่าวสาร <span class="text-danger">*</span>
+              <span class="material-icons form-label-icon">notes</span> รายละเอียดข่าวสาร <span
+                class="text-danger">*</span>
             </label>
-            <textarea id="editNewsContent" class="form-textarea" rows="4" required placeholder="ระบุรายละเอียด..."></textarea>
+            <textarea id="editNewsContent" class="form-textarea" rows="4" required
+              placeholder="ระบุรายละเอียด..."></textarea>
           </div>
-          
+
           <!-- Modern Image Dropzone for Edit -->
           <div class="form-group">
             <label class="form-label">
-              <span class="material-icons form-label-icon">add_photo_alternate</span> อัปโหลดรูปภาพใหม่ <small class="text-muted">(หากไม่ต้องการเปลี่ยนให้เว้นว่างไว้)</small>
+              <span class="material-icons form-label-icon">add_photo_alternate</span> อัปโหลดรูปภาพใหม่ <small
+                class="text-muted">(หากไม่ต้องการเปลี่ยนให้เว้นว่างไว้)</small>
             </label>
             <div id="editNewsUploadZone" class="upload-zone" onclick="document.getElementById('editNewsImage').click()">
               <span class="material-icons">add_photo_alternate</span>
-              <p><strong>คลิกเพื่อเลือกรูปภาพใหม่</strong> หรือลากไฟล์มาวางที่นี่<br><small class="text-muted">รองรับหลายไฟล์ .jpg, .png, .webp</small></p>
-              <input type="file" id="editNewsImage" class="hidden" accept="image/jpeg, image/png, image/webp" multiple onchange="handleEditNewsFileSelect(event)">
+              <p><strong>คลิกเพื่อเลือกรูปภาพใหม่</strong> หรือลากไฟล์มาวางที่นี่<br><small
+                  class="text-muted">รองรับหลายไฟล์ .jpg, .png, .webp</small></p>
+              <input type="file" id="editNewsImage" class="hidden" accept="image/jpeg, image/png, image/webp" multiple
+                onchange="handleEditNewsFileSelect(event)">
             </div>
-            
+
             <!-- Live Preview Grid of Selected Images -->
             <div id="editNewsPreviewGrid" class="upload-preview-grid"></div>
           </div>
-          
+
           <!-- Modern Progress Status Component -->
           <div class="upload-progress-wrapper hidden" id="editNewsProgressWrapper">
             <div class="progress-status-header">
@@ -1265,7 +1394,7 @@
               <div class="modern-progress-bar" id="editNewsProgressBar" style="width: 0%;"></div>
             </div>
           </div>
-          
+
           <div class="modal-footer" style="padding: 1.5rem 0 0; margin-top: 1rem;">
             <button type="button" class="btn btn-outline" onclick="closeModal('editNewsModal')">
               <span class="material-icons">close</span> ยกเลิก
@@ -1307,24 +1436,32 @@
             <span class="material-icons success-icon">check_circle</span>
             <div>
               <h4>ส่งข้อเสนอแนะสำเร็จ!</h4>
-              <p>ข้อมูลของคุณถูกส่งไปยังระบบ Google Forms เรียบร้อยแล้ว ขอบคุณสำหรับการมีส่วนร่วมพัฒนาสำนักงานสีเขียว</p>
+              <p>ข้อมูลของคุณถูกส่งไปยังระบบ Google Forms เรียบร้อยแล้ว ขอบคุณสำหรับการมีส่วนร่วมพัฒนาสำนักงานสีเขียว
+              </p>
             </div>
           </div>
           <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap;">
-            <button type="button" class="btn btn-sm btn-outline" onclick="resetFeedbackFormView()">ส่งข้อเสนอแนะอีกครั้ง</button>
-            <button type="button" class="btn btn-sm btn-primary" onclick="closeModal('feedbackModal')">ปิดหน้าต่าง</button>
+            <button type="button" class="btn btn-sm btn-outline"
+              onclick="resetFeedbackFormView()">ส่งข้อเสนอแนะอีกครั้ง</button>
+            <button type="button" class="btn btn-sm btn-primary"
+              onclick="closeModal('feedbackModal')">ปิดหน้าต่าง</button>
           </div>
         </div>
 
         <!-- Hidden Iframe to capture Google Form POST response without leaving the page -->
-        <iframe name="feedbackHiddenIframe" id="feedbackHiddenIframe" style="display:none; width:0; height:0; border:none;" onload="if(window.isSubmittingFeedback) { handleFeedbackSubmissionSuccess(); }"></iframe>
+        <iframe name="feedbackHiddenIframe" id="feedbackHiddenIframe"
+          style="display:none; width:0; height:0; border:none;"
+          onload="if(window.isSubmittingFeedback) { handleFeedbackSubmissionSuccess(); }"></iframe>
 
-        <form id="feedbackForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse" method="POST" target="feedbackHiddenIframe" onsubmit="submitFeedback(event)">
+        <form id="feedbackForm"
+          action="https://docs.google.com/forms/d/e/1FAIpQLSfqjLFZ2Lu6CDWFi1d8tnaIAVnGlO4zp229aMGtxqVSNDh4mg/formResponse"
+          method="POST" target="feedbackHiddenIframe" onsubmit="submitFeedback(event)">
           <!-- วันที่เสนอแนะ และ ประเภทผู้แจ้ง -->
           <div class="form-row-2">
             <div class="form-group">
               <label class="form-label" for="feedbackDate">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">calendar_today</span> วันที่เสนอแนะ <span class="text-danger">*</span>
+                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">calendar_today</span>
+                วันที่เสนอแนะ <span class="text-danger">*</span>
               </label>
               <input type="date" id="feedbackDate" class="form-input" required>
             </div>
@@ -1332,13 +1469,16 @@
             <!-- ประเภทผู้แจ้ง -->
             <div class="form-group">
               <label class="form-label">
-                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">badge</span> ประเภทผู้แจ้ง <span class="text-danger">*</span>
+                <span class="material-icons" style="font-size: 18px; vertical-align: middle;">badge</span> ประเภทผู้แจ้ง
+                <span class="text-danger">*</span>
               </label>
               <div class="user-type-toggle">
-                <button type="button" class="user-type-btn active" id="btnUserInternal" onclick="switchFeedbackUserType('internal')">
+                <button type="button" class="user-type-btn active" id="btnUserInternal"
+                  onclick="switchFeedbackUserType('internal')">
                   <span class="material-icons">domain</span> บุคคลภายใน ปข.10
                 </button>
-                <button type="button" class="user-type-btn" id="btnUserExternal" onclick="switchFeedbackUserType('external')">
+                <button type="button" class="user-type-btn" id="btnUserExternal"
+                  onclick="switchFeedbackUserType('external')">
                   <span class="material-icons">public</span> บุคคลภายนอก
                 </button>
               </div>
@@ -1348,26 +1488,31 @@
           <!-- ชื่อผู้แจ้งเสนอแนะ (สลับตามประเภท) -->
           <div class="form-group" id="groupInternalName">
             <label class="form-label" for="feedbackInternalName">
-              ชื่อผู้แจ้งเสนอแนะ <small class="text-muted">(บุคคลภายใน ปข.10/ปณ.วนารมย์/DB.1 ปจ.อุบลราชธานี)</small> <span class="text-danger">*</span>
+              ชื่อผู้แจ้งเสนอแนะ <small class="text-muted">(บุคคลภายใน ปข.10/ปณ.วนารมย์/DB.1 ปจ.อุบลราชธานี)</small>
+              <span class="text-danger">*</span>
             </label>
-            <input type="text" id="feedbackInternalName" class="form-input" placeholder="ระบุชื่อ-นามสกุล หรือหน่วยงาน/สังกัด" required>
+            <input type="text" id="feedbackInternalName" class="form-input"
+              placeholder="ระบุชื่อ-นามสกุล หรือหน่วยงาน/สังกัด" required>
           </div>
 
           <div class="form-group hidden" id="groupExternalName">
             <label class="form-label" for="feedbackExternalName">
               ชื่อผู้แจ้งเสนอแนะ <small class="text-muted">(บุคคลภายนอก)</small> <span class="text-danger">*</span>
             </label>
-            <input type="text" id="feedbackExternalName" class="form-input" placeholder="ระบุชื่อ-นามสกุล หรือช่องทางติดต่อ">
+            <input type="text" id="feedbackExternalName" class="form-input"
+              placeholder="ระบุชื่อ-นามสกุล หรือช่องทางติดต่อ">
           </div>
 
           <!-- เรื่อง -->
           <div class="form-group">
             <label class="form-label">
-              <span class="material-icons" style="font-size: 18px; vertical-align: middle;">report_problem</span> เรื่องที่ต้องการเสนอแนะ <span class="text-danger">*</span>
+              <span class="material-icons" style="font-size: 18px; vertical-align: middle;">report_problem</span>
+              เรื่องที่ต้องการเสนอแนะ <span class="text-danger">*</span>
             </label>
             <div class="topic-chips-grid">
               <label class="topic-chip">
-                <input type="radio" name="feedbackTopic" value="ฝุ่นละออง" checked onchange="toggleFeedbackOtherTopic(false)">
+                <input type="radio" name="feedbackTopic" value="ฝุ่นละออง" checked
+                  onchange="toggleFeedbackOtherTopic(false)">
                 <div class="topic-chip-card">
                   <span class="topic-icon">🌫️</span>
                   <span class="topic-title">ฝุ่นละออง</span>
@@ -1417,22 +1562,27 @@
 
             <!-- Other Topic input field (hidden by default) -->
             <div id="feedbackOtherTopicWrapper" class="form-group hidden" style="margin-top: 0.75rem;">
-              <input type="text" id="feedbackOtherTopicInput" class="form-input" placeholder="โปรดระบุเรื่องที่ต้องการเสนอแนะ...">
+              <input type="text" id="feedbackOtherTopicInput" class="form-input"
+                placeholder="โปรดระบุเรื่องที่ต้องการเสนอแนะ...">
             </div>
           </div>
 
           <!-- ข้อมูลรายละเอียดที่ต้องการให้มีการแก้ไข -->
           <div class="form-group">
             <label class="form-label" for="feedbackDetail">
-              <span class="material-icons" style="font-size: 18px; vertical-align: middle;">description</span> ข้อมูลรายละเอียดที่ต้องการให้มีการแก้ไข <span class="text-danger">*</span>
+              <span class="material-icons" style="font-size: 18px; vertical-align: middle;">description</span>
+              ข้อมูลรายละเอียดที่ต้องการให้มีการแก้ไข <span class="text-danger">*</span>
             </label>
-            <textarea id="feedbackDetail" class="form-textarea" rows="4" required placeholder="อธิบายรายละเอียด ข้อเสนอแนะ สถานที่ หรือสภาพแวดล้อมที่ต้องการให้ปรับปรุง..."></textarea>
+            <textarea id="feedbackDetail" class="form-textarea" rows="4" required
+              placeholder="อธิบายรายละเอียด ข้อเสนอแนะ สถานที่ หรือสภาพแวดล้อมที่ต้องการให้ปรับปรุง..."></textarea>
           </div>
 
           <!-- ช่องทางการรับรู้การประชาสัมพันธ์ -->
           <div class="form-group">
             <label class="form-label">
-              <span class="material-icons" style="font-size: 18px; vertical-align: middle;">campaign</span> ท่านรับรู้การประชาสัมพันธ์/การรณรงค์สื่อสารการดำเนินกิจกรรม Green Office ผ่านช่องทางใดบ้าง <small class="text-muted">(ตอบได้มากกว่า 1 ข้อ)</small>
+              <span class="material-icons" style="font-size: 18px; vertical-align: middle;">campaign</span>
+              ท่านรับรู้การประชาสัมพันธ์/การรณรงค์สื่อสารการดำเนินกิจกรรม Green Office ผ่านช่องทางใดบ้าง <small
+                class="text-muted">(ตอบได้มากกว่า 1 ข้อ)</small>
             </label>
             <div class="channels-checkbox-grid">
               <label class="channel-checkbox-card">
@@ -1505,4 +1655,5 @@
   <!-- JavaScript Script -->
   <?!= include('JavaScript'); ?>
 </body>
+
 </html>

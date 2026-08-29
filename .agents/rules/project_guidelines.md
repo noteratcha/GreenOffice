@@ -148,3 +148,22 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Retain the raw username in `news.user` so author-only and admin edit/delete permission checks continue to work accurately.
 - **Card Bottom Alignment via `margin-top: auto`**:
   - In dynamic card grids (such as `.news-card`), wrap metadata elements (date, author badge) inside a footer container (`.news-card-footer`) styled with `margin-top: auto`. This ensures that cards with varying title/description lengths maintain perfectly aligned bottom metadata badges across all rows.
+
+## 11. Nested Horizontal Sub-FAB Groups & Stacking Context
+- **Sub-FAB Expansion (`.fab-photos-group`, `.fab-sub-menu`)**:
+  - Nested action groups expand smoothly horizontally to the left of the parent trigger (`position: absolute; right: 100%; top: 50%; display: flex; flex-direction: row; gap: 0.85rem;`).
+  - Items are ordered naturally from left to right (e.g. Leftmost = ลำดับที่ 1 Upload `add_a_photo`, Middle = ลำดับที่ 2 Manage `edit`, Rightmost = Parent FAB `photo_library`).
+- **Connecting Line Behind Buttons (Stacking Context)**:
+  - Connecting line pseudo-element (`.fab-sub-menu::before`) extends across sub-items behind the main trigger with `z-index: 1; pointer-events: none;`.
+  - Sub-buttons (`.fab-sub`) have `z-index: 2; position: relative;` with solid background and white border.
+  - Parent trigger FAB (`.fab-photos-parent`) has `z-index: 10; position: relative;` so that the connecting line is strictly layered **behind** all circular FAB buttons without cutting through button faces or badges.
+- **Outside-Click Auto-Collapse**:
+  - Global `click` listener dismisses open sub-FAB menus when users click anywhere outside `.fab-photos-group`.
+
+## 12. Dynamic Feedback Form Endpoint Management
+- **Dedicated Admin Control**:
+  - Expose a specialized FAB (`#fabEditFeedback`) with `rate_review` icon for administrators.
+  - Opens `#editFeedbackModal` with live inline "ทดสอบ (Test Link ↗)" verification button.
+- **Backend Persistence**:
+  - Store and retrieve the Google Forms response URL dynamically via `PropertiesService` (`getFeedbackLink()` / `saveFeedbackLink()`).
+  - Enables flexible updates to form endpoints without modifying client-side JavaScript.
