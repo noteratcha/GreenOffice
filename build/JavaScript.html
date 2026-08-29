@@ -2256,6 +2256,10 @@ function renderResourcesChart() {
       };
     });
     
+    // Calculate max value to set Y-axis max +30%
+    const maxVal = Math.max(parseFloat(itemBase.total) || 0, parseFloat(itemTarget.total) || 0);
+    const overviewYMax = maxVal > 0 ? (maxVal * 1.30) : undefined;
+
     resourcesChartInstances[config.id] = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -2298,6 +2302,8 @@ function renderResourcesChart() {
           x: { display: false },
           y: {
             beginAtZero: true,
+            max: overviewYMax,
+            suggestedMax: overviewYMax,
             grid: {
               color: 'rgba(0, 0, 0, 0.06)',
               drawBorder: false
@@ -2474,6 +2480,22 @@ function renderMonthlyModalContent(metricKey) {
       }
     };
     
+    // Calculate max value in data to set Y-axis max +30%
+    let maxMonthlyVal = 0;
+    if (prevItem && Array.isArray(prevItem.months)) {
+      prevItem.months.forEach(v => {
+        const num = parseFloat(v) || 0;
+        if (num > maxMonthlyVal) maxMonthlyVal = num;
+      });
+    }
+    if (currItem && Array.isArray(currItem.months)) {
+      currItem.months.forEach(v => {
+        const num = parseFloat(v) || 0;
+        if (num > maxMonthlyVal) maxMonthlyVal = num;
+      });
+    }
+    const yAxisMax = maxMonthlyVal > 0 ? (maxMonthlyVal * 1.30) : undefined;
+
     monthlyDetailChartInstance = new Chart(ctx, {
       type: 'bar',
       plugins: isSingleYear ? [] : [overlap30Plugin],
@@ -2543,6 +2565,8 @@ function renderMonthlyModalContent(metricKey) {
           },
           y: {
             beginAtZero: true,
+            max: yAxisMax,
+            suggestedMax: yAxisMax,
             grid: {
               color: 'rgba(0, 0, 0, 0.06)',
               drawBorder: false
