@@ -4909,16 +4909,28 @@ function getQuizBank() {
 // ------------------------------------------------------------
 // Modal Display & Navigation
 // ------------------------------------------------------------
+function updateQuizPlayerAvatar(name) {
+  const preview = document.getElementById('quizPlayerAvatarPreview');
+  if (!preview) return;
+  const trimmed = (name || '').trim();
+  if (trimmed) {
+    preview.textContent = trimmed.charAt(0).toUpperCase();
+  } else {
+    preview.innerHTML = '<span class="material-icons">person</span>';
+  }
+}
+
 function openQuizGameModal() {
   const modal = document.getElementById('quizGameModal');
   if (!modal) return;
 
   // Hydrate player name
   const savedPlayer = localStorage.getItem('go_quiz_player_name') || localStorage.getItem('go_name') || localStorage.getItem('go_user') || '';
-  const nameInput = document.getElementById('quizPlayerName');
+  const nameInput = document.getElementById('quizPlayerName') || document.getElementById('quizPlayerNameInput');
   if (nameInput && !nameInput.value.trim()) {
     nameInput.value = savedPlayer;
   }
+  updateQuizPlayerAvatar(savedPlayer);
 
   // Pre-generate question bank in background
   setTimeout(getQuizBank, 10);
@@ -4969,7 +4981,7 @@ function switchQuizView(screenName) {
 // Game Play Lifecycle
 // ------------------------------------------------------------
 function startQuizGame() {
-  const nameInput = document.getElementById('quizPlayerName');
+  const nameInput = document.getElementById('quizPlayerName') || document.getElementById('quizPlayerNameInput');
   let pName = nameInput ? nameInput.value.trim() : '';
   if (!pName) {
     pName = localStorage.getItem('go_name') || localStorage.getItem('go_user') || 'ผู้ร่วมสนุก Green Office';
@@ -4977,6 +4989,7 @@ function startQuizGame() {
   }
   localStorage.setItem('go_quiz_player_name', pName);
   quizState.playerName = pName;
+  updateQuizPlayerAvatar(pName);
 
   const bank = getQuizBank();
 
@@ -5042,9 +5055,25 @@ function loadQuizQuestion() {
   const countEl = document.getElementById('quizQuestionCounter');
   if (countEl) countEl.textContent = `ข้อที่ ${qNum} / 10`;
 
+  // Render 10 Step Pills
+  const pillsContainer = document.getElementById('quizStepPills');
+  if (pillsContainer) {
+    let pillsHtml = '';
+    for (let i = 0; i < 10; i++) {
+      let pClass = 'step-pill';
+      if (i < quizState.questionIndex) {
+        pClass += ' completed';
+      } else if (i === quizState.questionIndex) {
+        pClass += ' active';
+      }
+      pillsHtml += `<span class="${pClass}" title="ข้อที่ ${i + 1}"></span>`;
+    }
+    pillsContainer.innerHTML = pillsHtml;
+  }
+
   const badgeEl = document.getElementById('quizDifficultyBadge');
   if (badgeEl) {
-    badgeEl.className = 'quiz-badge';
+    badgeEl.className = 'quiz-diff-pill';
     if (q.difficulty === 1) {
       badgeEl.classList.add('badge-easy');
       badgeEl.innerHTML = '<span class="material-icons">sentiment_satisfied</span> ระดับง่าย (+100)';
@@ -5448,13 +5477,19 @@ function renderGameLeaderboard(res) {
     const isCurrentPlayer = (quizState.playerName && row.playerName === quizState.playerName);
     if (isCurrentPlayer) rowClass += ' current-user-row';
 
+    const initial = (row.playerName || 'ผ').trim().charAt(0).toUpperCase();
+
     html += `
       <tr class="${rowClass}">
         <td style="text-align: center;">${rankBadge}</td>
         <td>
           <div class="player-cell">
-            <span class="player-name">${escapeHtml(row.playerName || 'ผู้เล่นนิรนาม')}</span>
-            ${row.username ? `<span class="player-tag">@${escapeHtml(row.username)}</span>` : ''}
+            <div class="player-avatar-mini">${initial}</div>
+            <div class="player-info-wrap">
+              <span class="player-name">${escapeHtml(row.playerName || 'ผู้เล่นนิรนาม')}</span>
+              ${isCurrentPlayer ? '<span class="player-me-tag">คุณ</span>' : ''}
+              ${row.username ? `<span class="player-tag">@${escapeHtml(row.username)}</span>` : ''}
+            </div>
           </div>
         </td>
         <td style="text-align: center;"><span class="badge-correct">${row.correctCount}/10</span></td>
