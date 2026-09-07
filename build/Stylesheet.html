@@ -231,7 +231,7 @@ body[data-season="summer"] .season-sun-container {
   }
 }
 
-/* --- Ambient Floating Clouds Layer --- */
+/* --- Ambient Floating Clouds Layer (Seamless Continuous Sky) --- */
 .season-clouds-container {
   position: fixed;
   top: 0;
@@ -243,13 +243,48 @@ body[data-season="summer"] .season-sun-container {
   overflow: hidden;
 }
 
-.season-cloud {
+.cloud-track {
   position: absolute;
+  left: 0;
+  display: flex;
+  width: 7200px;
   pointer-events: none;
   will-change: transform;
-  opacity: var(--cloud-opacity, 0.72);
+}
+
+.track-1 {
+  top: 2%;
+  height: 155px;
+  animation: floatSeamlessCloudTrack 140s linear infinite;
+  animation-delay: -40s;
+}
+
+.track-2 {
+  top: 30%;
+  height: 145px;
+  animation: floatSeamlessCloudTrack 95s linear infinite;
+  animation-delay: -85s;
+}
+
+.track-3 {
+  top: 58%;
+  height: 135px;
+  animation: floatSeamlessCloudTrack 120s linear infinite;
+  animation-delay: -15s;
+}
+
+.cloud-strip {
+  position: relative;
+  width: 2400px;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+.seamless-cloud {
+  position: absolute;
+  pointer-events: none;
+  opacity: var(--cloud-opacity, 0.76);
   transition: opacity 0.85s ease;
-  animation: floatCloudLeftToRight linear infinite;
 }
 
 .cloud-svg {
@@ -264,63 +299,20 @@ body[data-season="summer"] .season-sun-container {
   transition: stop-color 0.85s ease;
 }
 
-/* Float Animation: Smooth drift from left to right */
-@keyframes floatCloudLeftToRight {
+/* Seamless infinite translation: -2400px to 0px drifts smoothly from Left to Right */
+@keyframes floatSeamlessCloudTrack {
   0% {
-    transform: translate3d(-380px, 0, 0);
+    transform: translate3d(-2400px, 0, 0);
   }
   100% {
-    transform: translate3d(calc(100vw + 380px), 0, 0);
+    transform: translate3d(0, 0, 0);
   }
-}
-
-/* Staggered vertical heights, sizes, durations & negative delays */
-.cloud-1 {
-  top: 3%;
-  width: 290px;
-  height: 145px;
-  animation-duration: 95s;
-  animation-delay: -25s;
-}
-
-.cloud-2 {
-  top: 15%;
-  width: 350px;
-  height: 145px;
-  animation-duration: 135s;
-  animation-delay: -85s;
-}
-
-.cloud-3 {
-  top: 28%;
-  width: 250px;
-  height: 125px;
-  animation-duration: 110s;
-  animation-delay: -50s;
-}
-
-.cloud-4 {
-  top: 45%;
-  width: 320px;
-  height: 135px;
-  animation-duration: 155s;
-  animation-delay: -115s;
-}
-
-.cloud-5 {
-  top: 62%;
-  width: 270px;
-  height: 135px;
-  animation-duration: 125s;
-  animation-delay: -35s;
 }
 
 @media (max-width: 768px) {
-  .cloud-1 { width: 175px; height: 88px; }
-  .cloud-2 { width: 220px; height: 92px; }
-  .cloud-3 { width: 155px; height: 78px; }
-  .cloud-4 { width: 200px; height: 85px; }
-  .cloud-5 { width: 170px; height: 85px; }
+  .track-1 { top: 1%; height: 95px; }
+  .track-2 { top: 32%; height: 90px; }
+  .track-3 { top: 62%; height: 85px; }
 }
 
 /* --- Ambient Falling Leaves Canvas --- */
