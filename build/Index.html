@@ -633,7 +633,7 @@
   </footer>
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
-  <div class="fab-container hidden" id="fabContainer">
+  <div class="fab-container" id="fabContainer">
 
     <!-- Group: รูปภาพหลัก (Main Photos Group) -->
     <div class="fab-photos-group" id="fabPhotosGroup">
@@ -681,9 +681,239 @@
       title="ปรับเปลี่ยนฤดูกาลฉากหลัง (สำหรับทดสอบ)">
       <span class="material-icons">filter_vintage</span>
     </button>
+
+    <!-- FAB: Green Office Quiz Game (Available for Everyone) -->
+    <button class="fab fab-quiz" id="fabQuizGame" onclick="openQuizGameModal()"
+      title="เล่นเกมตอบคำถาม Green Office Challenge">
+      <span class="material-icons">sports_esports</span>
+      <span class="fab-pulse-ring"></span>
+    </button>
   </div>
 
   <!-- ==================== MODALS ==================== -->
+
+  <!-- Green Office Quiz Game Modal -->
+  <div id="quizGameModal" class="modal-backdrop">
+    <div class="modal quiz-modal">
+      <div class="modal-header quiz-modal-header">
+        <div class="modal-title-wrapper">
+          <div class="modal-icon-badge quiz-badge">
+            <span class="material-icons">sports_esports</span>
+          </div>
+          <div>
+            <h3 class="modal-title">Green Office Quiz Challenge</h3>
+            <p class="modal-subtitle">เกมตอบคำถามสำนักงานสีเขียว พิชิต 10 ข้อสู่สุดยอดผู้นำด้านสิ่งแวดล้อม</p>
+          </div>
+        </div>
+        <div class="quiz-header-actions">
+          <button type="button" class="btn-quiz-tab active" id="btnTabQuizPlay" onclick="switchQuizView('game')">
+            <span class="material-icons">play_circle</span> เล่นเกม
+          </button>
+          <button type="button" class="btn-quiz-tab" id="btnTabQuizLeaderboard" onclick="switchQuizView('leaderboard')">
+            <span class="material-icons">emoji_events</span> กระดานผู้นำ
+          </button>
+          <button type="button" class="modal-close" onclick="closeQuizGameModal()" title="ปิดหน้าต่าง">&times;</button>
+        </div>
+      </div>
+
+      <!-- MODAL BODY -->
+      <div class="modal-body quiz-modal-body">
+        
+        <!-- SCREEN 1: LOBBY (Start Screen) -->
+        <div id="quizScreenLobby" class="quiz-screen">
+          <div class="quiz-lobby-hero">
+            <div class="quiz-hero-icon-wrap">
+              <span class="material-icons quiz-hero-icon">emoji_events</span>
+            </div>
+            <h2>ท้าประลองความรู้ Green Office 10 ข้อ</h2>
+            <p class="quiz-hero-desc">ตอบคำถาม 4 ตัวเลือก สุ่มคำถามจากคลัง 1,000 ข้อ ไต่ระดับความยาก พร้อมชิงอันดับบนกระดานผู้นำ</p>
+          </div>
+
+          <div class="quiz-rules-grid">
+            <div class="quiz-rule-card">
+              <span class="material-icons rule-icon">trending_up</span>
+              <h4>10 ข้อไต่ระดับ</h4>
+              <p>ง่าย (1-3) ➔ กลาง (4-7) ➔ ยาก (8-10)</p>
+            </div>
+            <div class="quiz-rule-card">
+              <span class="material-icons rule-icon">timer</span>
+              <h4>แข่งกับเวลา</h4>
+              <p>ตอบไวได้คะแนนโบนัส ยิ่งเร็วยิ่งแต้มสูง</p>
+            </div>
+            <div class="quiz-rule-card warning">
+              <span class="material-icons rule-icon">dangerous</span>
+              <h4>Sudden Death</h4>
+              <p>ถ้าตอบผิดแม้แต่ข้อเดียว จะต้องเริ่มเล่นใหม่!</p>
+            </div>
+            <div class="quiz-rule-card highlight">
+              <span class="material-icons rule-icon">auto_fix_high</span>
+              <h4>2 ตัวช่วยพิเศษ</h4>
+              <p>50:50 ตัด 2 ช้อยส์ & ขอคำถามใหม่ (ใช้อย่างละ 1 ครั้ง)</p>
+            </div>
+          </div>
+
+          <div class="quiz-player-form">
+            <label for="quizPlayerNameInput"><span class="material-icons">badge</span> ชื่อผู้เล่นสำหรับบันทึกคะแนนแร้งกิง:</label>
+            <div class="player-input-wrap">
+              <input type="text" id="quizPlayerNameInput" class="form-control" placeholder="กรุณาระบุชื่อของคุณ (เช่น นฤมล ปข.10)" maxlength="30">
+            </div>
+          </div>
+
+          <div class="quiz-lobby-actions">
+            <button type="button" class="btn-quiz-start" onclick="startQuizGame()">
+              <span class="material-icons">rocket_launch</span> เริ่มประลองเลย!
+            </button>
+            <button type="button" class="btn-quiz-secondary" onclick="switchQuizView('leaderboard')">
+              <span class="material-icons">leaderboard</span> ดูกระดานผู้นำ (Top 20)
+            </button>
+          </div>
+        </div>
+
+        <!-- SCREEN 2: IN-GAME (Active Quiz Screen) -->
+        <div id="quizScreenPlay" class="quiz-screen hidden">
+          <!-- Top Status Bar -->
+          <div class="quiz-status-bar">
+            <div class="quiz-stat-item">
+              <span class="stat-label">ข้อที่</span>
+              <span class="stat-val highlight"><span id="quizCurrentNum">1</span><small>/10</small></span>
+            </div>
+            <div class="quiz-stat-item">
+              <span id="quizDiffBadge" class="quiz-diff-badge easy">ระดับง่าย</span>
+            </div>
+            <div class="quiz-stat-item">
+              <span class="stat-label">คะแนนสะสม</span>
+              <span class="stat-val score" id="quizLiveScore">0</span>
+            </div>
+          </div>
+
+          <!-- Timer Bar -->
+          <div class="quiz-timer-wrapper">
+            <div class="quiz-timer-header">
+              <span><span class="material-icons timer-icon">alarm</span> เวลาที่เหลือ:</span>
+              <span id="quizTimerSeconds" class="timer-seconds-text">20s</span>
+            </div>
+            <div class="quiz-timer-track">
+              <div id="quizTimerBar" class="quiz-timer-fill" style="width: 100%;"></div>
+            </div>
+          </div>
+
+          <!-- Lifelines Toolbar -->
+          <div class="quiz-lifelines-bar">
+            <span class="lifelines-label">ตัวช่วย:</span>
+            <button type="button" id="btnLife5050" class="btn-lifeline" onclick="useLifeline5050()" title="ตัดตัวเลือกที่ผิดออก 2 ข้อ">
+              <span class="lifeline-badge">50:50</span> ตัด 2 ช้อยส์
+            </button>
+            <button type="button" id="btnLifeSwap" class="btn-lifeline" onclick="useLifelineSwap()" title="ขอเปลี่ยนคำถามใหม่ในระดับความยากเดียวกัน">
+              <span class="material-icons">change_circle</span> สลับคำถามใหม่
+            </button>
+          </div>
+
+          <!-- Question Box -->
+          <div class="quiz-question-box">
+            <div class="quiz-category-tag" id="quizCategoryTag">
+              <span class="material-icons">eco</span> <span id="quizCategoryName">หมวด 1: นโยบายและแนวทางปฏิบัติ</span>
+            </div>
+            <h3 id="quizQuestionTitle" class="quiz-question-title">กำลังโหลดคำถาม...</h3>
+          </div>
+
+          <!-- Choices Grid (4 choices) -->
+          <div class="quiz-choices-grid" id="quizChoicesGrid">
+            <button type="button" class="quiz-choice-btn" id="choiceBtn0" onclick="handleChoiceClick(0)">
+              <span class="choice-letter">A</span>
+              <span class="choice-text" id="choiceText0">ตัวเลือกที่ 1</span>
+            </button>
+            <button type="button" class="quiz-choice-btn" id="choiceBtn1" onclick="handleChoiceClick(1)">
+              <span class="choice-letter">B</span>
+              <span class="choice-text" id="choiceText1">ตัวเลือกที่ 2</span>
+            </button>
+            <button type="button" class="quiz-choice-btn" id="choiceBtn2" onclick="handleChoiceClick(2)">
+              <span class="choice-letter">C</span>
+              <span class="choice-text" id="choiceText2">ตัวเลือกที่ 3</span>
+            </button>
+            <button type="button" class="quiz-choice-btn" id="choiceBtn3" onclick="handleChoiceClick(3)">
+              <span class="choice-letter">D</span>
+              <span class="choice-text" id="choiceText3">ตัวเลือกที่ 4</span>
+            </button>
+          </div>
+
+          <!-- Feedback Reveal Banner (appears briefly on answer) -->
+          <div id="quizFeedbackBanner" class="quiz-feedback-banner hidden">
+            <div id="quizFeedbackContent" class="feedback-content"></div>
+          </div>
+        </div>
+
+        <!-- SCREEN 3: RESULT (Game Over / Victory) -->
+        <div id="quizScreenResult" class="quiz-screen hidden">
+          <div class="quiz-result-hero" id="quizResultHero">
+            <div class="result-icon-wrap" id="quizResultIconWrap">
+              <span class="material-icons" id="quizResultIcon">emoji_events</span>
+            </div>
+            <h2 id="quizResultTitle">สรุปผลการประลอง</h2>
+            <p id="quizResultSubtitle" class="result-subtitle">คุณทำคะแนนได้ยอดเยี่ยมมาก!</p>
+          </div>
+
+          <div class="quiz-result-metrics">
+            <div class="result-metric-card">
+              <span class="material-icons metric-icon">check_circle</span>
+              <span class="metric-val" id="resCorrectText">0/10</span>
+              <span class="metric-label">ข้อที่ตอบถูก</span>
+            </div>
+            <div class="result-metric-card highlight">
+              <span class="material-icons metric-icon">stars</span>
+              <span class="metric-val" id="resScoreText">0</span>
+              <span class="metric-label">คะแนนรวม</span>
+            </div>
+            <div class="result-metric-card">
+              <span class="material-icons metric-icon">schedule</span>
+              <span class="metric-val" id="resTimeText">0s</span>
+              <span class="metric-label">เวลาที่ใช้</span>
+            </div>
+          </div>
+
+          <!-- Save Status Banner -->
+          <div id="quizSaveStatusBanner" class="quiz-save-status">
+            <span class="material-icons">cloud_upload</span> กำลังบันทึกคะแนนเข้าสู่ตารางผู้นำ...
+          </div>
+
+          <div class="quiz-result-actions">
+            <button type="button" class="btn-quiz-start" onclick="startQuizGame()">
+              <span class="material-icons">replay</span> เริ่มเล่นใหม่อีกครั้ง
+            </button>
+            <button type="button" class="btn-quiz-secondary" onclick="switchQuizView('leaderboard')">
+              <span class="material-icons">leaderboard</span> ดูกระดานผู้นำทั้งหมด
+            </button>
+          </div>
+        </div>
+
+        <!-- SCREEN 4: LEADERBOARD -->
+        <div id="quizScreenLeaderboard" class="quiz-screen hidden">
+          <div class="leaderboard-header">
+            <h3><span class="material-icons">emoji_events</span> ทำเนียบสุดยอดผู้พิชิต Green Office</h3>
+            <p>คะแนนสูงสุดจะถูกจัดอันดับจากคะแนนที่ทำได้และเวลาที่ใช้น้อยที่สุด</p>
+          </div>
+
+          <div id="leaderboardLoading" class="leaderboard-loading">
+            <div class="loading-spinner"></div>
+            <p>กำลังโหลดตารางคะแนนล่าสุด...</p>
+          </div>
+
+          <div id="leaderboardContent" class="leaderboard-table-wrap hidden">
+            <!-- Rendered dynamically -->
+          </div>
+
+          <div class="quiz-leaderboard-actions">
+            <button type="button" class="btn-quiz-start" onclick="switchQuizView('game')">
+              <span class="material-icons">play_circle</span> กลับไปเล่นเกม
+            </button>
+            <button type="button" class="btn-quiz-refresh" onclick="loadGameLeaderboard(true)">
+              <span class="material-icons">refresh</span> รีเฟรชตาราง
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 
   <!-- Season Switcher Modal (Admin Only) -->
   <div id="seasonModal" class="modal-backdrop">
@@ -694,11 +924,11 @@
             <span class="material-icons">filter_vintage</span>
           </div>
           <div>
-            <h3>ปรับเปลี่ยนฤดูกาลฉากหลัง (สำหรับทดสอบ)</h3>
+            <h3 class="modal-title">ปรับเปลี่ยนฤดูกาลฉากหลัง</h3>
             <p class="modal-subtitle">เลือกฤดูกาลเพื่อทดสอบการแสดงผลชั่วคราว (ระบบจะแสดงผลอัตโนมัติตามฤดูกาลจริงเป็นค่าเริ่มต้น)</p>
           </div>
         </div>
-        <button class="modal-close" onclick="closeModal('seasonModal')">
+        <button type="button" class="modal-close" onclick="closeModal('seasonModal')" title="ปิดหน้าต่าง">
           <span class="material-icons">close</span>
         </button>
       </div>

@@ -1018,4 +1018,122 @@ function saveFeedbackLink(url) {
   }
 }
 
+// ============================================================
+// Green Office Quiz Game & Leaderboard
+// ============================================================
+
+const GAME_RANKING_SHEET = 'game_ranking';
+
+function getOrCreateGameRankingSheet() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  let sheet = ss.getSheetByName(GAME_RANKING_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(GAME_RANKING_SHEET);
+    sheet.appendRow([
+      'วันที่เวลาบันทึก',
+      'ชื่อผู้เล่น',
+      'ชื่อผู้ใช้',
+      'คะแนนรวม',
+      'จำนวนข้อที่ตอบถูก',
+      'เวลาที่ใช้รวม (วินาที)',
+      'วันที่แสดงผล'
+    ]);
+    sheet.getRange(1, 1, 1, 7).setFontWeight('bold').setBackground('#2e7d32').setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+  }
+  return sheet;
+}
+
+function saveGameScore(scoreData) {
+  try {
+    if (!scoreData) return { success: false, message: 'ไม่มีข้อมูลคะแนน' };
+    
+    const sheet = getOrCreateGameRankingSheet();
+    const now = new Date();
+    const playerName = (scoreData.playerName || 'ผู้เยี่ยมชม').trim().substring(0, 40);
+    const username = (scoreData.username || 'guest').trim();
+    const score = parseInt(scoreData.score, 10) || 0;
+    const correctCount = parseInt(scoreData.correctCount, 10) || 0;
+    const timeSeconds = Math.round(parseFloat(scoreData.timeSeconds) || 0);
+    const dateFormatted = Utilities.formatDate(now, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
+
+    sheet.appendRow([
+      now,
+      playerName,
+      username,
+      score,
+      correctCount,
+      timeSeconds,
+      dateFormatted
+    ]);
+
+    return { 
+      success: true, 
+      message: 'บันทึกคะแนนเข้าสู่ตารางผู้นำเรียบร้อยแล้ว',
+      playerName: playerName,
+      score: score
+    };
+  } catch (e) {
+    Logger.log('saveGameScore error: ' + e.message);
+    return { success: false, message: 'บันทึกคะแนนไม่สำเร็จ: ' + e.message };
+  }
+}
+
+function getGameLeaderboard() {
+  try {
+    const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+    const sheet = ss.getSheetByName(GAME_RANKING_SHEET);
+    if (!sheet) return [];
+
+    const data = sheet.getDataRange().getValues();
+    if (data.length <= 1) return [];
+
+    const leaderboard = [];
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const playerName = String(row[1] || '').trim();
+      const username = String(row[2] || '').trim();
+      const score = parseInt(row[3], 10) || 0;
+      const correctCount = parseInt(row[4], 10) || 0;
+      const timeSeconds = Math.round(parseFloat(row[5]) || 0);
+      let dateStr = '';
+      if (row[6]) {
+        dateStr = String(row[6]);
+      } else if (row[0] instanceof Date) {
+        dateStr = Utilities.formatDate(row[0], Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
+      }
+
+      if (playerName && score >= 0) {
+        leaderboard.push({
+          playerName: playerName,
+          username: username,
+          score: score,
+          correctCount: correctCount,
+          timeSeconds: timeSeconds,
+          date: dateStr
+        });
+      }
+    }
+
+    // Sort: Score DESC, then Time ASC (faster = better rank)
+    leaderboard.sort((a, b) => {
+      if (b.score !== a.score) {
+        return b.score - a.score;
+      }
+      return a.timeSeconds - b.timeSeconds;
+    });
+
+    // Return Top 20
+    const top20 = leaderboard.slice(0, 20).map((item, idx) => {
+      item.rank = idx + 1;
+      return item;
+    });
+
+    return top20;
+  } catch (e) {
+    Logger.log('getGameLeaderboard error: ' + e.message);
+    return [];
+  }
+}
+
 
