@@ -63,14 +63,29 @@ body {
 /* --- Ambient Seasonal Mood & Tone Themes --- */
 body[data-season="rainy"], body:not([data-season]) {
   --color-bg: #eef4eb;
+  --cloud-stop-1: #ffffff;
+  --cloud-stop-2: #e3ede4;
+  --cloud-stop-3: #c5d8c7;
+  --cloud-shadow: rgba(45, 75, 52, 0.12);
+  --cloud-opacity: 0.75;
 }
 
 body[data-season="summer"] {
   --color-bg: #faf1e4;
+  --cloud-stop-1: #ffffff;
+  --cloud-stop-2: #fef5e7;
+  --cloud-stop-3: #fcdbaa;
+  --cloud-shadow: rgba(200, 110, 15, 0.12);
+  --cloud-opacity: 0.78;
 }
 
 body[data-season="winter"] {
   --color-bg: #eaf2f8;
+  --cloud-stop-1: #ffffff;
+  --cloud-stop-2: #f0f7fd;
+  --cloud-stop-3: #cee3f8;
+  --cloud-shadow: rgba(70, 135, 200, 0.14);
+  --cloud-opacity: 0.70;
 }
 
 /* --- Ambient Seasonal Mood & Tone Backdrops --- */
@@ -126,6 +141,98 @@ body[data-season="summer"] .season-backdrop.season-summer {
 
 body[data-season="winter"] .season-backdrop.season-winter {
   opacity: 1;
+}
+
+/* --- Ambient Floating Clouds Layer --- */
+.season-clouds-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.season-cloud {
+  position: absolute;
+  pointer-events: none;
+  will-change: transform;
+  opacity: var(--cloud-opacity, 0.72);
+  transition: opacity 0.85s ease;
+  animation: floatCloudLeftToRight linear infinite;
+}
+
+.cloud-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 6px 18px var(--cloud-shadow, rgba(0, 0, 0, 0.08)));
+  transition: filter 0.85s ease;
+}
+
+.cloud-svg stop {
+  transition: stop-color 0.85s ease;
+}
+
+/* Float Animation: Smooth drift from left to right */
+@keyframes floatCloudLeftToRight {
+  0% {
+    transform: translate3d(-380px, 0, 0);
+  }
+  100% {
+    transform: translate3d(calc(100vw + 380px), 0, 0);
+  }
+}
+
+/* Staggered vertical heights, sizes, durations & negative delays */
+.cloud-1 {
+  top: 3%;
+  width: 290px;
+  height: 145px;
+  animation-duration: 95s;
+  animation-delay: -25s;
+}
+
+.cloud-2 {
+  top: 15%;
+  width: 350px;
+  height: 145px;
+  animation-duration: 135s;
+  animation-delay: -85s;
+}
+
+.cloud-3 {
+  top: 28%;
+  width: 250px;
+  height: 125px;
+  animation-duration: 110s;
+  animation-delay: -50s;
+}
+
+.cloud-4 {
+  top: 45%;
+  width: 320px;
+  height: 135px;
+  animation-duration: 155s;
+  animation-delay: -115s;
+}
+
+.cloud-5 {
+  top: 62%;
+  width: 270px;
+  height: 135px;
+  animation-duration: 125s;
+  animation-delay: -35s;
+}
+
+@media (max-width: 768px) {
+  .cloud-1 { width: 175px; height: 88px; }
+  .cloud-2 { width: 220px; height: 92px; }
+  .cloud-3 { width: 155px; height: 78px; }
+  .cloud-4 { width: 200px; height: 85px; }
+  .cloud-5 { width: 170px; height: 85px; }
 }
 
 /* --- Ambient Falling Leaves Canvas --- */

@@ -35,6 +35,55 @@
   <div class="season-backdrop season-summer" id="seasonBackdropSummer"></div>
   <div class="season-backdrop season-winter" id="seasonBackdropWinter"></div>
 
+  <!-- Ambient Seasonal Floating Clouds -->
+  <div class="season-clouds-container" id="seasonCloudsContainer" aria-hidden="true">
+    <!-- Shared Cloud Gradient Definition -->
+    <svg width="0" height="0" style="position: absolute; width: 0; height: 0; overflow: hidden;">
+      <defs>
+        <linearGradient id="cloudSeasonalGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+          <stop offset="0%" stop-color="var(--cloud-stop-1)" />
+          <stop offset="50%" stop-color="var(--cloud-stop-2)" />
+          <stop offset="100%" stop-color="var(--cloud-stop-3)" />
+        </linearGradient>
+      </defs>
+    </svg>
+
+    <!-- Cloud 1 (Cumulus) -->
+    <div class="season-cloud cloud-1">
+      <svg class="cloud-svg" viewBox="0 0 320 160" preserveAspectRatio="none">
+        <path d="M50 130 C30 130 15 115 15 95 C15 78 28 64 45 62 C50 35 75 15 105 15 C125 15 142 24 153 38 C163 28 178 22 195 22 C225 22 250 45 252 74 C268 76 280 90 280 106 C280 120 270 130 255 130 Z" fill="url(#cloudSeasonalGrad)" />
+      </svg>
+    </div>
+
+    <!-- Cloud 2 (Elongated Drift) -->
+    <div class="season-cloud cloud-2">
+      <svg class="cloud-svg" viewBox="0 0 360 150" preserveAspectRatio="none">
+        <path d="M40 120 C22 120 10 108 10 90 C10 74 22 62 38 60 C42 38 62 20 88 20 C105 20 120 28 130 40 C140 30 155 25 172 25 C198 25 220 42 225 66 C238 64 250 72 255 85 C265 82 278 88 282 98 C295 100 305 110 305 120 Z" fill="url(#cloudSeasonalGrad)" />
+      </svg>
+    </div>
+
+    <!-- Cloud 3 (Soft Puffy) -->
+    <div class="season-cloud cloud-3">
+      <svg class="cloud-svg" viewBox="0 0 280 140" preserveAspectRatio="none">
+        <path d="M45 115 C28 115 15 102 15 85 C15 70 26 58 40 56 C45 32 68 15 95 15 C115 15 132 25 142 40 C150 32 162 28 175 28 C200 28 220 46 222 70 C235 72 245 84 245 98 C245 110 236 115 225 115 Z" fill="url(#cloudSeasonalGrad)" />
+      </svg>
+    </div>
+
+    <!-- Cloud 4 (Horizon Cloud) -->
+    <div class="season-cloud cloud-4">
+      <svg class="cloud-svg" viewBox="0 0 360 150" preserveAspectRatio="none">
+        <path d="M40 120 C22 120 10 108 10 90 C10 74 22 62 38 60 C42 38 62 20 88 20 C105 20 120 28 130 40 C140 30 155 25 172 25 C198 25 220 42 225 66 C238 64 250 72 255 85 C265 82 278 88 282 98 C295 100 305 110 305 120 Z" fill="url(#cloudSeasonalGrad)" />
+      </svg>
+    </div>
+
+    <!-- Cloud 5 (Breezy Drift) -->
+    <div class="season-cloud cloud-5">
+      <svg class="cloud-svg" viewBox="0 0 320 160" preserveAspectRatio="none">
+        <path d="M50 130 C30 130 15 115 15 95 C15 78 28 64 45 62 C50 35 75 15 105 15 C125 15 142 24 153 38 C163 28 178 22 195 22 C225 22 250 45 252 74 C268 76 280 90 280 106 C280 120 270 130 255 130 Z" fill="url(#cloudSeasonalGrad)" />
+      </svg>
+    </div>
+  </div>
+
   <!-- Ambient Falling Leaves Canvas -->
   <canvas id="fallingLeavesCanvas" class="falling-leaves-canvas"></canvas>
 
@@ -566,7 +615,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1055</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1120</p>
   </footer>
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
