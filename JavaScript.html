@@ -3913,7 +3913,8 @@ let leavesAnimId = null;
 let leaves = [];
 let leavesCanvas = null;
 let leavesCtx = null;
-let currentSeasonMode = localStorage.getItem('go_season') || 'auto';
+let currentSeasonMode = 'auto'; // Always default to auto (manual selection is for testing only)
+try { localStorage.removeItem('go_season'); } catch (e) {}
 
 function getNaturalSeason() {
   const now = new Date();
@@ -3981,7 +3982,6 @@ function updateSeasonModalUI() {
 
 function chooseSeason(seasonKey) {
   currentSeasonMode = seasonKey;
-  localStorage.setItem('go_season', seasonKey);
   applySeasonTheme();
   updateSeasonModalUI();
   
@@ -3989,7 +3989,11 @@ function chooseSeason(seasonKey) {
   if (typeof reseedSeasonalParticles === 'function') {
     reseedSeasonalParticles();
   }
-  showToast(`ตั้งค่าฉากหลังเป็น ${getSeasonName(getActiveSeason())}`, 'success');
+  if (seasonKey === 'auto') {
+    showToast(`คืนค่าฉากหลังเป็นอัตโนมัติ (${getSeasonName(getActiveSeason())})`, 'success');
+  } else {
+    showToast(`ทดสอบการแสดงผล: ${getSeasonName(getActiveSeason())} (สำหรับทดสอบ)`, 'info');
+  }
 }
 
 function updateSeasonUI() {
