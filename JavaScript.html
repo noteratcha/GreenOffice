@@ -4070,13 +4070,13 @@ function initFallingLeaves() {
         opacity: 0.5 + Math.random() * 0.45
       };
     } else if (activeSeason === 'summer') {
-      // Maple Leaf or Curled Dry Leaf
+      // Maple Leaf exclusively for Summer
       const depth = 0.65 + Math.random() * 0.65;
-      const size = (13 + Math.random() * 13) * depth;
+      const size = (14 + Math.random() * 13) * depth;
       const colorScheme = summerColors[Math.floor(Math.random() * summerColors.length)];
       return {
         season: 'summer',
-        type: Math.random() > 0.45 ? 'maple' : 'curled',
+        type: 'maple',
         x: Math.random() * width,
         y: initialY !== null ? initialY : -size - Math.random() * 120,
         baseX: Math.random() * width,
