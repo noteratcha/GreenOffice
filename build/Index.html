@@ -561,8 +561,30 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1025</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1035</p>
   </footer>
+
+  <!-- Seasonal Background Switcher Widget -->
+  <div class="season-badge-container" id="seasonBadgeContainer">
+    <div class="season-badge-trigger" onclick="toggleSeasonMenu(event)" title="คลิกเพื่อเลือกหรือดูฤดูกาลของฉากหลัง">
+      <span class="season-badge-icon" id="seasonCurrentIcon">🍃</span>
+      <span class="season-badge-label" id="seasonCurrentLabel">ฤดูฝน</span>
+    </div>
+    <div class="season-menu hidden" id="seasonMenu">
+      <button type="button" class="season-menu-item" id="seasonBtn-rainy" onclick="setSeason('rainy')">
+        <span>🍃</span> ฤดูฝน (ใบไม้สีเขียว)
+      </button>
+      <button type="button" class="season-menu-item" id="seasonBtn-summer" onclick="setSeason('summer')">
+        <span>🍁</span> ฤดูร้อน (ใบเมเปิ้ล/ใบไม้แห้ง)
+      </button>
+      <button type="button" class="season-menu-item" id="seasonBtn-winter" onclick="setSeason('winter')">
+        <span>❄️</span> ฤดูหนาว (หิมะโปรยปราย)
+      </button>
+      <button type="button" class="season-menu-item" id="seasonBtn-auto" onclick="setSeason('auto')">
+        <span>🔄</span> อัตโนมัติตามฤดูกาลจริง
+      </button>
+    </div>
+  </div>
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
   <div class="fab-container hidden" id="fabContainer">

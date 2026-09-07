@@ -3899,13 +3899,94 @@ function resetFeedbackFormView() {
 }
 
 // ============================================================
-// Ambient Falling Leaves Animation System
+// Ambient Multi-Seasonal Background Particle System
+// Rainy: Fresh Green Leaves | Summer: Dry Maple Leaves | Winter: Snow
 // ============================================================
 
 let leavesAnimId = null;
 let leaves = [];
 let leavesCanvas = null;
 let leavesCtx = null;
+let currentSeasonMode = localStorage.getItem('go_season') || 'auto';
+
+function getNaturalSeason() {
+  const now = new Date();
+  const m = now.getMonth(); // 0 = Jan, ..., 11 = Dec
+  const d = now.getDate();
+  
+  // Thailand Meteorological Department Seasons:
+  // Summer (ฤดูร้อน): ~16 Feb - 15 May
+  // Rainy (ฤดูฝน): ~16 May - 15 Oct
+  // Winter (ฤดูหนาว): ~16 Oct - 15 Feb
+  if ((m === 1 && d >= 16) || m === 2 || m === 3 || (m === 4 && d <= 15)) {
+    return 'summer';
+  } else if ((m === 4 && d >= 16) || (m >= 5 && m <= 8) || (m === 9 && d <= 15)) {
+    return 'rainy';
+  } else {
+    return 'winter';
+  }
+}
+
+function getActiveSeason() {
+  if (currentSeasonMode && currentSeasonMode !== 'auto') {
+    return currentSeasonMode;
+  }
+  return getNaturalSeason();
+}
+
+function getSeasonName(seasonKey) {
+  switch (seasonKey) {
+    case 'summer': return 'ฤดูร้อน (ใบเมเปิ้ล/ใบไม้แห้ง)';
+    case 'winter': return 'ฤดูหนาว (หิมะโปรยปราย)';
+    default: return 'ฤดูฝน (ใบไม้สีเขียว)';
+  }
+}
+
+function updateSeasonUI() {
+  const active = getActiveSeason();
+  const iconElem = document.getElementById('seasonCurrentIcon');
+  const labelElem = document.getElementById('seasonCurrentLabel');
+  
+  const seasonInfo = {
+    rainy: { icon: '🍃', label: 'ฤดูฝน' },
+    summer: { icon: '🍁', label: 'ฤดูร้อน' },
+    winter: { icon: '❄️', label: 'ฤดูหนาว' }
+  };
+
+  const info = seasonInfo[active] || seasonInfo.rainy;
+  if (iconElem) iconElem.textContent = info.icon;
+  if (labelElem) {
+    labelElem.textContent = currentSeasonMode === 'auto' ? `${info.label} (ออโต้)` : info.label;
+  }
+
+  document.querySelectorAll('.season-menu-item').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  const activeBtn = document.getElementById(`seasonBtn-${currentSeasonMode}`);
+  if (activeBtn) activeBtn.classList.add('active');
+}
+
+function toggleSeasonMenu(e) {
+  if (e) e.stopPropagation();
+  const menu = document.getElementById('seasonMenu');
+  if (menu) menu.classList.toggle('hidden');
+}
+
+function setSeason(seasonKey) {
+  currentSeasonMode = seasonKey;
+  localStorage.setItem('go_season', seasonKey);
+  updateSeasonUI();
+  const menu = document.getElementById('seasonMenu');
+  if (menu) menu.classList.add('hidden');
+  
+  // Re-seed particles smoothly
+  if (typeof reseedSeasonalParticles === 'function') {
+    reseedSeasonalParticles();
+  }
+  showToast(`เปลี่ยนฉากหลังเป็น ${getSeasonName(getActiveSeason())}`, 'success');
+}
+
+let reseedSeasonalParticles = function() {};
 
 function initFallingLeaves() {
   leavesCanvas = document.getElementById('fallingLeavesCanvas');
@@ -3922,7 +4003,8 @@ function initFallingLeaves() {
   resizeCanvas();
   window.addEventListener('resize', resizeCanvas, { passive: true });
 
-  const leafColors = [
+  // Seasonal Color Palettes
+  const rainyColors = [
     { fill: 'rgba(118, 139, 84, 0.75)', vein: 'rgba(58, 79, 59, 0.5)' },    // Olive
     { fill: 'rgba(58, 79, 59, 0.70)',   vein: 'rgba(26, 38, 34, 0.45)' },   // Forest Green
     { fill: 'rgba(143, 165, 104, 0.78)', vein: 'rgba(94, 113, 67, 0.5)' },  // Sage
@@ -3930,51 +4012,131 @@ function initFallingLeaves() {
     { fill: 'rgba(126, 153, 90, 0.72)', vein: 'rgba(60, 80, 45, 0.5)' }     // Fresh Foliage
   ];
 
-  function createLeaf(initialY = null) {
+  const summerColors = [
+    { fill: 'rgba(203, 67, 53, 0.82)', vein: 'rgba(120, 40, 31, 0.6)' },    // Crimson Maple
+    { fill: 'rgba(211, 84, 0, 0.82)',  vein: 'rgba(141, 73, 16, 0.6)' },    // Amber Orange
+    { fill: 'rgba(230, 126, 34, 0.78)', vein: 'rgba(160, 82, 45, 0.55)' },  // Golden Ochre
+    { fill: 'rgba(175, 96, 26, 0.80)', vein: 'rgba(100, 50, 15, 0.6)' },    // Rust Brown
+    { fill: 'rgba(243, 156, 18, 0.78)', vein: 'rgba(183, 149, 11, 0.55)' }  // Honey Gold
+  ];
+
+  const winterColors = [
+    'rgba(255, 255, 255, 0.92)',
+    'rgba(230, 244, 255, 0.88)',
+    'rgba(215, 238, 255, 0.82)'
+  ];
+
+  function createParticle(initialY = null) {
+    const activeSeason = getActiveSeason();
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const colorScheme = leafColors[Math.floor(Math.random() * leafColors.length)];
-    const depth = 0.65 + Math.random() * 0.65;
-    const size = (13 + Math.random() * 13) * depth;
 
-    return {
-      x: Math.random() * width,
-      y: initialY !== null ? initialY : -size - Math.random() * 120,
-      baseX: Math.random() * width,
-      size: size,
-      type: Math.random() > 0.4 ? 'oval' : 'heart',
-      speedY: (0.75 + Math.random() * 1.1) * depth,
-      swayAmp: 18 + Math.random() * 32,
-      swaySpeed: 0.014 + Math.random() * 0.018,
-      swayProgress: Math.random() * Math.PI * 2,
-      angle: Math.random() * Math.PI * 2,
-      angleSpeed: (Math.random() - 0.5) * 0.022,
-      flipAngle: Math.random() * Math.PI * 2,
-      flipSpeed: 0.018 + Math.random() * 0.03,
-      color: colorScheme.fill,
-      veinColor: colorScheme.vein,
-      opacity: (0.55 + Math.random() * 0.35) * Math.min(1, depth)
-    };
+    if (activeSeason === 'winter') {
+      // Snowflake or Soft Snow Puff
+      const isCrystal = Math.random() > 0.45;
+      const size = isCrystal ? 6 + Math.random() * 8 : 3 + Math.random() * 6;
+      return {
+        season: 'winter',
+        type: isCrystal ? 'snowflake' : 'fluffy',
+        x: Math.random() * width,
+        y: initialY !== null ? initialY : -size - Math.random() * 80,
+        baseX: Math.random() * width,
+        size: size,
+        speedY: 0.45 + Math.random() * 0.85,
+        swayAmp: 10 + Math.random() * 20,
+        swaySpeed: 0.015 + Math.random() * 0.02,
+        swayProgress: Math.random() * Math.PI * 2,
+        angle: Math.random() * Math.PI * 2,
+        angleSpeed: (Math.random() - 0.5) * 0.015,
+        color: winterColors[Math.floor(Math.random() * winterColors.length)],
+        opacity: 0.5 + Math.random() * 0.45
+      };
+    } else if (activeSeason === 'summer') {
+      // Maple Leaf or Curled Dry Leaf
+      const depth = 0.65 + Math.random() * 0.65;
+      const size = (13 + Math.random() * 13) * depth;
+      const colorScheme = summerColors[Math.floor(Math.random() * summerColors.length)];
+      return {
+        season: 'summer',
+        type: Math.random() > 0.45 ? 'maple' : 'curled',
+        x: Math.random() * width,
+        y: initialY !== null ? initialY : -size - Math.random() * 120,
+        baseX: Math.random() * width,
+        size: size,
+        speedY: (0.75 + Math.random() * 1.1) * depth,
+        swayAmp: 20 + Math.random() * 35,
+        swaySpeed: 0.015 + Math.random() * 0.02,
+        swayProgress: Math.random() * Math.PI * 2,
+        angle: Math.random() * Math.PI * 2,
+        angleSpeed: (Math.random() - 0.5) * 0.025,
+        flipAngle: Math.random() * Math.PI * 2,
+        flipSpeed: 0.018 + Math.random() * 0.035,
+        color: colorScheme.fill,
+        veinColor: colorScheme.vein,
+        opacity: (0.55 + Math.random() * 0.35) * Math.min(1, depth)
+      };
+    } else {
+      // Rainy (Fresh Green Leaves)
+      const depth = 0.65 + Math.random() * 0.65;
+      const size = (13 + Math.random() * 13) * depth;
+      const colorScheme = rainyColors[Math.floor(Math.random() * rainyColors.length)];
+      return {
+        season: 'rainy',
+        type: Math.random() > 0.4 ? 'oval' : 'heart',
+        x: Math.random() * width,
+        y: initialY !== null ? initialY : -size - Math.random() * 120,
+        baseX: Math.random() * width,
+        size: size,
+        speedY: (0.75 + Math.random() * 1.1) * depth,
+        swayAmp: 18 + Math.random() * 32,
+        swaySpeed: 0.014 + Math.random() * 0.018,
+        swayProgress: Math.random() * Math.PI * 2,
+        angle: Math.random() * Math.PI * 2,
+        angleSpeed: (Math.random() - 0.5) * 0.022,
+        flipAngle: Math.random() * Math.PI * 2,
+        flipSpeed: 0.018 + Math.random() * 0.03,
+        color: colorScheme.fill,
+        veinColor: colorScheme.vein,
+        opacity: (0.55 + Math.random() * 0.35) * Math.min(1, depth)
+      };
+    }
   }
 
-  const isMobile = window.innerWidth < 768;
-  const leafCount = isMobile ? 14 : 22;
+  reseedSeasonalParticles = function() {
+    const isMobile = window.innerWidth < 768;
+    const activeSeason = getActiveSeason();
+    const count = activeSeason === 'winter' ? (isMobile ? 22 : 36) : (isMobile ? 14 : 22);
 
-  leaves = [];
-  for (let i = 0; i < leafCount; i++) {
-    leaves.push(createLeaf(Math.random() * window.innerHeight));
-  }
+    leaves = [];
+    for (let i = 0; i < count; i++) {
+      leaves.push(createParticle(Math.random() * window.innerHeight));
+    }
+  };
 
-  function drawLeafShape(ctx, leaf) {
-    const size = leaf.size;
+  // Initial seed
+  reseedSeasonalParticles();
+  updateSeasonUI();
+
+  // Close season menu on outside click
+  document.addEventListener('click', (e) => {
+    const container = document.getElementById('seasonBadgeContainer');
+    const menu = document.getElementById('seasonMenu');
+    if (container && menu && !container.contains(e.target)) {
+      menu.classList.add('hidden');
+    }
+  });
+
+  // Drawing helpers
+  function drawGreenLeaf(ctx, p) {
+    const size = p.size;
     ctx.save();
-    ctx.fillStyle = leaf.color;
+    ctx.fillStyle = p.color;
     ctx.shadowColor = 'rgba(0, 0, 0, 0.07)';
     ctx.shadowBlur = 4;
     ctx.shadowOffsetY = 2;
 
     ctx.beginPath();
-    if (leaf.type === 'oval') {
+    if (p.type === 'oval') {
       ctx.moveTo(0, -size);
       ctx.bezierCurveTo(size * 0.62, -size * 0.45, size * 0.62, size * 0.45, 0, size);
       ctx.bezierCurveTo(-size * 0.62, size * 0.45, -size * 0.62, -size * 0.45, 0, -size);
@@ -3986,13 +4148,124 @@ function initFallingLeaves() {
     ctx.fill();
 
     ctx.shadowColor = 'transparent';
-    ctx.strokeStyle = leaf.veinColor;
+    ctx.strokeStyle = p.veinColor;
     ctx.lineWidth = Math.max(0.75, size * 0.065);
     ctx.beginPath();
     ctx.moveTo(0, -size * 0.85);
     ctx.lineTo(0, size * 0.85);
     ctx.stroke();
 
+    ctx.restore();
+  }
+
+  function drawMapleLeaf(ctx, size, fillColor, veinColor) {
+    ctx.save();
+    ctx.fillStyle = fillColor;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.08)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetY = 2;
+
+    ctx.beginPath();
+    // Central base stem
+    ctx.moveTo(0, size * 0.75);
+    ctx.lineTo(0, size);
+    ctx.lineTo(0, size * 0.75);
+
+    // Right lower lobe
+    ctx.bezierCurveTo(size * 0.25, size * 0.65, size * 0.55, size * 0.55, size * 0.65, size * 0.35);
+    ctx.lineTo(size * 0.48, size * 0.3);
+    // Right middle lobe
+    ctx.bezierCurveTo(size * 0.68, size * 0.25, size * 0.88, size * 0.05, size * 0.9, -size * 0.15);
+    ctx.lineTo(size * 0.65, -size * 0.1);
+    ctx.bezierCurveTo(size * 0.78, -size * 0.3, size * 0.6, -size * 0.5, size * 0.45, -size * 0.5);
+    ctx.lineTo(size * 0.32, -size * 0.35);
+    // Top central lobe
+    ctx.bezierCurveTo(size * 0.35, -size * 0.7, size * 0.22, -size * 0.95, 0, -size);
+    // Left central lobe
+    ctx.bezierCurveTo(-size * 0.22, -size * 0.95, -size * 0.35, -size * 0.7, -size * 0.32, -size * 0.35);
+    ctx.lineTo(-size * 0.45, -size * 0.5);
+    ctx.bezierCurveTo(-size * 0.6, -size * 0.5, -size * 0.78, -size * 0.3, -size * 0.65, -size * 0.1);
+    // Left middle lobe
+    ctx.lineTo(-size * 0.9, -size * 0.15);
+    ctx.bezierCurveTo(-size * 0.88, size * 0.05, -size * 0.68, size * 0.25, -size * 0.48, size * 0.3);
+    // Left lower lobe
+    ctx.lineTo(-size * 0.65, size * 0.35);
+    ctx.bezierCurveTo(-size * 0.55, size * 0.55, -size * 0.25, size * 0.65, 0, size * 0.75);
+    ctx.closePath();
+    ctx.fill();
+
+    // Veins
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = veinColor;
+    ctx.lineWidth = Math.max(0.75, size * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(0, size * 0.75);
+    ctx.lineTo(0, -size * 0.8);
+    ctx.moveTo(0, size * 0.3);
+    ctx.lineTo(size * 0.65, -size * 0.05);
+    ctx.moveTo(0, size * 0.3);
+    ctx.lineTo(-size * 0.65, -size * 0.05);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawCurledDryLeaf(ctx, size, fillColor, veinColor) {
+    ctx.save();
+    ctx.fillStyle = fillColor;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.07)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetY = 2;
+
+    ctx.beginPath();
+    ctx.moveTo(0, -size);
+    ctx.bezierCurveTo(size * 0.7, -size * 0.35, size * 0.6, size * 0.45, 0, size);
+    ctx.bezierCurveTo(-size * 0.5, size * 0.45, -size * 0.6, -size * 0.35, 0, -size);
+    ctx.fill();
+
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = veinColor;
+    ctx.lineWidth = Math.max(0.75, size * 0.06);
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 0.85);
+    ctx.lineTo(0, size * 0.85);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function drawSnowflake(ctx, size, color) {
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = Math.max(1, size * 0.12);
+    ctx.lineCap = 'round';
+    ctx.shadowColor = 'rgba(255, 255, 255, 0.7)';
+    ctx.shadowBlur = 4;
+
+    for (let i = 0; i < 6; i++) {
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(0, size);
+      ctx.moveTo(0, size * 0.55);
+      ctx.lineTo(size * 0.25, size * 0.75);
+      ctx.moveTo(0, size * 0.55);
+      ctx.lineTo(-size * 0.25, size * 0.75);
+      ctx.stroke();
+      ctx.rotate(Math.PI / 3);
+    }
+    ctx.restore();
+  }
+
+  function drawFluffySnow(ctx, size, color) {
+    ctx.save();
+    const grad = ctx.createRadialGradient(0, 0, 0, 0, 0, size);
+    grad.addColorStop(0, color);
+    grad.addColorStop(0.6, 'rgba(230, 245, 255, 0.45)');
+    grad.addColorStop(1, 'rgba(220, 240, 255, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(0, 0, size, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
   }
 
@@ -4004,27 +4277,43 @@ function initFallingLeaves() {
     leavesCtx.clearRect(0, 0, width, height);
 
     for (let i = 0; i < leaves.length; i++) {
-      const leaf = leaves[i];
+      const p = leaves[i];
 
-      leaf.y += leaf.speedY;
-      leaf.swayProgress += leaf.swaySpeed;
-      const currentX = leaf.baseX + Math.sin(leaf.swayProgress) * leaf.swayAmp;
-      leaf.baseX += 0.12;
+      p.y += p.speedY;
+      p.swayProgress += p.swaySpeed;
+      const currentX = p.baseX + Math.sin(p.swayProgress) * p.swayAmp;
+      p.baseX += (p.season === 'winter' ? 0.08 : 0.12);
 
-      leaf.angle += leaf.angleSpeed;
-      leaf.flipAngle += leaf.flipSpeed;
-      const scaleX = Math.cos(leaf.flipAngle);
+      p.angle += p.angleSpeed;
 
       leavesCtx.save();
-      leavesCtx.translate(currentX, leaf.y);
-      leavesCtx.rotate(leaf.angle);
-      leavesCtx.scale(scaleX, 1);
-      leavesCtx.globalAlpha = leaf.opacity;
-      drawLeafShape(leavesCtx, leaf);
+      leavesCtx.translate(currentX, p.y);
+      leavesCtx.rotate(p.angle);
+
+      if (p.season === 'winter') {
+        leavesCtx.globalAlpha = p.opacity;
+        if (p.type === 'snowflake') {
+          drawSnowflake(leavesCtx, p.size, p.color);
+        } else {
+          drawFluffySnow(leavesCtx, p.size, p.color);
+        }
+      } else {
+        p.flipAngle += p.flipSpeed;
+        const scaleX = Math.cos(p.flipAngle);
+        leavesCtx.scale(scaleX, 1);
+        leavesCtx.globalAlpha = p.opacity;
+        if (p.type === 'maple') {
+          drawMapleLeaf(leavesCtx, p.size, p.color, p.veinColor);
+        } else if (p.type === 'curled') {
+          drawCurledDryLeaf(leavesCtx, p.size, p.color, p.veinColor);
+        } else {
+          drawGreenLeaf(leavesCtx, p);
+        }
+      }
       leavesCtx.restore();
 
-      if (leaf.y > height + 40 || currentX > width + 70) {
-        Object.assign(leaf, createLeaf(-leaf.size - 15));
+      if (p.y > height + 40 || currentX > width + 70) {
+        Object.assign(p, createParticle(-p.size - 15));
       }
     }
 
