@@ -4123,7 +4123,8 @@ function initFallingLeaves() {
   reseedSeasonalParticles = function() {
     const isMobile = window.innerWidth < 768;
     const activeSeason = getActiveSeason();
-    const count = activeSeason === 'winter' ? (isMobile ? 22 : 36) : (isMobile ? 14 : 22);
+    // Reduced particle count specifically for Summer and Rainy seasons as requested
+    const count = activeSeason === 'winter' ? (isMobile ? 22 : 36) : (isMobile ? 6 : 10);
 
     leaves = [];
     for (let i = 0; i < count; i++) {
