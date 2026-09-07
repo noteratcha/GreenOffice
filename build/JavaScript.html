@@ -1724,6 +1724,13 @@ function openModal(id) {
 }
 
 function closeModal(id) {
+  if (id === 'quizGameModal' && typeof quizState !== 'undefined' && quizState.active) {
+    const confirmClose = confirm('การแข่งขันกำลังดำเนินอยู่ หากปิดหน้าต่างจะถือว่ายอมแพ้และสิ้นสุดเกม ต้องการปิดหรือไม่?');
+    if (!confirmClose) return;
+    clearInterval(quizState.timerInterval);
+    quizState.active = false;
+  }
+
   try {
     if (id === 'uploadModal') {
       cleanupUploadModalState();
@@ -4916,7 +4923,7 @@ function openQuizGameModal() {
   // Pre-generate question bank in background
   setTimeout(getQuizBank, 10);
 
-  modal.classList.remove('hidden');
+  openModal('quizGameModal');
 
   if (!quizState.active) {
     switchQuizView('lobby');
@@ -4924,15 +4931,7 @@ function openQuizGameModal() {
 }
 
 function closeQuizGameModal() {
-  if (quizState.active) {
-    const confirmClose = confirm('การแข่งขันกำลังดำเนินอยู่ หากปิดหน้าต่างจะถือว่ายอมแพ้และสิ้นสุดเกม ต้องการปิดหรือไม่?');
-    if (!confirmClose) return;
-    clearInterval(quizState.timerInterval);
-    quizState.active = false;
-  }
-
-  const modal = document.getElementById('quizGameModal');
-  if (modal) modal.classList.add('hidden');
+  closeModal('quizGameModal');
 }
 
 function switchQuizView(screenName) {
@@ -4943,8 +4942,8 @@ function switchQuizView(screenName) {
     leaderboard: document.getElementById('quizScreenLeaderboard')
   };
 
-  const tabGame = document.getElementById('tabQuizGame');
-  const tabLeaderboard = document.getElementById('tabQuizLeaderboard');
+  const tabGame = document.getElementById('btnTabQuizPlay');
+  const tabLeaderboard = document.getElementById('btnTabQuizLeaderboard');
 
   Object.keys(screens).forEach(key => {
     if (screens[key]) {
@@ -5479,7 +5478,7 @@ function renderGameLeaderboard(res) {
 // ------------------------------------------------------------
 document.addEventListener('keydown', e => {
   const modal = document.getElementById('quizGameModal');
-  if (!modal || modal.classList.contains('hidden')) return;
+  if (!modal || !modal.classList.contains('show')) return;
 
   if (e.key === 'Escape') {
     closeQuizGameModal();
