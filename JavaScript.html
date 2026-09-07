@@ -741,9 +741,9 @@ function renderUploadPreview() {
   const count = document.getElementById('uploadCount');
   
   if (uploadFiles.length === 0) {
-    container.innerHTML = '';
-    btn.disabled = true;
-    count.textContent = '(0)';
+    if (container) container.innerHTML = '';
+    if (btn) btn.disabled = true;
+    if (count) count.textContent = '(0)';
     return;
   }
   
@@ -759,9 +759,9 @@ function renderUploadPreview() {
     `;
   });
   
-  container.innerHTML = html;
-  btn.disabled = false;
-  count.textContent = `(${uploadFiles.length})`;
+  if (container) container.innerHTML = html;
+  if (btn) btn.disabled = false;
+  if (count) count.textContent = `(${uploadFiles.length})`;
 }
 
 function removeUploadFile(index) {
@@ -784,7 +784,9 @@ function cleanupUploadModalState() {
   uploadFiles = [];
   const fileInput = document.getElementById('fileInput');
   if (fileInput) fileInput.value = '';
-  renderUploadPreview();
+  
+  const container = document.getElementById('uploadPreview');
+  if (container) container.innerHTML = '';
   
   const btn = document.getElementById('btnUploadSubmit');
   if (btn) {
@@ -1695,10 +1697,16 @@ function openModal(id) {
 }
 
 function closeModal(id) {
-  if (id === 'uploadModal') {
-    cleanupUploadModalState();
+  try {
+    if (id === 'uploadModal') {
+      cleanupUploadModalState();
+    }
+  } catch (err) {
+    console.error('Error during modal cleanup:', err);
   }
-  document.getElementById(id).classList.remove('show');
+  
+  const modalElem = document.getElementById(id);
+  if (modalElem) modalElem.classList.remove('show');
   document.body.style.overflow = '';
   
   // Clear preview image when closing to prevent showing old image on next open
