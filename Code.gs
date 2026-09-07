@@ -166,9 +166,13 @@ function getImages() {
       }
     }
 
-    // Sort newest first
+    // Sort sequence / oldest first (start from first image)
     images.sort(function(a, b) {
-      return new Date(b.date) - new Date(a.date);
+      if (a.name && b.name) {
+        var cmp = a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+        if (cmp !== 0) return cmp;
+      }
+      return new Date(a.date) - new Date(b.date);
     });
 
     return images;

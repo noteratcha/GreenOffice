@@ -215,6 +215,16 @@ function logout() {
 function loadImages() {
   google.script.run
     .withSuccessHandler((images) => {
+      // Ensure images are sorted starting from the first image (sequence / oldest first)
+      if (images && images.length > 0) {
+        images.sort((a, b) => {
+          if (a.name && b.name) {
+            const cmp = a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' });
+            if (cmp !== 0) return cmp;
+          }
+          return new Date(a.date) - new Date(b.date);
+        });
+      }
       carouselImages = images;
       renderCarousel();
       
