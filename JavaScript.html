@@ -1083,7 +1083,12 @@ function resetUploadProgress(wrapperId) {
     clearInterval(activeProgressIntervals[wrapperId]);
     delete activeProgressIntervals[wrapperId];
   }
+  const prefix = wrapperId.replace('Wrapper', '');
   const wrapper = document.getElementById(wrapperId);
+  const statusElem = document.getElementById(`${prefix}Status`);
+  const percentElem = document.getElementById(`${prefix}Percent`);
+  const barElem = document.getElementById(`${prefix}Bar`);
+
   if (wrapper) {
     wrapper.classList.add('hidden');
     const icon = wrapper.querySelector('.progress-spinner-icon');
@@ -1093,7 +1098,9 @@ function resetUploadProgress(wrapperId) {
       icon.style.color = '';
     }
   }
-  updateUploadProgress(wrapperId, 0, 'กำลังเตรียมข้อมูล...');
+  if (statusElem) statusElem.textContent = 'กำลังเตรียมข้อมูล...';
+  if (percentElem) percentElem.textContent = '0%';
+  if (barElem) barElem.style.width = '0%';
 }
 
 async function processFilesToBase64WithProgress(files, onProgress, maxDimension = 1280, quality = 0.75) {
