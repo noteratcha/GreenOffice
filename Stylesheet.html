@@ -1322,6 +1322,24 @@ body {
   box-shadow: 0 0 6px rgba(118, 139, 84, 0.4);
 }
 
+.btn-countdown-active {
+  background: linear-gradient(135deg, var(--color-forest), var(--color-primary)) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(58, 79, 59, 0.35) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.45rem !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+}
+
+.btn-countdown-active:hover {
+  background: linear-gradient(135deg, var(--color-primary-dark), var(--color-forest)) !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(58, 79, 59, 0.45) !important;
+}
+
 /* --- Progress Bar (Legacy Fallback) --- */
 .progress-bar {
   width: 100%;

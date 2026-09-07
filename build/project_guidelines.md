@@ -97,3 +97,196 @@ This file contains the accumulated rules, skills, workflow, architectural patter
 - **Z-Index Layering**: When dealing with nested or overlapping modals (e.g., opening a photo preview *from within* a news detail modal), manage `z-index` classes systematically (e.g., Backdrop 2000, Top-level modal 3000, Confirm modal 4000).
 - **Drive Image Bypassing**: To bypass strict Google Workspace domain policies preventing direct Drive image loading, ALWAYS use the thumbnail API: `https://drive.google.com/thumbnail?id=[ID]&sz=w1200`.
 - **Session & Display Name Hydration**: Separate system User IDs from Display Names. Retrieve the friendly name from the database upon login, persist it via `localStorage` (e.g., `go_name`), and hydrate the UI (`userNameDisplay`) with the friendly name upon every refresh.
+
+## 7. Google Sites Iframe Compatibility & Scrolling
+- **Internal Iframe Scroll Management (`scrollToSection`)**:
+  - **Issue**: When the web app is embedded inside an `<iframe>` on Google Sites (e.g. `https://sites.google.com/view/greenofficereg10`), native `element.scrollIntoView()` propagates scroll events to the parent Google Sites window, causing the iframe to move up and hiding the top fixed navbar off-screen.
+  - **Rule**: NEVER use `scrollIntoView()`. ALWAYS use internal `window.scrollTo()` calculations:
+    ```javascript
+    function scrollToSection(targetId) {
+      const targetElement = document.querySelector(targetId);
+      if (!targetElement) return;
+      const navbar = document.querySelector('.navbar');
+      const navHeight = navbar ? navbar.offsetHeight : 64;
+      const rect = targetElement.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      const targetY = rect.top + scrollTop - navHeight;
+      window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' });
+    }
+    ```
+- **Desktop Single-Line Typography**: For prominent headers and CTA banners, use `@media (min-width: 992px) { white-space: nowrap; }` to maintain single-line layout on desktop screens without awkward line wraps.
+
+## 8. Multi-Stage Upload Progress & Percentage System
+- **Real-Time Stage Feedback**:
+  - Replace indeterminate spinners with informative progress components (`.upload-progress-wrapper`, `.progress-percentage-badge`, `.progress-status-text`, `.modern-progress-bar`).
+  - **Stage 1 (Client-side Compression)**: Compute real-time percentage per file processed (`5% + (i+1)/total * 35%`) with descriptive text (`กำลังบีบอัดและปรับขนาดรูปภาพ X จาก Y (Z%)...`).
+  - **Stage 2 (Server Transmission Simulation)**: Smoothly increment percentage from 45% to ~92% during `google.script.run` backend execution.
+  - **Stage 3 (Success Completion, 5-Second Countdown & Auto-dismiss)**: Set to 100% (`อัปโหลดสำเร็จ X รูปภาพเรียบร้อยแล้ว`), switches spinner icon to green `check_circle`, displays a 5-second live countdown in both status text (`ปิดอัตโนมัติใน X วินาที`) and action button (`ปิดหน้าต่าง (Xs)`), allowing users to either wait for auto-dismiss or click to close immediately.
+- **Loading Screen Safety Timeout**:
+  - Add an automatic safety timeout in `DOMContentLoaded` (3000ms) to ensure `#loadingScreen` is hidden even if Google Drive API responses are slow or encounter network delays.
+
+## 9. Modern Eco Modal UI/UX Design System
+- **Standard Modal Header**:
+  - Always include `.modal-title-wrapper`, `.modal-icon-badge` (circular eco-themed icon container), Title, and Subtitle (`.modal-subtitle`).
+- **Drag & Drop Upload Dropzones**:
+  - Replaces raw `<input type="file">` with modern dropzones (`.upload-zone`).
+  - Support drag over/leave/drop events and click-to-select.
+- **Live Image Previews**:
+  - **Multiple images**: Render in `.upload-preview-grid` with thumbnail previews and individual circular `✕` delete buttons.
+  - **Single image** (Policy upload): Render in `.policy-preview-card` showing thumbnail, filename, file size (MB), and a quick remove/change button.
+- **Interactive Visual Selectors**:
+  - **Card Selectors** (`.policy-card-selector`): Replace boring dropdowns with visual option cards displaying icons, titles, descriptions, and active green border/checkmarks.
+  - **Color Palette Chips** (`.event-color-palette`, `.color-chip-option`): Visual category chips with colored dots, active rings, and checkmarks for calendar events.
+- **Compact Form Grids**:
+  - Use 2-column CSS Grid (`grid-template-columns: 1fr 1fr; gap: 0.85rem;`) for related fields like Date and Time to prevent unnecessary modal scrolling.
+- **Category Links Manager (`.cat-link-card`)**:
+  - Encapsulate each link item in an independent card container with a category number badge (`.cat-badge-num`), dedicated Material Icon, title, URL input with leading icon, and an interactive **"ทดสอบ" (Test Link ↗)** button that tests opening the Google Drive link in a new browser tab.
+
+## 10. Card Metadata & Publisher Name Mapping
+- **Friendly Name (`name`) Resolution**:
+  - Always map raw login usernames (e.g. `admin`) to friendly display names (`name` column in `user&pass` sheet, with fallback `สำนักงานไปรษณีย์เขต 10`) before sending data to the client.
+  - Retain the raw username in `news.user` so author-only and admin edit/delete permission checks continue to work accurately.
+- **Card Bottom Alignment via `margin-top: auto`**:
+  - In dynamic card grids (such as `.news-card`), wrap metadata elements (date, author badge) inside a footer container (`.news-card-footer`) styled with `margin-top: auto`. This ensures that cards with varying title/description lengths maintain perfectly aligned bottom metadata badges across all rows.
+
+## 11. Nested Horizontal Sub-FAB Groups & Stacking Context
+- **Sub-FAB Expansion (`.fab-photos-group`, `.fab-sub-menu`)**:
+  - Nested action groups expand smoothly horizontally to the left of the parent trigger (`position: absolute; right: 100%; top: 50%; display: flex; flex-direction: row; gap: 0.85rem;`).
+  - Items are ordered naturally from left to right (e.g. Leftmost = ลำดับที่ 1 Upload `add_a_photo`, Middle = ลำดับที่ 2 Manage `edit`, Rightmost = Parent FAB `photo_library`).
+- **Connecting Line Behind Buttons (Stacking Context)**:
+  - Connecting line pseudo-element (`.fab-sub-menu::before`) extends across sub-items behind the main trigger with `z-index: 1; pointer-events: none;`.
+  - Sub-buttons (`.fab-sub`) have `z-index: 2; position: relative;` with solid background and white border.
+  - Parent trigger FAB (`.fab-photos-parent`) has `z-index: 10; position: relative;` so that the connecting line is strictly layered **behind** all circular FAB buttons without cutting through button faces or badges.
+- **Outside-Click Auto-Collapse**:
+  - Global `click` listener dismisses open sub-FAB menus when users click anywhere outside `.fab-photos-group`.
+
+## 12. Dynamic Feedback Form Endpoint Management
+- **Dedicated Admin Control**:
+  - Expose a specialized FAB (`#fabEditFeedback`) with `rate_review` icon for administrators.
+  - Opens `#editFeedbackModal` with live inline "ทดสอบ (Test Link ↗)" verification button.
+- **Backend Persistence**:
+  - Store and retrieve the Google Forms response URL dynamically via `PropertiesService` (`getFeedbackLink()` / `saveFeedbackLink()`).
+  - Enables flexible updates to form endpoints without modifying client-side JavaScript.
+
+## 13. 6-Sheet Resource & Waste Statistics Architecture
+- **Dedicated Sheets per Metric**:
+  - 6 dedicated Google Sheets correspond 1-to-1 with the 6 UI metrics:
+    1. `electricity` -> การใช้ไฟฟ้า (kWh)
+    2. `water` -> การใช้น้ำ (m³)
+    3. `fuel` -> น้ำมันเชื้อเพลิง (L)
+    4. `paper` -> การใช้กระดาษ (Ream)
+    5. `ghg` -> ก๊าซเรือนกระจก (kgCO2e)
+    6. `recycledWaste` -> นำของเสียกลับมาใช้ (kg)
+- **Monthly Breakdown & Annual Sum Calculation**:
+  - Row 1: Headers (`ปี`, `ม.ค.`, `ก.พ.`, `มี.ค.`, `เม.ย.`, `พ.ค.`, `มิ.ย.`, `ก.ค.`, `ส.ค.`, `ก.ย.`, `ต.ค.`, `พ.ย.`, `ธ.ค.`).
+  - Rows 2..N: Years in Column A, with monthly entries in Columns B through M.
+  - Backend `getResourcesData()` calculates the annual total as the sum of all monthly entries in that row, allowing partial-year entries to compute accurately.
+- **Visual Chart Rendering (Chart.js + DataLabels)**:
+  - Chart bars are grouped by year (e.g. Blue `#5dade2` for Year 1, Green `#52be80` for Year 2).
+  - Floating top datalabels with formatted comma separators (`Number(value).toLocaleString()`).
+  - Interactive Admin Modal with metric tabs, live auto-calculated row totals, and inline year sorting (ปีมากไปน้อย).
+
+## 14. 2 Latest Years Overview, Same-Period Percentage Comparison & 30% Overlapping Monthly Breakdown
+- **Main Overview Page (2 Latest Years Automatic Display & Stacked Base Year)**:
+  - Main page cards automatically display ONLY the 2 most recent years in chronological order.
+  - **แท่งปีก่อนหน้า (Base Year เช่น 2568) แสดงแบบ 2 ส่วนซ้อนต่อกัน (Stacked Segments)** เมื่อปีเปรียบเทียบยังบันทึกข้อมูลไม่ครบ 12 เดือน:
+    - **ส่วนล่าง (สีฟ้า `#5dade2`)**: ปริมาณการใช้เฉพาะช่วงเดือนที่นำไปคำนวณเปรียบเทียบ (เช่น 11,750 ในช่วง ม.ค. - ส.ค.) พร้อมตัวเลขสีน้ำเงินเข้ม (`#0b5394`) ตรงกลางแท่ง
+    - **ส่วนบนที่ซ้อนต่อกัน (สีเหลือง `#f4d03f`)**: ปริมาณการใช้ในเดือนที่ไม่ได้นำไปคำนวณ (เช่น 6,300 หรือ 590)
+      - **ถ้าพื้นที่แถบสีเหลืองหนาเพียงพอ ($\ge 20\text{px}$)**: แสดงตัวเลขสีทองเข้มตรงกลางแท่งสีเหลือง
+      - **ถ้าพื้นที่แถบสีเหลืองน้อย/บาง ($< 20\text{px}$)**: แสดงเส้นโยงชี้สีทอง (Golden Callout Line) พร้อมจุดมาร์กเกอร์และ Floating Pill Badge Chip ชี้ออกมายังช่องว่างระหว่างแท่งกราฟ เพื่อป้องกันตัวเลขซ้อนทับกับยอดรวมด้านบน
+    - **ยอดรวมทั้งปี (เช่น 18,050 หรือ 19,090)** แสดงบนหัวแท่งด้านบนสุดอย่างชัดเจน
+    - **Tooltip รายละเอียดครบถ้วน**: เมื่อชี้ที่แท่งปีก่อนหน้า (Base Year) จะแสดงทั้งค่าช่วงเทียบที่นำไปคำนวณ, ค่าส่วนที่ไม่ได้นำมาคำนวณ และยอดรวมทั้งปี
+  - **การจัดวางและการตกแต่งสไตล์พรีเมียม (Overview UX/UI Overhaul)**:
+    - จัดระยะแท่งกราฟให้อยู่กึ่งกลางการ์ดอย่างสมดุลสวยงาม (Centered & Balanced Spacing) ไม่ห่างหรือชิดขอบเกินไป
+    - ใต้แต่ละแท่งแสดง **Year Pill Badge** ทรงแคปซูลมนสวยงาม: ใต้แท่งซ้ายแสดง `[ ปี 2568 ]` (สีฟ้า `#1b4f72`, bg `#ebf5fb`, border `#aed6f1`) และใต้แท่งขวาแสดง `[ ปี 2569 ]` (สีเขียว `#0e6251`, bg `#e8f8f5`, border `#a3e4d7`)
+    - เพิ่ม Category Icon Badge สีสันสดใสตามประเภททรัพยากรตรงหัวการ์ด (เช่น ⚡ ไฟฟ้า, 💧 น้ำ, ⛽ น้ำมัน, 📄 กระดาษ, 🌱 GHG, ♻️ ขยะรีไซเคิล)
+    - แถบด้านล่างการ์ดตกแต่งเป็นปุ่ม interactive hint `insights คลิกดูสถิติเปรียบเทียบรายเดือน arrow_forward`
+    - ห่อหุ้มการเรนเดอร์การ์ดแต่ละใบด้วย `try...catch` เพื่อความเสถียร 100%
+- **Modal Dynamic Year Range Selection Toolbar (`.modal-year-filter-bar`)**:
+  - Available inside the `#resourceMonthlyDetailModal` popup.
+  - Dropdown 1: **ปีก่อนหน้า / Base Year** (Blue `#5dade2` dot) - Strictly restricted to years `< Target Year` (cannot select $\ge \text{Target Year}$).
+  - Dropdown 2: **ปีเปรียบเทียบ / Target Year** (Green `#52be80` dot).
+  - Defaults automatically to the 2 latest available years when opening modal, and allows dynamic exploration inside the popup. Base Year options are dynamically filtered to ensure $\text{Base Year} < \text{Target Year}$ at all times.
+- **Same-Period Percentage Calculation & Color Coding**:
+  - Compares the sum of recorded months in the target year ($Sum_{curr}$) with the exact same months in the base year ($Sum_{prev}$).
+  - Percentage Change formula: $\% = \frac{Sum_{curr} - Sum_{prev}}{Sum_{prev}} \times 100$.
+  - **ทศนิยมเปอร์เซ็นต์ (2 Decimal Places)**: แสดงผลค่าเปอร์เซ็นต์ทั้งหมดเป็นทศนิยม 2 ตำแหน่งเสมอ เช่น `20.90%`, `8.90%`, `0.00%` ทั้งบนการ์ดภาพรวม ป้ายสถิติในโมดอล และตารางแจกแจงรายเดือน
+  - **Badge Month Range**: Overview card percentage badges display the exact compared month range in parentheses (e.g. `เพิ่มขึ้น 20.90% (ม.ค. - ส.ค.)`) so users clearly know which months are included in the same-period calculation.
+  - **Color Coding**:
+    - **ทรัพยากรทั่วไป (ไฟฟ้า, น้ำ, น้ำมัน, กระดาษ, GHG)**:
+      - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: ค่าใช้จ่ายสูงขึ้น $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.XX%`.
+      - 📉 **ค่าลดลง ($p < 0$)**: ประหยัดลง $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.XX%`.
+    - **นำของเสียกลับมาใช้ (recycledWaste)**:
+      - 📈 **ค่าเพิ่มขึ้น ($p > 0$)**: นำของเสียกลับมาใช้ได้มากขึ้น (ผลดี) $\rightarrow$ **สีเขียว (Green `#1e8449`, bg `#eafaf1`, border `#abebc6`)** พร้อมไอคอน `trending_up` และข้อความ `เพิ่มขึ้น X.XX%`.
+      - 📉 **ค่าลดลง ($p < 0$)**: นำของเสียกลับมาใช้ได้น้อยลง (ผลลบ) $\rightarrow$ **สีแดงส้ม (Red-Orange `#c0392b`, bg `#fef5f1`, border `#fadbd8`)** พร้อมไอคอน `trending_down` และข้อความ `ลดลง X.XX%`.
+    - ➖ **เท่าเดิม ($p = 0$)**: แสดงเป็นสีเทา Neutral `0.00%`.
+- **30% Overlapping Monthly Bar Chart Modal (`#resourceMonthlyDetailModal`)**:
+  - Clicking any resource card opens a 12-month detailed breakdown modal with custom Chart.js plugin (`overlap30Plugin`).
+  - **Dynamic Modal Header Icon & Color Theme (`#monthlyModalIconBadge`)**:
+    - ไอคอนและสีพื้นหลังตรงหัวหน้าต่างป๊อปอัปจะปรับเปลี่ยนตามประเภททรัพยากรที่เปิดดูโดยอัตโนมัติ:
+      - ⚡ ไฟฟ้า: `bolt` (bg: `#fef3c7`, color: `#d97706`)
+      - 💧 น้ำประปา: `water_drop` (bg: `#e0f2fe`, color: `#0284c7`)
+      - ⛽ น้ำมันเชื้อเพลิง: `local_gas_station` (bg: `#ffedd5`, color: `#ea580c`)
+      - 📄 กระดาษ: `description` (bg: `#f3e8ff`, color: `#9333ea`)
+      - 🌱 ก๊าซเรือนกระจก: `eco` (bg: `#ecfdf5`, color: `#059669`)
+      - ♻️ นำของเสียกลับมาใช้: `recycling` (bg: `#f0fdf4`, color: `#16a34a`)
+  - Chart.js overlapping rendering:
+    - **Base Year (ปีก่อนหน้า - ด้านหลัง)**: Sky Blue (`rgba(93, 173, 226, 0.78)`), shifted slightly left (`b0.x = center - shift`).
+    - **Target Year (ปีเปรียบเทียบ - ด้านหน้า ซ้อนทับ 30%)**: Leaf Green (`rgba(82, 190, 128, 0.95)`), shifted slightly right (`b1.x = center + shift`) overlapping 30% on top of the left base bar.
+    - **กรณีมีข้อมูลมากกว่า 2 ปี (ปีอื่นๆ แสดงเป็นกราฟเส้น `type: 'line'` ไม่เกิน 3 เส้นล่าสุด)**:
+      - ปีอื่นๆ ที่ไม่ใช่ปีก่อนหน้าและปีเปรียบเทียบที่เลือก (เช่น 2565, 2566, 2567) จะถูกคัดเลือกเฉพาะ **ไม่เกิน 3 ปีล่าสุด** และเรนเดอร์เป็น**กราฟเส้นประ (Dashed Line)** ทอดผ่าน 12 เดือน พร้อมจุดมาร์กเกอร์และสีสันแยกตามปีอย่างสวยงาม (ม่วง `#8b5cf6`, ส้ม `#f97316`, ฟ้าคราม `#06b6d4` ฯลฯ)
+      - เส้นกราฟแสดงร่วมกับแท่งกราฟได้อย่างกลมกลืน ไม่บดบังตัวเลข และมี Tooltip ละเอียดเมื่อชี้ที่จุด
+      - ตารางแจกแจงรายเดือนด้านล่างจะเพิ่มคอลัมน์ของปีอื่นๆ พร้อมคำนวณยอดรวมให้อัตโนมัติ
+  - **Modal Stat Pill Cards**: Displays both the calculated portion and the full year total in the format `ค่าที่เอาไปคำนวณ / ค่าทั้งหมด` (e.g. `11,750 / 18,050`).
+  - Includes summary stat comparison cards and a 12-month table with month-by-month differences, uncalculated badges, and sticky summary total rows (`รวม (ช่วงเทียบ)` and `รวมทั้งปี (12 ด.)`).
+- **Anti-Collision Staggered Datalabels**:
+  - To prevent datalabel text collision when two overlapping bars have equal or nearly equal values ($|v_0 - v_1| / \max < 0.25$):
+    - The **Back bar (Blue - ปีก่อนหน้า)** dynamically staggers its datalabel higher (`offset: 20`) above the front bar label.
+    - The **Front bar (Green - ปีเปรียบเทียบ)** maintains standard top offset (`offset: 3`).
+    - Both labels render in semi-opaque white badge pills with matching pastel border tints, providing complete readability and zero overlapping numbers.
+- **Y-Axis Dynamic +30% Headroom**:
+  - Scales `scales.y.max` & `suggestedMax` are set dynamically to $1.30 \times \text{maxVal}$ (30% above the highest data point) across both monthly detail charts and overview charts to ensure datalabels and tall bars have ample headroom and never clip or touch chart legends.
+- **Uncalculated Months Highlight in Yellow/Amber**:
+  - For months where the base year has data ($v_{prev} > 0$) but the target year has no recorded data ($v_{curr} = 0$), these months are excluded from the same-period percentage calculation.
+  - To make this visually clear to users:
+    - **Bar Background & Border**: Rendered in Golden Yellow/Amber (`rgba(244, 208, 63, 0.88)` / border `rgba(212, 172, 13, 1)`).
+    - **Datalabel Badge**: Warm yellow pill background (`rgba(254, 249, 231, 0.96)`) with dark amber font (`#7d6608`) and amber border (`#f5b041`).
+    - **Table Row Indicator**: Base year value in amber (`#b7950b`) and `%` column badge shows `<span class="...">ไม่ได้คำนวณ</span>`.
+    - **Modal Info Banner**: `#monthlyModalUncalculatedNote` appears automatically when uncalculated months exist in the current selection.
+
+## 15. Intelligent ScrollSpy & Viewport Section Auto-Highlighting
+- **Active Navigation on Scroll**:
+  - As the user scrolls through the webpage, the system automatically detects which section occupies the largest visible area within the active viewport and sets that menu tab to active (`.nav-link.active`).
+  - **Monitored Sections**: `#home` (หน้าแรก), `#policy` (นโยบาย), `#news` (ข่าวสารกิจกรรม), `#calendar-section` (ปฏิทินกิจกรรม), `#resources-section` (สถิติเปรียบเทียบ), `#categories` (7 หมวด Green Office), and `#feedback-section` (ข้อเสนอแนะ).
+  - **Precision & Edge Handling**:
+    - **Top of Page ($ScrollY < 80\text{px}$)**: Activates `#home`.
+    - **Bottom of Page ($ScrollY \ge MaxScrollY - 80\text{px}$)**: Activates `#feedback-section`.
+    - **Viewport Overlap Calculation**: Computes the exact vertical overlap height: $\max(0, \min(\text{rect.bottom}, \text{viewportBottom}) - \max(\text{rect.top}, \text{viewportTop}))$.
+  - **High Performance**: Bound via passive listener and throttled with `requestAnimationFrame` for buttery-smooth 60fps responsiveness.
+  - **Programmatic Scroll Synchronization**: During `scrollToSection(id)`, `isManualScrolling` lock is enabled for 750ms to suppress listener triggers until smooth scrolling settles.
+
+## 16. Chronological Ascending Sorting & Chart Legend Architecture
+- **Ascending Dataset & Legend Order (จากน้อยไปมาก)**:
+  - All chart datasets, table columns, and legend badges are strictly sorted in ascending chronological order (e.g. `2564 -> 2565 -> 2566 -> 2567 -> 2568 -> 2569`).
+  - **Chart.js Legend Sort Callback**:
+    ```javascript
+    plugins: {
+      legend: {
+        labels: {
+          sort: (a, b) => {
+            const extractYear = t => parseInt(String(t).match(/\d+/)?.[0] || '0', 10);
+            return extractYear(a.text) - extractYear(b.text);
+          }
+        }
+      }
+    }
+    ```
+  - **Dynamic Role-Based Plugin Finding**:
+    - `overlap30Plugin` locates datasets by `d.datasetRole === 'baseBar'` and `d.datasetRole === 'targetBar'` rather than static array index positions. This allows datasets to be freely sorted chronologically while preserving exact 30% horizontal bar overlap rendering and layering (`order: 1` for front target bar, `order: 2` for back base bar).
+- **Tooltip Color Box Indicators**:
+  - In overview charts, set `displayColors: false` and render emoji indicator squares directly in callback labels:
+    - 🟦 `🟦 ปี 2568 (ช่วงเทียบ ม.ค. - ส.ค.): [value]` (Calculated Segment)
+    - 🟨 `🟨 ปี 2568 (ไม่ได้นำมาคำนวณ): [value]` (Uncalculated Segment)
+    - 📋 `📋 รวมทั้งปี 2568: [value]` (Annual Total)
+    - 🟩 `🟩 ปี 2569: [value]` (Target Year)
+

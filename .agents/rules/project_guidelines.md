@@ -121,7 +121,7 @@ This file contains the accumulated rules, skills, workflow, architectural patter
   - Replace indeterminate spinners with informative progress components (`.upload-progress-wrapper`, `.progress-percentage-badge`, `.progress-status-text`, `.modern-progress-bar`).
   - **Stage 1 (Client-side Compression)**: Compute real-time percentage per file processed (`5% + (i+1)/total * 35%`) with descriptive text (`กำลังบีบอัดและปรับขนาดรูปภาพ X จาก Y (Z%)...`).
   - **Stage 2 (Server Transmission Simulation)**: Smoothly increment percentage from 45% to ~92% during `google.script.run` backend execution.
-  - **Stage 3 (Success Completion & Auto-dismiss)**: Set to 100% (`บันทึกข้อมูลสำเร็จเรียบร้อยแล้ว (100%)`), delay for 600-700ms before closing modal and firing toast.
+  - **Stage 3 (Success Completion, 5-Second Countdown & Auto-dismiss)**: Set to 100% (`อัปโหลดสำเร็จ X รูปภาพเรียบร้อยแล้ว`), switches spinner icon to green `check_circle`, displays a 5-second live countdown in both status text (`ปิดอัตโนมัติใน X วินาที`) and action button (`ปิดหน้าต่าง (Xs)`), allowing users to either wait for auto-dismiss or click to close immediately.
 - **Loading Screen Safety Timeout**:
   - Add an automatic safety timeout in `DOMContentLoaded` (3000ms) to ensure `#loadingScreen` is hidden even if Google Drive API responses are slow or encounter network delays.
 

@@ -769,6 +769,34 @@ function removeUploadFile(index) {
   renderUploadPreview();
 }
 
+let uploadCountdownInterval = null;
+
+function clearUploadCountdown() {
+  if (uploadCountdownInterval) {
+    clearInterval(uploadCountdownInterval);
+    uploadCountdownInterval = null;
+  }
+}
+
+function cleanupUploadModalState() {
+  clearUploadCountdown();
+  resetUploadProgress('uploadProgressWrapper');
+  uploadFiles = [];
+  const fileInput = document.getElementById('fileInput');
+  if (fileInput) fileInput.value = '';
+  renderUploadPreview();
+  
+  const btn = document.getElementById('btnUploadSubmit');
+  if (btn) {
+    btn.innerHTML = 'อัปโหลด <span id="uploadCount">(0)</span>';
+    btn.disabled = true;
+    btn.classList.remove('btn-countdown-active');
+    btn.onclick = submitUpload;
+  }
+  const closeBtn = document.querySelector('#uploadModal .modal-close');
+  if (closeBtn) closeBtn.disabled = false;
+}
+
 async function submitUpload() {
   if (uploadFiles.length === 0 || !currentUser) return;
   
@@ -805,16 +833,40 @@ async function submitUpload() {
       if (closeBtn) closeBtn.disabled = false;
       
       if (res.success) {
-        finishUploadProgress('uploadProgressWrapper', `อัปโหลดสำเร็จ ${res.count} รูปภาพเรียบร้อยแล้ว (100%)`);
-        setTimeout(() => {
-          showToast(`อัปโหลดสำเร็จ ${res.count} รูป`, 'success');
-          uploadFiles = [];
-          document.getElementById('fileInput').value = '';
-          renderUploadPreview();
-          resetUploadProgress('uploadProgressWrapper');
+        const count = res.count;
+        loadImages(); // Update gallery in background
+        
+        let secondsLeft = 5;
+        
+        const updateCountdownUI = (sec) => {
+          finishUploadProgress('uploadProgressWrapper', `อัปโหลดสำเร็จ ${count} รูปภาพเรียบร้อยแล้ว (ปิดอัตโนมัติใน ${sec} วินาที)`);
+          
+          btn.disabled = false;
+          if (closeBtn) closeBtn.disabled = false;
+          btn.classList.add('btn-countdown-active');
+          btn.innerHTML = `<span class="material-icons" style="font-size: 1.15rem; vertical-align: middle;">check_circle</span> ปิดหน้าต่าง (${sec}s)`;
+          btn.onclick = () => {
+            finishAndClose();
+          };
+        };
+
+        const finishAndClose = () => {
+          clearUploadCountdown();
           closeModal('uploadModal');
-          loadImages();
-        }, 700);
+          showToast(`อัปโหลดสำเร็จ ${count} รูป`, 'success');
+        };
+
+        updateCountdownUI(secondsLeft);
+
+        clearUploadCountdown();
+        uploadCountdownInterval = setInterval(() => {
+          secondsLeft--;
+          if (secondsLeft > 0) {
+            updateCountdownUI(secondsLeft);
+          } else {
+            finishAndClose();
+          }
+        }, 1000);
       } else {
         resetUploadProgress('uploadProgressWrapper');
         showToast(res.message, 'error');
@@ -1015,6 +1067,15 @@ function finishUploadProgress(wrapperId, successText = 'บันทึกข้
     delete activeProgressIntervals[wrapperId];
   }
   updateUploadProgress(wrapperId, 100, successText);
+  const wrapper = document.getElementById(wrapperId);
+  if (wrapper) {
+    const icon = wrapper.querySelector('.progress-spinner-icon');
+    if (icon) {
+      icon.textContent = 'check_circle';
+      icon.style.animation = 'none';
+      icon.style.color = '#27ae60';
+    }
+  }
 }
 
 function resetUploadProgress(wrapperId) {
@@ -1023,7 +1084,15 @@ function resetUploadProgress(wrapperId) {
     delete activeProgressIntervals[wrapperId];
   }
   const wrapper = document.getElementById(wrapperId);
-  if (wrapper) wrapper.classList.add('hidden');
+  if (wrapper) {
+    wrapper.classList.add('hidden');
+    const icon = wrapper.querySelector('.progress-spinner-icon');
+    if (icon) {
+      icon.textContent = 'sync';
+      icon.style.animation = '';
+      icon.style.color = '';
+    }
+  }
   updateUploadProgress(wrapperId, 0, 'กำลังเตรียมข้อมูล...');
 }
 
@@ -1611,11 +1680,17 @@ function scrollToSection(targetId) {
 }
 
 function openModal(id) {
+  if (id === 'uploadModal') {
+    cleanupUploadModalState();
+  }
   document.getElementById(id).classList.add('show');
   document.body.style.overflow = 'hidden';
 }
 
 function closeModal(id) {
+  if (id === 'uploadModal') {
+    cleanupUploadModalState();
+  }
   document.getElementById(id).classList.remove('show');
   document.body.style.overflow = '';
   
