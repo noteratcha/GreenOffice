@@ -216,6 +216,75 @@ body[data-season="winter"] .season-backdrop.season-winter {
   transform: scale(1);
 }
 
+/* --- Season Modal Footer & Modern Action Button --- */
+.season-modal-footer {
+  padding: 1.25rem 0 0 !important;
+  margin-top: 1.25rem;
+  border-top: 1px solid #edf2eb;
+  display: flex;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.btn-season-confirm {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55rem;
+  padding: 0.82rem 1.5rem;
+  background: linear-gradient(135deg, #2e7d32 0%, #1e8449 100%);
+  color: #ffffff !important;
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-family);
+  font-size: 0.96rem;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(30, 132, 73, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.3px;
+  position: relative;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.btn-season-confirm::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  transition: left 0.65s ease;
+}
+
+.btn-season-confirm:hover::before {
+  left: 100%;
+}
+
+.btn-season-confirm:hover {
+  background: linear-gradient(135deg, #388e3c 0%, #239b56 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 22px rgba(30, 132, 73, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+}
+
+.btn-season-confirm:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(30, 132, 73, 0.2);
+}
+
+.btn-season-confirm .material-icons {
+  font-size: 1.25rem;
+  transition: transform 0.25s ease;
+}
+
+.btn-season-confirm:hover .material-icons {
+  transform: scale(1.15);
+}
+
 /* --- Loading Screen --- */
 .loading-screen {
   position: fixed;
