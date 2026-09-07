@@ -57,6 +57,75 @@ body {
   line-height: 1.6;
   overflow-x: hidden;
   min-height: 100vh;
+  transition: background-color 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- Ambient Seasonal Mood & Tone Themes --- */
+body[data-season="rainy"], body:not([data-season]) {
+  --color-bg: #eef4eb;
+}
+
+body[data-season="summer"] {
+  --color-bg: #faf1e4;
+}
+
+body[data-season="winter"] {
+  --color-bg: #eaf2f8;
+}
+
+/* --- Ambient Seasonal Mood & Tone Backdrops --- */
+.season-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0;
+  transition: opacity 0.85s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity;
+}
+
+/* ฤดูฝน: Fresh Green Rainforest & Sage Dew */
+.season-backdrop.season-rainy {
+  background: 
+    radial-gradient(circle at 10% 12%, rgba(136, 172, 110, 0.32) 0%, transparent 55%),
+    radial-gradient(circle at 90% 85%, rgba(94, 126, 85, 0.24) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(200, 225, 185, 0.20) 0%, transparent 65%),
+    linear-gradient(180deg, #f4f8f1 0%, #e8f2e4 45%, #ddeade 100%);
+}
+
+/* ฤดูร้อน: Warm Golden Sunlight & Maple Amber Glow */
+.season-backdrop.season-summer {
+  background: 
+    radial-gradient(circle at 12% 10%, rgba(245, 166, 35, 0.30) 0%, transparent 55%),
+    radial-gradient(circle at 86% 82%, rgba(220, 110, 30, 0.24) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(255, 215, 160, 0.22) 0%, transparent 65%),
+    linear-gradient(180deg, #fef8f2 0%, #faeee0 45%, #f4dfca 100%);
+}
+
+/* ฤดูหนาว: Crisp Frost Air, Ice Blue & Crystal Snow */
+.season-backdrop.season-winter {
+  background: 
+    radial-gradient(circle at 10% 12%, rgba(140, 200, 250, 0.34) 0%, transparent 55%),
+    radial-gradient(circle at 88% 85%, rgba(100, 175, 235, 0.26) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(215, 238, 255, 0.28) 0%, transparent 65%),
+    linear-gradient(180deg, #f4f9fd 0%, #e3eff8 45%, #d4e5f4 100%);
+}
+
+/* Active season backdrop trigger */
+body[data-season="rainy"] .season-backdrop.season-rainy,
+body:not([data-season]) .season-backdrop.season-rainy {
+  opacity: 1;
+}
+
+body[data-season="summer"] .season-backdrop.season-summer {
+  opacity: 1;
+}
+
+body[data-season="winter"] .season-backdrop.season-winter {
+  opacity: 1;
 }
 
 /* --- Ambient Falling Leaves Canvas --- */
@@ -2324,7 +2393,7 @@ body {
 }
 /* --- Categories Grid --- */
 .categories-section {
-  background: var(--color-bg);
+  background: transparent;
 }
 .categories-grid {
   display: flex;

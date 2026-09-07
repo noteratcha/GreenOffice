@@ -3942,10 +3942,15 @@ function getActiveSeason() {
 
 function getSeasonName(seasonKey) {
   switch (seasonKey) {
-    case 'summer': return 'ฤดูร้อน (ใบเมเปิ้ล/ใบไม้แห้ง)';
-    case 'winter': return 'ฤดูหนาว (หิมะโปรยปราย)';
-    default: return 'ฤดูฝน (ใบไม้สีเขียว)';
+    case 'summer': return 'ฤดูร้อน (โทนอุ่นประกายทอง & ใบเมเปิ้ล)';
+    case 'winter': return 'ฤดูหนาว (โทนฟ้าไอหมอก & หิมะโปรยปราย)';
+    default: return 'ฤดูฝน (โทนเขียวขจีสดชื่น & ใบไม้สีเขียว)';
   }
+}
+
+function applySeasonTheme() {
+  const active = getActiveSeason();
+  document.body.setAttribute('data-season', active);
 }
 
 function openSeasonModal() {
@@ -3954,11 +3959,12 @@ function openSeasonModal() {
 }
 
 function updateSeasonModalUI() {
+  applySeasonTheme();
   const natural = getNaturalSeason();
   const naturalNames = {
-    rainy: 'ฤดูฝน (ใบไม้สีเขียว)',
-    summer: 'ฤดูร้อน (ใบเมเปิ้ล/ใบไม้แห้ง)',
-    winter: 'ฤดูหนาว (หิมะโปรยปราย)'
+    rainy: 'ฤดูฝน (โทนเขียวขจีสดชื่น)',
+    summer: 'ฤดูร้อน (โทนอุ่นประกายทอง)',
+    winter: 'ฤดูหนาว (โทนฟ้าไอหมอกเย็นสบาย)'
   };
   const autoNote = document.getElementById('seasonAutoNote');
   if (autoNote) {
@@ -3976,6 +3982,7 @@ function updateSeasonModalUI() {
 function chooseSeason(seasonKey) {
   currentSeasonMode = seasonKey;
   localStorage.setItem('go_season', seasonKey);
+  applySeasonTheme();
   updateSeasonModalUI();
   
   // Re-seed particles smoothly
@@ -4120,7 +4127,8 @@ function initFallingLeaves() {
     }
   };
 
-  // Initial seed
+  // Initial theme & particle seed
+  applySeasonTheme();
   reseedSeasonalParticles();
   updateSeasonUI();
 
