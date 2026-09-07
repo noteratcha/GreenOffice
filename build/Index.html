@@ -561,30 +561,8 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1035</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1040</p>
   </footer>
-
-  <!-- Seasonal Background Switcher Widget -->
-  <div class="season-badge-container" id="seasonBadgeContainer">
-    <div class="season-badge-trigger" onclick="toggleSeasonMenu(event)" title="คลิกเพื่อเลือกหรือดูฤดูกาลของฉากหลัง">
-      <span class="season-badge-icon" id="seasonCurrentIcon">🍃</span>
-      <span class="season-badge-label" id="seasonCurrentLabel">ฤดูฝน</span>
-    </div>
-    <div class="season-menu hidden" id="seasonMenu">
-      <button type="button" class="season-menu-item" id="seasonBtn-rainy" onclick="setSeason('rainy')">
-        <span>🍃</span> ฤดูฝน (ใบไม้สีเขียว)
-      </button>
-      <button type="button" class="season-menu-item" id="seasonBtn-summer" onclick="setSeason('summer')">
-        <span>🍁</span> ฤดูร้อน (ใบเมเปิ้ล/ใบไม้แห้ง)
-      </button>
-      <button type="button" class="season-menu-item" id="seasonBtn-winter" onclick="setSeason('winter')">
-        <span>❄️</span> ฤดูหนาว (หิมะโปรยปราย)
-      </button>
-      <button type="button" class="season-menu-item" id="seasonBtn-auto" onclick="setSeason('auto')">
-        <span>🔄</span> อัตโนมัติตามฤดูกาลจริง
-      </button>
-    </div>
-  </div>
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
   <div class="fab-container hidden" id="fabContainer">
@@ -631,9 +609,82 @@
       title="แก้ไขลิงก์ข้อเสนอแนะ">
       <span class="material-icons">rate_review</span>
     </button>
+    <button class="fab fab-secondary hidden" id="fabSeason" onclick="openSeasonModal()"
+      title="ปรับเปลี่ยนฤดูกาลฉากหลัง (สำหรับทดสอบ)">
+      <span class="material-icons">filter_vintage</span>
+    </button>
   </div>
 
   <!-- ==================== MODALS ==================== -->
+
+  <!-- Season Switcher Modal (Admin Only) -->
+  <div id="seasonModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title-wrapper">
+          <div class="modal-icon-badge" style="background: #eafaf1; color: #1e8449;">
+            <span class="material-icons">filter_vintage</span>
+          </div>
+          <div>
+            <h3>ปรับเปลี่ยนฤดูกาลฉากหลัง (สำหรับทดสอบ)</h3>
+            <p class="modal-subtitle">เลือกฤดูกาลเพื่อทดสอบการแสดงผลอนิเมชันฉากหลัง</p>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeModal('seasonModal')">
+          <span class="material-icons">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="season-options-grid">
+          <!-- Rainy Option -->
+          <div class="season-card-opt" id="seasonOpt-rainy" onclick="chooseSeason('rainy')">
+            <div class="season-opt-icon" style="background: #eafaf1; color: #27ae60;">🍃</div>
+            <div class="season-opt-details">
+              <strong>ฤดูฝน (ใบไม้สีเขียว)</strong>
+              <small>ช่วงกลาง พ.ค. – กลาง ต.ค. (ใบไม้เขียวชอุ่มพริ้วไหว)</small>
+            </div>
+            <span class="material-icons season-check-icon">check_circle</span>
+          </div>
+
+          <!-- Summer Option -->
+          <div class="season-card-opt" id="seasonOpt-summer" onclick="chooseSeason('summer')">
+            <div class="season-opt-icon" style="background: #fef5f1; color: #e67e22;">🍁</div>
+            <div class="season-opt-details">
+              <strong>ฤดูร้อน (ใบเมเปิ้ล & ใบไม้แห้ง)</strong>
+              <small>ช่วงกลาง ก.พ. – กลาง พ.ค. (ใบเมเปิ้ลโทนส้ม-แดง-ทอง)</small>
+            </div>
+            <span class="material-icons season-check-icon">check_circle</span>
+          </div>
+
+          <!-- Winter Option -->
+          <div class="season-card-opt" id="seasonOpt-winter" onclick="chooseSeason('winter')">
+            <div class="season-opt-icon" style="background: #eef7fc; color: #3498db;">❄️</div>
+            <div class="season-opt-details">
+              <strong>ฤดูหนาว (หิมะโปรยปราย)</strong>
+              <small>ช่วงกลาง ต.ค. – กลาง ก.พ. (เกล็ดหิมะคริสตัลและปุยหิมะนุ่ม)</small>
+            </div>
+            <span class="material-icons season-check-icon">check_circle</span>
+          </div>
+
+          <!-- Auto Option -->
+          <div class="season-card-opt" id="seasonOpt-auto" onclick="chooseSeason('auto')">
+            <div class="season-opt-icon" style="background: #f4f6f7; color: #7f8c8d;">🔄</div>
+            <div class="season-opt-details">
+              <strong>อัตโนมัติตามเดือนจริง</strong>
+              <small id="seasonAutoNote">ตรวจจับตามปฏิทินจริงของเครื่อง (ปัจจุบัน: ฤดูฝน)</small>
+            </div>
+            <span class="material-icons season-check-icon">check_circle</span>
+          </div>
+        </div>
+
+        <div class="modal-footer" style="padding: 1.5rem 0 0;">
+          <button type="button" class="btn btn-primary" style="width: 100%;" onclick="closeModal('seasonModal')">
+            ตกลง / ปิดหน้าต่าง
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Policy Upload Modal -->
   <div id="policyModal" class="modal-backdrop">

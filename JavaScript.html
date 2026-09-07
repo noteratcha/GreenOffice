@@ -177,6 +177,8 @@ function setUserSession(username, role, name = null) {
     document.getElementById('fabEditCategories').classList.remove('hidden');
     document.getElementById('fabResources').classList.remove('hidden');
     document.getElementById('fabEditFeedback').classList.remove('hidden');
+    const fabSeason = document.getElementById('fabSeason');
+    if (fabSeason) fabSeason.classList.remove('hidden');
   } else {
     document.getElementById('fabPolicy').classList.add('hidden');
     document.getElementById('fabAddEvent').classList.add('hidden');
@@ -184,6 +186,8 @@ function setUserSession(username, role, name = null) {
     document.getElementById('fabEditCategories').classList.add('hidden');
     document.getElementById('fabResources').classList.add('hidden');
     document.getElementById('fabEditFeedback').classList.add('hidden');
+    const fabSeason = document.getElementById('fabSeason');
+    if (fabSeason) fabSeason.classList.add('hidden');
   }
 }
 
@@ -197,6 +201,8 @@ function logout() {
   document.getElementById('btnNavLogin').classList.remove('hidden');
   document.getElementById('navUserInfo').classList.add('hidden');
   document.getElementById('fabContainer').classList.add('hidden');
+  const fabSeason = document.getElementById('fabSeason');
+  if (fabSeason) fabSeason.classList.add('hidden');
   closePhotosSubMenu();
   
   showToast('ออกจากระบบแล้ว', 'success');
@@ -3942,48 +3948,49 @@ function getSeasonName(seasonKey) {
   }
 }
 
-function updateSeasonUI() {
-  const active = getActiveSeason();
-  const iconElem = document.getElementById('seasonCurrentIcon');
-  const labelElem = document.getElementById('seasonCurrentLabel');
-  
-  const seasonInfo = {
-    rainy: { icon: '🍃', label: 'ฤดูฝน' },
-    summer: { icon: '🍁', label: 'ฤดูร้อน' },
-    winter: { icon: '❄️', label: 'ฤดูหนาว' }
+function openSeasonModal() {
+  updateSeasonModalUI();
+  openModal('seasonModal');
+}
+
+function updateSeasonModalUI() {
+  const natural = getNaturalSeason();
+  const naturalNames = {
+    rainy: 'ฤดูฝน (ใบไม้สีเขียว)',
+    summer: 'ฤดูร้อน (ใบเมเปิ้ล/ใบไม้แห้ง)',
+    winter: 'ฤดูหนาว (หิมะโปรยปราย)'
   };
-
-  const info = seasonInfo[active] || seasonInfo.rainy;
-  if (iconElem) iconElem.textContent = info.icon;
-  if (labelElem) {
-    labelElem.textContent = currentSeasonMode === 'auto' ? `${info.label} (ออโต้)` : info.label;
+  const autoNote = document.getElementById('seasonAutoNote');
+  if (autoNote) {
+    autoNote.textContent = `ตรวจจับตามปฏิทินจริงของเครื่อง (ปัจจุบัน: ${naturalNames[natural] || 'ฤดูฝน'})`;
   }
-
-  document.querySelectorAll('.season-menu-item').forEach(btn => {
-    btn.classList.remove('active');
+  document.querySelectorAll('.season-card-opt').forEach(card => {
+    card.classList.remove('active');
   });
-  const activeBtn = document.getElementById(`seasonBtn-${currentSeasonMode}`);
-  if (activeBtn) activeBtn.classList.add('active');
+  const activeOpt = document.getElementById(`seasonOpt-${currentSeasonMode}`);
+  if (activeOpt) {
+    activeOpt.classList.add('active');
+  }
 }
 
-function toggleSeasonMenu(e) {
-  if (e) e.stopPropagation();
-  const menu = document.getElementById('seasonMenu');
-  if (menu) menu.classList.toggle('hidden');
-}
-
-function setSeason(seasonKey) {
+function chooseSeason(seasonKey) {
   currentSeasonMode = seasonKey;
   localStorage.setItem('go_season', seasonKey);
-  updateSeasonUI();
-  const menu = document.getElementById('seasonMenu');
-  if (menu) menu.classList.add('hidden');
+  updateSeasonModalUI();
   
   // Re-seed particles smoothly
   if (typeof reseedSeasonalParticles === 'function') {
     reseedSeasonalParticles();
   }
-  showToast(`เปลี่ยนฉากหลังเป็น ${getSeasonName(getActiveSeason())}`, 'success');
+  showToast(`ตั้งค่าฉากหลังเป็น ${getSeasonName(getActiveSeason())}`, 'success');
+}
+
+function updateSeasonUI() {
+  updateSeasonModalUI();
+}
+
+function setSeason(seasonKey) {
+  chooseSeason(seasonKey);
 }
 
 let reseedSeasonalParticles = function() {};
@@ -4116,15 +4123,6 @@ function initFallingLeaves() {
   // Initial seed
   reseedSeasonalParticles();
   updateSeasonUI();
-
-  // Close season menu on outside click
-  document.addEventListener('click', (e) => {
-    const container = document.getElementById('seasonBadgeContainer');
-    const menu = document.getElementById('seasonMenu');
-    if (container && menu && !container.contains(e.target)) {
-      menu.classList.add('hidden');
-    }
-  });
 
   // Drawing helpers
   function drawGreenLeaf(ctx, p) {
