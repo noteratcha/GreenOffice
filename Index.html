@@ -35,6 +35,13 @@
   <div class="season-backdrop season-summer" id="seasonBackdropSummer"></div>
   <div class="season-backdrop season-winter" id="seasonBackdropWinter"></div>
 
+  <!-- Ambient Summer Sun (Only active in Summer) -->
+  <div class="season-sun-container" id="seasonSunContainer" aria-hidden="true">
+    <div class="season-sun-glow"></div>
+    <div class="season-sun-rays"></div>
+    <div class="season-sun-core"></div>
+  </div>
+
   <!-- Ambient Seasonal Floating Clouds -->
   <div class="season-clouds-container" id="seasonCloudsContainer" aria-hidden="true">
     <!-- Shared Cloud Gradient Definition -->
@@ -615,7 +622,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1120</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1125</p>
   </footer>
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
@@ -702,10 +709,10 @@
 
           <!-- Summer Option -->
           <div class="season-card-opt" id="seasonOpt-summer" onclick="chooseSeason('summer')">
-            <div class="season-opt-icon" style="background: #fef5f1; color: #e67e22;">🍁</div>
+            <div class="season-opt-icon" style="background: #fef5f1; color: #e67e22;">☀️</div>
             <div class="season-opt-details">
-              <strong>ฤดูร้อน (ใบเมเปิ้ล & ใบไม้แห้ง)</strong>
-              <small>ช่วงกลาง ก.พ. – กลาง พ.ค. (ใบเมเปิ้ลโทนส้ม-แดง-ทอง)</small>
+              <strong>ฤดูร้อน (พระอาทิตย์ & ใบเมเปิ้ล)</strong>
+              <small>แสงแดดสีทองอบอุ่น พระอาทิตย์ส่องสว่าง ใบเมเปิ้ลปลิวไหว</small>
             </div>
             <span class="material-icons season-check-icon">check_circle</span>
           </div>
