@@ -4284,11 +4284,10 @@ body[data-season="summer"] .season-sun-container {
 
 .choice-badge {
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
   border-radius: 12px;
   background: #f1f5f9;
   border: 1.5px solid #cbd5e1;
@@ -4297,18 +4296,14 @@ body[data-season="summer"] .season-sun-container {
 }
 
 .choice-letter {
-  font-size: 1rem;
+  font-size: 1.12rem;
   font-weight: 800;
   color: #334155;
   line-height: 1;
 }
 
 .choice-shortcut {
-  font-size: 0.65rem;
-  color: #94a3b8;
-  font-weight: 700;
-  line-height: 1;
-  margin-top: 1px;
+  display: none !important;
 }
 
 .quiz-choice-btn:hover:not(:disabled) .choice-badge {
@@ -4318,10 +4313,6 @@ body[data-season="summer"] .season-sun-container {
 
 .quiz-choice-btn:hover:not(:disabled) .choice-letter {
   color: #ffffff;
-}
-
-.quiz-choice-btn:hover:not(:disabled) .choice-shortcut {
-  color: rgba(255, 255, 255, 0.8);
 }
 
 .choice-text {
