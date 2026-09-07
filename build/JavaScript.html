@@ -72,6 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   initCalendar();
   initFeedbackForm();
+  initFallingLeaves();
 
   // Drag & Drop for all upload zones
   setupDragAndDrop();
@@ -3895,6 +3896,155 @@ function resetFeedbackFormView() {
   document.getElementById('feedbackSuccessBanner').classList.add('hidden');
   document.getElementById('feedbackForm').classList.remove('hidden');
   resetFeedbackForm();
+}
+
+// ============================================================
+// Ambient Falling Leaves Animation System
+// ============================================================
+
+let leavesAnimId = null;
+let leaves = [];
+let leavesCanvas = null;
+let leavesCtx = null;
+
+function initFallingLeaves() {
+  leavesCanvas = document.getElementById('fallingLeavesCanvas');
+  if (!leavesCanvas) return;
+  leavesCtx = leavesCanvas.getContext('2d');
+  if (!leavesCtx) return;
+
+  function resizeCanvas() {
+    if (!leavesCanvas) return;
+    leavesCanvas.width = window.innerWidth;
+    leavesCanvas.height = window.innerHeight;
+  }
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas, { passive: true });
+
+  const leafColors = [
+    { fill: 'rgba(118, 139, 84, 0.75)', vein: 'rgba(58, 79, 59, 0.5)' },    // Olive
+    { fill: 'rgba(58, 79, 59, 0.70)',   vein: 'rgba(26, 38, 34, 0.45)' },   // Forest Green
+    { fill: 'rgba(143, 165, 104, 0.78)', vein: 'rgba(94, 113, 67, 0.5)' },  // Sage
+    { fill: 'rgba(163, 190, 140, 0.68)', vein: 'rgba(74, 99, 68, 0.45)' },  // Pale Leaf
+    { fill: 'rgba(126, 153, 90, 0.72)', vein: 'rgba(60, 80, 45, 0.5)' }     // Fresh Foliage
+  ];
+
+  function createLeaf(initialY = null) {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const colorScheme = leafColors[Math.floor(Math.random() * leafColors.length)];
+    const depth = 0.65 + Math.random() * 0.65;
+    const size = (13 + Math.random() * 13) * depth;
+
+    return {
+      x: Math.random() * width,
+      y: initialY !== null ? initialY : -size - Math.random() * 120,
+      baseX: Math.random() * width,
+      size: size,
+      type: Math.random() > 0.4 ? 'oval' : 'heart',
+      speedY: (0.75 + Math.random() * 1.1) * depth,
+      swayAmp: 18 + Math.random() * 32,
+      swaySpeed: 0.014 + Math.random() * 0.018,
+      swayProgress: Math.random() * Math.PI * 2,
+      angle: Math.random() * Math.PI * 2,
+      angleSpeed: (Math.random() - 0.5) * 0.022,
+      flipAngle: Math.random() * Math.PI * 2,
+      flipSpeed: 0.018 + Math.random() * 0.03,
+      color: colorScheme.fill,
+      veinColor: colorScheme.vein,
+      opacity: (0.55 + Math.random() * 0.35) * Math.min(1, depth)
+    };
+  }
+
+  const isMobile = window.innerWidth < 768;
+  const leafCount = isMobile ? 14 : 22;
+
+  leaves = [];
+  for (let i = 0; i < leafCount; i++) {
+    leaves.push(createLeaf(Math.random() * window.innerHeight));
+  }
+
+  function drawLeafShape(ctx, leaf) {
+    const size = leaf.size;
+    ctx.save();
+    ctx.fillStyle = leaf.color;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.07)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetY = 2;
+
+    ctx.beginPath();
+    if (leaf.type === 'oval') {
+      ctx.moveTo(0, -size);
+      ctx.bezierCurveTo(size * 0.62, -size * 0.45, size * 0.62, size * 0.45, 0, size);
+      ctx.bezierCurveTo(-size * 0.62, size * 0.45, -size * 0.62, -size * 0.45, 0, -size);
+    } else {
+      ctx.moveTo(0, -size);
+      ctx.bezierCurveTo(size * 0.75, -size * 0.3, size * 0.5, size * 0.6, 0, size);
+      ctx.bezierCurveTo(-size * 0.5, size * 0.6, -size * 0.75, -size * 0.3, 0, -size);
+    }
+    ctx.fill();
+
+    ctx.shadowColor = 'transparent';
+    ctx.strokeStyle = leaf.veinColor;
+    ctx.lineWidth = Math.max(0.75, size * 0.065);
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 0.85);
+    ctx.lineTo(0, size * 0.85);
+    ctx.stroke();
+
+    ctx.restore();
+  }
+
+  function animate() {
+    if (!leavesCanvas || !leavesCtx) return;
+
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    leavesCtx.clearRect(0, 0, width, height);
+
+    for (let i = 0; i < leaves.length; i++) {
+      const leaf = leaves[i];
+
+      leaf.y += leaf.speedY;
+      leaf.swayProgress += leaf.swaySpeed;
+      const currentX = leaf.baseX + Math.sin(leaf.swayProgress) * leaf.swayAmp;
+      leaf.baseX += 0.12;
+
+      leaf.angle += leaf.angleSpeed;
+      leaf.flipAngle += leaf.flipSpeed;
+      const scaleX = Math.cos(leaf.flipAngle);
+
+      leavesCtx.save();
+      leavesCtx.translate(currentX, leaf.y);
+      leavesCtx.rotate(leaf.angle);
+      leavesCtx.scale(scaleX, 1);
+      leavesCtx.globalAlpha = leaf.opacity;
+      drawLeafShape(leavesCtx, leaf);
+      leavesCtx.restore();
+
+      if (leaf.y > height + 40 || currentX > width + 70) {
+        Object.assign(leaf, createLeaf(-leaf.size - 15));
+      }
+    }
+
+    leavesAnimId = requestAnimationFrame(animate);
+  }
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (leavesAnimId) {
+        cancelAnimationFrame(leavesAnimId);
+        leavesAnimId = null;
+      }
+    } else {
+      if (!leavesAnimId) {
+        leavesAnimId = requestAnimationFrame(animate);
+      }
+    }
+  });
+
+  leavesAnimId = requestAnimationFrame(animate);
 }
 
 </script>
