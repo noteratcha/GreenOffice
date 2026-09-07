@@ -3945,7 +3945,7 @@ function getSeasonName(seasonKey) {
   switch (seasonKey) {
     case 'summer': return 'ฤดูร้อน (พระอาทิตย์ & ใบเมเปิ้ลโทนอุ่น)';
     case 'winter': return 'ฤดูหนาว (โทนฟ้าไอหมอก & หิมะโปรยปราย)';
-    default: return 'ฤดูฝน (เมฆครึ้มฝนกำลังจะตก & ใบไม้เขียว)';
+    default: return 'ฤดูฝน (โทนเขียวขจีสดชื่น & ใบไม้สีเขียว)';
   }
 }
 
@@ -3963,8 +3963,8 @@ function updateSeasonModalUI() {
   applySeasonTheme();
   const natural = getNaturalSeason();
   const naturalNames = {
-    rainy: 'ฤดูฝน (เมฆครึ้มฝนกำลังจะตก)',
-    summer: 'ฤดูร้อน (พระอาทิตย์ & โทนอุ่นประกายทอง)',
+    rainy: 'ฤดูฝน (โทนเขียวขจีสดชื่น)',
+    summer: 'ฤดูร้อน (โทนอุ่นประกายทอง)',
     winter: 'ฤดูหนาว (โทนฟ้าไอหมอกเย็นสบาย)'
   };
   const autoNote = document.getElementById('seasonAutoNote');

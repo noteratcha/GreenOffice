@@ -62,13 +62,12 @@ body {
 
 /* --- Ambient Seasonal Mood & Tone Themes --- */
 body[data-season="rainy"], body:not([data-season]) {
-  --color-bg: #dbe4dd;
-  --cloud-stop-1: #c6d5dc;
-  --cloud-stop-2: #657b87;
-  --cloud-stop-3: #2d3b43;
-  --cloud-shadow: rgba(18, 28, 34, 0.45);
-  --cloud-opacity: 0.92;
-  --rain-streak-opacity: 0.65;
+  --color-bg: #eef4eb;
+  --cloud-stop-1: #ffffff;
+  --cloud-stop-2: #e3ede4;
+  --cloud-stop-3: #c5d8c7;
+  --cloud-shadow: rgba(45, 75, 52, 0.12);
+  --cloud-opacity: 0.75;
 }
 
 body[data-season="summer"] {
@@ -78,7 +77,6 @@ body[data-season="summer"] {
   --cloud-stop-3: #fcdbaa;
   --cloud-shadow: rgba(200, 110, 15, 0.12);
   --cloud-opacity: 0.78;
-  --rain-streak-opacity: 0;
 }
 
 body[data-season="winter"] {
@@ -88,7 +86,6 @@ body[data-season="winter"] {
   --cloud-stop-3: #cee3f8;
   --cloud-shadow: rgba(70, 135, 200, 0.14);
   --cloud-opacity: 0.70;
-  --rain-streak-opacity: 0;
 }
 
 /* --- Ambient Seasonal Mood & Tone Backdrops --- */
@@ -105,13 +102,13 @@ body[data-season="winter"] {
   will-change: opacity;
 }
 
-/* ฤดูฝน: Overcast Storm Sky & Rain-laden Clouds */
+/* ฤดูฝน: Fresh Green Rainforest & Sage Dew */
 .season-backdrop.season-rainy {
   background: 
-    radial-gradient(circle at 10% 12%, rgba(95, 120, 110, 0.38) 0%, transparent 55%),
-    radial-gradient(circle at 90% 85%, rgba(60, 85, 80, 0.32) 0%, transparent 55%),
-    radial-gradient(circle at 50% 50%, rgba(110, 135, 125, 0.25) 0%, transparent 65%),
-    linear-gradient(180deg, #d2ded5 0%, #c4d3c8 45%, #b2c4b7 100%);
+    radial-gradient(circle at 10% 12%, rgba(136, 172, 110, 0.32) 0%, transparent 55%),
+    radial-gradient(circle at 90% 85%, rgba(94, 126, 85, 0.24) 0%, transparent 55%),
+    radial-gradient(circle at 50% 50%, rgba(200, 225, 185, 0.20) 0%, transparent 65%),
+    linear-gradient(180deg, #f4f8f1 0%, #e8f2e4 45%, #ddeade 100%);
 }
 
 /* ฤดูร้อน: Warm Golden Sunlight & Maple Amber Glow */
@@ -265,38 +262,6 @@ body[data-season="summer"] .season-sun-container {
 
 .cloud-svg stop {
   transition: stop-color 0.85s ease;
-}
-
-/* Rain Virga (Rain streaks hanging from impending storm clouds in Rainy Season) */
-.cloud-rain-virga {
-  position: absolute;
-  top: 75%;
-  left: 10%;
-  width: 80%;
-  height: 95px;
-  pointer-events: none;
-  opacity: var(--rain-streak-opacity, 0);
-  transition: opacity 0.85s ease;
-  background: repeating-linear-gradient(
-    -15deg,
-    rgba(65, 95, 110, 0.45) 0px,
-    rgba(65, 95, 110, 0.45) 2px,
-    transparent 2px,
-    transparent 13px
-  );
-  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.35) 65%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.95) 0%, rgba(0, 0, 0, 0.35) 65%, transparent 100%);
-  filter: blur(0.4px);
-  animation: rainDrift 1.4s linear infinite;
-}
-
-@keyframes rainDrift {
-  0% {
-    transform: translateY(0) skewX(-6deg);
-  }
-  100% {
-    transform: translateY(12px) skewX(-6deg);
-  }
 }
 
 /* Float Animation: Smooth drift from left to right */
