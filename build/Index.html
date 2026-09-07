@@ -629,7 +629,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1140</p>
+    <p>&copy; <span id="currentYear"></span> Green Office Reg.10 Project. All rights reserved. | v2026.0907.1837</p>
   </footer>
 
   <!-- ==================== FLOATING ACTION BUTTONS ==================== -->
@@ -750,7 +750,7 @@
                 <span class="material-icons">timer</span>
               </div>
               <div class="rule-text-box">
-                <h4>แข่งกับเวลา 20 วินาที</h4>
+                <h4>แข่งกับเวลา 30 วินาที</h4>
                 <p>ยิ่งตอบเร็วยิ่งได้คะแนนโบนัสความเร็วสูง (+10 แต้ม/วิ)</p>
               </div>
             </div>
@@ -771,23 +771,6 @@
                 <h4>2 ตัวช่วยพลิกเกม</h4>
                 <p>ตัด 2 ช้อยส์ (50:50) และขอสลับคำถามใหม่ (ใช้อย่างละ 1 ครั้ง)</p>
               </div>
-            </div>
-          </div>
-
-          <!-- Player Input Card -->
-          <div class="quiz-player-card">
-            <div class="player-card-header">
-              <div class="player-avatar-preview" id="quizPlayerAvatarPreview">
-                <span class="material-icons">person</span>
-              </div>
-              <div class="player-header-text">
-                <label for="quizPlayerName">ชื่อผู้เข้าประลอง (สำหรับบันทึกคะแนน):</label>
-                <span>กรุณาระบุชื่อของคุณหรือชื่อเล่นเพื่อจารึกลงในกระดานผู้นำ</span>
-              </div>
-            </div>
-            <div class="player-input-wrap">
-              <span class="material-icons input-icon">badge</span>
-              <input type="text" id="quizPlayerName" class="quiz-name-input" placeholder="ระบุชื่อผู้เล่น เช่น นฤมล ปข.10" maxlength="30" oninput="updateQuizPlayerAvatar(this.value)">
             </div>
           </div>
 
@@ -839,7 +822,7 @@
                 <span>เวลาตอบคำถาม:</span>
               </div>
               <div class="timer-countdown-box">
-                <span id="quizTimerSeconds" class="timer-seconds-text">20s</span>
+                <span id="quizTimerSeconds" class="timer-seconds-text">30s</span>
               </div>
             </div>
             <div class="quiz-timer-track">
@@ -941,12 +924,30 @@
             </div>
           </div>
 
-          <!-- Cloud Save Status Banner -->
-          <div id="quizSaveStatusBanner" class="quiz-save-status">
-            <span class="material-icons">cloud_upload</span> กำลังบันทึกคะแนนเข้าสู่ตารางผู้นำ...
-          </div>
+          <!-- Player Input for Saving Score -->
+            <div class="quiz-player-card" id="quizPlayerCardResult">
+              <div class="player-card-header">
+                <div class="player-avatar-preview" id="quizPlayerAvatarPreview">
+                  <span class="material-icons">person</span>
+                </div>
+                <div class="player-header-text">
+                  <label for="quizPlayerName">บันทึกสถิติของคุณลงกระดานผู้นำ</label>
+                  <span>กรุณาระบุชื่อหรือชื่อเล่น เพื่อบันทึกคะแนนนี้ลงในระบบ</span>
+                </div>
+              </div>
+              <div class="player-input-wrap">
+                <span class="material-icons input-icon">badge</span>
+                <input type="text" id="quizPlayerName" class="quiz-name-input" placeholder="ระบุชื่อผู้เล่น เช่น นฤมล ปข.10" maxlength="30" oninput="updateQuizPlayerAvatar(this.value)" onkeydown="if(event.key==='Enter') saveQuizScore()">
+                <button type="button" class="btn-quiz-start" style="padding: 0.6rem 1.5rem; border-radius: 50px; font-size: 0.9rem; flex-shrink: 0;" onclick="saveQuizScore()">บันทึกคะแนน</button>
+              </div>
+            </div>
 
-          <!-- Result Actions -->
+            <!-- Cloud Save Status Banner -->
+            <div id="quizSaveStatusBanner" class="quiz-save-status" style="display: none;">
+              <span class="material-icons">cloud_upload</span> กำลังบันทึกคะแนนเข้าสู่ตารางผู้นำ...
+            </div>
+            
+            <!-- Result Actions -->
           <div class="quiz-result-actions">
             <button type="button" class="btn-quiz-start" onclick="startQuizGame()">
               <span class="material-icons">replay</span> เริ่มเล่นใหม่อีกครั้ง

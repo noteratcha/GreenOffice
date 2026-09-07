@@ -1054,7 +1054,7 @@ function saveGameScore(scoreData) {
     const username = (scoreData.username || 'guest').trim();
     const score = parseInt(scoreData.score, 10) || 0;
     const correctCount = parseInt(scoreData.correctCount, 10) || 0;
-    const timeSeconds = Math.round(parseFloat(scoreData.timeSeconds) || 0);
+    const timeSeconds = Math.round(parseFloat(scoreData.timeSeconds !== undefined ? scoreData.timeSeconds : scoreData.timeUsed) || 0);
     const dateFormatted = Utilities.formatDate(now, Session.getScriptTimeZone(), 'dd/MM/yyyy HH:mm');
 
     sheet.appendRow([
@@ -1083,10 +1083,10 @@ function getGameLeaderboard() {
   try {
     const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
     const sheet = ss.getSheetByName(GAME_RANKING_SHEET);
-    if (!sheet) return [];
+    if (!sheet) return { success: true, leaderboard: [] };
 
     const data = sheet.getDataRange().getValues();
-    if (data.length <= 1) return [];
+    if (data.length <= 1) return { success: true, leaderboard: [] };
 
     const leaderboard = [];
     for (let i = 1; i < data.length; i++) {
@@ -1109,6 +1109,7 @@ function getGameLeaderboard() {
           username: username,
           score: score,
           correctCount: correctCount,
+          timeUsed: timeSeconds,
           timeSeconds: timeSeconds,
           date: dateStr
         });
@@ -1126,13 +1127,17 @@ function getGameLeaderboard() {
     // Return Top 20
     const top20 = leaderboard.slice(0, 20).map((item, idx) => {
       item.rank = idx + 1;
+      item.timeUsed = item.timeSeconds;
       return item;
     });
 
-    return top20;
+    return {
+      success: true,
+      leaderboard: top20
+    };
   } catch (e) {
     Logger.log('getGameLeaderboard error: ' + e.message);
-    return [];
+    return { success: false, message: e.message, leaderboard: [] };
   }
 }
 

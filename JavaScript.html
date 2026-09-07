@@ -4388,7 +4388,7 @@ let quizState = {
   score: 0,
   correctCount: 0,
   totalTimeUsed: 0,
-  currentQuestionTime: 20,
+  currentQuestionTime: 30,
   timerInterval: null,
   lifeline5050Used: false,
   lifelineSwapUsed: false,
@@ -4984,12 +4984,9 @@ function startQuizGame() {
   const nameInput = document.getElementById('quizPlayerName') || document.getElementById('quizPlayerNameInput');
   let pName = nameInput ? nameInput.value.trim() : '';
   if (!pName) {
-    pName = localStorage.getItem('go_name') || localStorage.getItem('go_user') || 'ผู้ร่วมสนุก Green Office';
-    if (nameInput) nameInput.value = pName;
+    pName = localStorage.getItem('go_quiz_player_name') || localStorage.getItem('go_name') || localStorage.getItem('go_user') || '';
   }
-  localStorage.setItem('go_quiz_player_name', pName);
   quizState.playerName = pName;
-  updateQuizPlayerAvatar(pName);
 
   const bank = getQuizBank();
 
@@ -5111,8 +5108,8 @@ function loadQuizQuestion() {
   const feedback = document.getElementById('quizFeedbackBanner');
   if (feedback) feedback.classList.add('hidden');
 
-  // Start 20s Countdown Timer
-  quizState.currentQuestionTime = 20;
+  // Start 30s Countdown Timer
+  quizState.currentQuestionTime = 30;
   quizState.isAnsweringLocked = false;
 
   const timerBar = document.getElementById('quizTimerBar');
@@ -5122,11 +5119,11 @@ function loadQuizQuestion() {
     timerBar.classList.remove('urgent');
   }
   if (timerSec) {
-    timerSec.textContent = '20s';
+    timerSec.textContent = '30s';
     timerSec.classList.remove('urgent');
   }
 
-  const durationMs = 20000;
+  const durationMs = 30000;
   const startTime = Date.now();
 
   quizState.timerInterval = setInterval(() => {
@@ -5157,7 +5154,7 @@ function handleChoiceClick(chosenIdx) {
   clearInterval(quizState.timerInterval);
 
   const q = quizState.currentQuestions[quizState.questionIndex];
-  const timeTaken = Math.max(1, 20 - quizState.currentQuestionTime);
+  const timeTaken = Math.max(1, 30 - quizState.currentQuestionTime);
   quizState.totalTimeUsed += timeTaken;
 
   const isCorrect = (chosenIdx === q.answer);
@@ -5223,7 +5220,7 @@ function handleChoiceClick(chosenIdx) {
 
     if (feedbackBanner && feedbackContent) {
       feedbackBanner.className = 'quiz-feedback-banner feedback-wrong';
-      const reasonTitle = chosenIdx === -1 ? 'หมดเวลา 20 วินาที!' : 'คำตอบยังไม่ถูกต้อง!';
+      const reasonTitle = chosenIdx === -1 ? 'หมดเวลา 30 วินาที!' : 'คำตอบยังไม่ถูกต้อง!';
       feedbackContent.innerHTML = `
         <div class="feedback-title">
           <span class="material-icons">cancel</span> ${reasonTitle}
@@ -5336,18 +5333,48 @@ function endQuizGame(isVictory) {
     if (sub) sub.textContent = `คุณตอบถูกไป ${quizState.correctCount} ข้อ (กฎ Sudden Death: ตอบผิดเริ่มใหม่) พยายามได้ดีมาก ลองประลองอีกครั้งเพื่อชิงอันดับ 1!`;
   }
 
-  // Cloud Score Submission to Google Sheet
+  // Show Player Input Card so user can record their score on the leaderboard
+  const playerCard = document.getElementById('quizPlayerCardResult');
   const saveBanner = document.getElementById('quizSaveStatusBanner');
+  const nameInput = document.getElementById('quizPlayerName');
+  if (playerCard) playerCard.style.display = 'block';
   if (saveBanner) {
+    saveBanner.style.display = 'none';
+    saveBanner.className = 'quiz-save-status';
+  }
+  if (nameInput) {
+    const savedName = quizState.playerName || localStorage.getItem('go_quiz_player_name') || localStorage.getItem('go_name') || localStorage.getItem('go_user') || '';
+    nameInput.value = savedName;
+    updateQuizPlayerAvatar(savedName);
+  }
+}
+
+function saveQuizScore() {
+  const nameInput = document.getElementById('quizPlayerName');
+  const pName = nameInput ? nameInput.value.trim() : '';
+  if (!pName) {
+    showToast('กรุณาระบุชื่อผู้เล่นก่อนบันทึกคะแนน', 'error');
+    return;
+  }
+  quizState.playerName = pName;
+  localStorage.setItem('go_quiz_player_name', pName);
+
+  const playerCard = document.getElementById('quizPlayerCardResult');
+  const saveBanner = document.getElementById('quizSaveStatusBanner');
+  if (playerCard) playerCard.style.display = 'none';
+
+  if (saveBanner) {
+    saveBanner.style.display = 'flex';
     saveBanner.className = 'quiz-save-status';
     saveBanner.innerHTML = '<span class="material-icons">cloud_upload</span> กำลังบันทึกคะแนนเข้าสู่ตารางผู้นำ...';
   }
 
   const scorePayload = {
-    playerName: quizState.playerName || 'ผู้เยี่ยมชมสำนักงาน',
+    playerName: quizState.playerName,
     score: quizState.score,
     correctCount: quizState.correctCount,
     timeUsed: quizState.totalTimeUsed,
+    timeSeconds: quizState.totalTimeUsed,
     username: (typeof currentUser !== 'undefined' && currentUser) ? currentUser : ''
   };
 
@@ -5361,6 +5388,7 @@ function endQuizGame(isVictory) {
           } else {
             saveBanner.className = 'quiz-save-status error';
             saveBanner.innerHTML = `<span class="material-icons">error_outline</span> ${res?.message || 'บันทึกไม่สำเร็จ'}`;
+            if (playerCard) playerCard.style.display = 'block';
           }
         }
       })
@@ -5368,6 +5396,7 @@ function endQuizGame(isVictory) {
         if (saveBanner) {
           saveBanner.className = 'quiz-save-status error';
           saveBanner.innerHTML = '<span class="material-icons">cloud_off</span> บันทึกคะแนนออฟไลน์ (เชื่อมต่อเซิร์ฟเวอร์ไม่ได้)';
+          if (playerCard) playerCard.style.display = 'block';
         }
       })
       .saveGameScore(scorePayload);
@@ -5421,6 +5450,16 @@ function loadGameLeaderboard(forceRefresh = false) {
   }
 }
 
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function renderGameLeaderboard(res) {
   const loading = document.getElementById('leaderboardLoading');
   const content = document.getElementById('leaderboardContent');
@@ -5429,7 +5468,14 @@ function renderGameLeaderboard(res) {
   if (!content) return;
   content.classList.remove('hidden');
 
-  if (!res || !res.success || !res.leaderboard || res.leaderboard.length === 0) {
+  let list = [];
+  if (Array.isArray(res)) {
+    list = res;
+  } else if (res && Array.isArray(res.leaderboard)) {
+    list = res.leaderboard;
+  }
+
+  if (!list || list.length === 0) {
     content.innerHTML = `
       <div class="leaderboard-empty">
         <span class="material-icons">emoji_events</span>
@@ -5458,7 +5504,7 @@ function renderGameLeaderboard(res) {
       <tbody>
   `;
 
-  res.leaderboard.forEach(row => {
+  list.forEach(row => {
     let rankBadge = '';
     let rowClass = '';
     if (row.rank === 1) {
@@ -5478,6 +5524,7 @@ function renderGameLeaderboard(res) {
     if (isCurrentPlayer) rowClass += ' current-user-row';
 
     const initial = (row.playerName || 'ผ').trim().charAt(0).toUpperCase();
+    const displayTime = row.timeUsed !== undefined ? row.timeUsed : (row.timeSeconds !== undefined ? row.timeSeconds : 0);
 
     html += `
       <tr class="${rowClass}">
@@ -5493,7 +5540,7 @@ function renderGameLeaderboard(res) {
           </div>
         </td>
         <td style="text-align: center;"><span class="badge-correct">${row.correctCount}/10</span></td>
-        <td style="text-align: center;"><span class="time-cell">${row.timeUsed}s</span></td>
+        <td style="text-align: center;"><span class="time-cell">${displayTime}s</span></td>
         <td style="text-align: right;"><strong class="score-highlight">${Number(row.score).toLocaleString()}</strong></td>
         <td style="text-align: center;"><span class="date-cell">${escapeHtml(row.date || '-')}</span></td>
       </tr>
